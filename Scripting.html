@@ -1338,8 +1338,8 @@
                         <div class="code-content">
 <span class="keyword">void</span> <span class="method">Start</span>()
 {
-    <span class="comment">// Access and change the GameObject's name</span>
-    <span class="type">gameObject</span>.name = <span class="string">"Bob Burington"</span>;
+    <br><br><span class="comment">// Access and change the GameObject's name</span>
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="type">gameObject</span>.name = <span class="string">"MAC280"</span>;<br><br>
 }
                         </div>
                     </div>
@@ -1452,13 +1452,13 @@
                         <div class="code-content">
 <span class="keyword">public class</span> <span class="type">BirdScript</span> : <span class="type">MonoBehaviour</span>
 {
-    <span class="comment">// Public reference - appears in Inspector</span>
-    <span class="keyword">public</span> <span class="type">Rigidbody2D</span> myRigidBody;
+    <br><span class="comment">// Public reference - appears in Inspector</span>
+    <br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">public</span> <span class="type">Rigidbody2D</span> myRigidBody;
 
-    <span class="keyword">void</span> <span class="method">Start</span>()
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">void</span> <span class="method">Start</span>()
     {
-        
-    }
+       <br> 
+    }<br>
 }
                         </div>
                     </div>
@@ -1594,8 +1594,8 @@
                         <div class="code-content">
 <span class="keyword">void</span> <span class="method">Update</span>()
 {
-    <span class="comment">// Set upward velocity - runs every frame!</span>
-    myRigidBody.velocity = <span class="type">Vector2</span>.up * <span class="number">10</span>;
+    <br><br><span class="comment">// Set upward velocity - runs every frame!</span><br><br>
+    &nbsp;&nbsp;&nbsp;&nbspmyRigidBody.velocity = <span class="type">Vector2</span>.up * <span class="number">10</span>;<br><br>
 }
                         </div>
                     </div>
@@ -1708,13 +1708,13 @@
                         <div class="code-content">
 <span class="keyword">void</span> <span class="method">Update</span>()
 {
-    <span class="comment">// Check if space bar was pressed this frame</span>
-    <span class="keyword">if</span> (<span class="type">Input</span>.<span class="method">GetKeyDown</span>(<span class="type">KeyCode</span>.Space) == <span class="keyword">true</span>)
+    <br><br><span class="comment">// Check if space bar was pressed this frame</span>
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">if</span> (<span class="type">Input</span>.<span class="method">GetKeyDown</span>(<span class="type">KeyCode</span>.Space) == <span class="keyword">true</span>)
     {
-        <span class="comment">// Flap! Add upward velocity</span>
-        myRigidBody.velocity = <span class="type">Vector2</span>.up * <span class="number">10</span>;
-    }
-}
+        <br><br><span class="comment">// Flap! Add upward velocity</span><br><br>
+        &nbsp;&nbsp;&nbsp;&nbspmyRigidBody.velocity = <span class="type">Vector2</span>.up * <span class="number">10</span>;
+    }<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp}
                         </div>
                     </div>
 
@@ -1826,16 +1826,16 @@
                         <div class="code-content">
 <span class="keyword">public class</span> <span class="type">BirdScript</span> : <span class="type">MonoBehaviour</span>
 {
-    <span class="keyword">public</span> <span class="type">Rigidbody2D</span> myRigidBody;
-    <span class="keyword">public</span> <span class="type">float</span> flapStrength;  <span class="comment">// Appears in Inspector!</span>
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">public</span> <span class="type">Rigidbody2D</span> myRigidBody;
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">public</span> <span class="type">float</span> flapStrength;  <span class="comment">// Appears in Inspector!</span>
 
-    <span class="keyword">void</span> <span class="method">Update</span>()
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">void</span> <span class="method">Update</span>()
     {
-        <span class="keyword">if</span> (<span class="type">Input</span>.<span class="method">GetKeyDown</span>(<span class="type">KeyCode</span>.Space))
+        <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbspif</span> (<span class="type">Input</span>.<span class="method">GetKeyDown</span>(<span class="type">KeyCode</span>.Space))
         {
-            myRigidBody.velocity = <span class="type">Vector2</span>.up * flapStrength;
-        }
-    }
+            <br><br>&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbspmyRigidBody.velocity = <span class="type">Vector2</span>.up * flapStrength;
+        }<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp}<br><br>
 }
                         </div>
                     </div>
