@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Pipe Movement Tutorial | MAC280</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lime: #84cc16;
+            --lime-glow: rgba(132, 204, 22, 0.25);
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.2);
+            --orange: #f97316;
+            --orange-glow: rgba(249, 115, 22, 0.2);
+            --pink: #ec4899;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-400: #94a3b8;
+            --slate-300: #cbd5e1;
+            --slate-100: #f1f5f9;
+            --glass: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(148, 163, 184, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--slate-900);
+            color: var(--slate-100);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Pipes Background */
+        .bg-scene {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .pipe-bg {
+            position: absolute;
+            width: 60px;
+            background: linear-gradient(90deg, var(--lime) 0%, #65a30d 50%, var(--lime) 100%);
+            border-radius: 8px;
+            opacity: 0.08;
+            animation: pipeDrift 20s linear infinite;
+        }
+
+        .pipe-bg:nth-child(1) { left: 10%; height: 200px; top: -200px; animation-delay: 0s; }
+        .pipe-bg:nth-child(2) { left: 30%; height: 300px; bottom: -300px; animation-delay: -5s; animation-direction: reverse; }
+        .pipe-bg:nth-child(3) { left: 50%; height: 250px; top: -250px; animation-delay: -10s; }
+        .pipe-bg:nth-child(4) { left: 70%; height: 180px; bottom: -180px; animation-delay: -15s; animation-direction: reverse; }
+        .pipe-bg:nth-child(5) { left: 90%; height: 220px; top: -220px; animation-delay: -7s; }
+
+        @keyframes pipeDrift {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(calc(100vh + 300px)); }
+            50.01% { transform: translateY(calc(-100vh - 300px)); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Gradient Overlay */
+        .gradient-bg {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 0% 0%, var(--lime-glow) 0%, transparent 50%),
+                radial-gradient(ellipse at 100% 100%, var(--cyan-glow) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, var(--orange-glow) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Grid Lines */
+        .grid-lines {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(132, 204, 22, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(132, 204, 22, 0.03) 1px, transparent 1px);
+            background-size: 80px 80px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 45px 20px 35px;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 22px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            animation: dropIn 0.5s ease-out;
+        }
+
+        .badge-icon {
+            width: 8px;
+            height: 8px;
+            background: var(--lime);
+            border-radius: 50%;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px var(--lime), 0 0 10px var(--lime); }
+            50% { box-shadow: 0 0 10px var(--lime), 0 0 20px var(--lime); }
+        }
+
+        .badge-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.0rem;
+            color: var(--slate-300);
+            letter-spacing: 0.5px;
+        }
+
+        .main-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+            animation: dropIn 0.5s ease-out 0.1s backwards;
+        }
+
+        .title-accent {
+            background: linear-gradient(135deg, var(--lime) 0%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--slate-400);
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            animation: dropIn 0.5s ease-out 0.2s backwards;
+        }
+
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+            animation: riseUp 0.5s ease-out 0.3s backwards;
+        }
+
+        @keyframes riseUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(15px);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--lime);
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.lime { background: rgba(132, 204, 22, 0.15); }
+        .stat-icon.cyan { background: rgba(6, 182, 212, 0.15); }
+        .stat-icon.orange { background: rgba(249, 115, 22, 0.15); }
+        .stat-icon.pink { background: rgba(236, 72, 153, 0.15); }
+
+        .stat-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .stat-icon.lime svg { color: var(--lime); }
+        .stat-icon.cyan svg { color: var(--cyan); }
+        .stat-icon.orange svg { color: var(--orange); }
+        .stat-icon.pink svg { color: var(--pink); }
+
+        .stat-info h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            color: var(--slate-100);
+        }
+
+        .stat-info span {
+            font-size: 0.75rem;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 24px 28px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(15px);
+            animation: riseUp 0.5s ease-out 0.4s backwards;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .progress-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            color: var(--slate-300);
+        }
+
+        .progress-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--lime);
+        }
+
+        .progress-track {
+            height: 10px;
+            background: rgba(132, 204, 22, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--lime), var(--cyan));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .step-markers {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .marker:hover { transform: scale(1.1); }
+
+        .marker-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--slate-700);
+            border: 2px solid var(--slate-600);
+            transition: all 0.3s;
+        }
+
+        .marker.done .marker-dot {
+            background: var(--lime);
+            border-color: var(--lime);
+        }
+
+        .marker.active .marker-dot {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.25);
+        }
+
+        .marker-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--slate-500);
+        }
+
+        .marker.active .marker-num,
+        .marker.done .marker-num {
+            color: var(--slate-400);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            animation: riseUp 0.5s ease-out 0.5s backwards;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout { grid-template-columns: 1fr; }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .side-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 22px;
+            backdrop-filter: blur(15px);
+        }
+
+        .side-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: var(--slate-400);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 13px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(132, 204, 22, 0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(132, 204, 22, 0.1);
+            border-color: rgba(132, 204, 22, 0.3);
+        }
+
+        .nav-item.done { opacity: 0.6; }
+        .nav-item.done:hover { opacity: 1; }
+
+        .nav-num {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--slate-800);
+            border: 1px solid var(--slate-600);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--slate-500);
+            flex-shrink: 0;
+        }
+
+        .nav-item.active .nav-num {
+            background: var(--lime);
+            border-color: var(--lime);
+            color: var(--slate-900);
+        }
+
+        .nav-item.done .nav-num {
+            background: var(--cyan);
+            border-color: var(--cyan);
+            color: var(--slate-900);
+        }
+
+        .nav-text {
+            font-size: 0.8rem;
+            color: var(--slate-400);
+            line-height: 1.3;
+        }
+
+        .nav-item.active .nav-text {
+            color: var(--slate-200);
+            font-weight: 500;
+        }
+
+        /* Concept Tags */
+        .concept-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .concept-tag {
+            padding: 8px 12px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--cyan);
+        }
+
+        /* Main Content */
+        .content-main {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 22px;
+            padding: 36px;
+            backdrop-filter: blur(15px);
+            min-height: 800px;
+        }
+
+        /* Slides */
+        .slide {
+            display: none;
+            animation: slideFade 0.4s ease-out;
+        }
+
+        .slide.active { display: block; }
+
+        @keyframes slideFade {
+            from { opacity: 0; transform: translateX(25px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 22px;
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .slide-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4.5rem;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-titles h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .slide-titles p {
+            color: var(--slate-400);
+            font-size: 0.95rem;
+        }
+
+        .slide-body {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--slate-300);
+            margin-bottom: 26px;
+        }
+
+        .slide-body strong {
+            color: var(--lime);
+        }
+
+        .slide-body code {
+            background: rgba(132, 204, 22, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: var(--lime);
+        }
+
+        /* Transcript */
+        .transcript {
+            position: relative;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(249, 115, 22, 0.03));
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 14px;
+            padding: 22px 26px;
+            margin: 26px 0;
+        }
+
+        .transcript::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--orange);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .transcript-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .transcript-head svg {
+            width: 16px;
+            height: 16px;
+            color: var(--orange);
+        }
+
+        .transcript-head span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--orange);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .transcript-text {
+            font-style: italic;
+            color: var(--slate-200);
+            line-height: 1.7;
+        }
+
+        /* Video */
+        .video-section {
+            margin: 26px 0;
+        }
+
+        .video-wrapper {
+            background: var(--slate-800);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+
+        .video-wrapper:hover {
+            border-color: var(--lime);
+            box-shadow: 0 0 40px var(--lime-glow);
+        }
+
+        .video-aspect {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            background: linear-gradient(135deg, var(--slate-800), rgba(132, 204, 22, 0.05));
+        }
+
+        .video-aspect iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-caption {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .video-caption svg {
+            width: 18px;
+            height: 18px;
+            color: var(--lime);
+        }
+
+        .video-caption span {
+            font-size: 0.85rem;
+            color: var(--slate-400);
+        }
+
+        /* Tip Boxes */
+        .tip {
+            display: flex;
+            gap: 14px;
+            padding: 18px 22px;
+            border-radius: 12px;
+            margin: 22px 0;
+        }
+
+        .tip.lime {
+            background: rgba(132, 204, 22, 0.08);
+            border: 1px solid rgba(132, 204, 22, 0.2);
+        }
+
+        .tip.cyan {
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .tip.orange {
+            background: rgba(249, 115, 22, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        .tip.pink {
+            background: rgba(236, 72, 153, 0.08);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+        }
+
+        .tip-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .tip.lime .tip-icon { color: var(--lime); }
+        .tip.cyan .tip-icon { color: var(--cyan); }
+        .tip.orange .tip-icon { color: var(--orange); }
+        .tip.pink .tip-icon { color: var(--pink); }
+
+        .tip-content strong {
+            display: block;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .tip.lime .tip-content strong { color: var(--lime); }
+        .tip.cyan .tip-content strong { color: var(--cyan); }
+        .tip.orange .tip-content strong { color: var(--orange); }
+        .tip.pink .tip-content strong { color: var(--pink); }
+
+        .tip-content p {
+            color: var(--slate-300);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--slate-800);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 22px 0;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .code-dots span:nth-child(1) { background: #ff5f57; }
+        .code-dots span:nth-child(2) { background: #febc2e; }
+        .code-dots span:nth-child(3) { background: #28c840; }
+
+        .code-filename {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--slate-500);
+        }
+
+        .code-body {
+            padding: 18px 22px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--slate-300);
+            overflow-x: auto;
+        }
+
+        .code-body .keyword { color: var(--pink); }
+        .code-body .type { color: var(--cyan); }
+        .code-body .method { color: var(--orange); }
+        .code-body .string { color: var(--lime); }
+        .code-body .comment { color: var(--slate-500); font-style: italic; }
+        .code-body .number { color: #f472b6; }
+
+        /* Comparison Cards */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 22px 0;
+        }
+
+        @media (max-width: 650px) {
+            .compare-grid { grid-template-columns: 1fr; }
+        }
+
+        .compare-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .compare-card h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .compare-card h4 svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .compare-card.v2 h4 { color: var(--orange); }
+        .compare-card.v3 h4 { color: var(--cyan); }
+
+        .compare-card p {
+            color: var(--slate-400);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .compare-card code {
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8em;
+        }
+
+        /* Feature List */
+        .feature-list {
+            display: grid;
+            gap: 12px;
+            margin: 22px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 18px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            transition: all 0.25s;
+        }
+
+        .feature-item:hover {
+            border-color: var(--lime);
+            transform: translateX(4px);
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--slate-800);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .feature-icon svg {
+            width: 18px;
+            height: 18px;
+            color: var(--lime);
+        }
+
+        .feature-text strong {
+            display: block;
+            color: var(--slate-200);
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .feature-text span {
+            color: var(--slate-400);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        /* Summary */
+        .summary-box {
+            background: var(--slate-800);
+            border: 1px solid var(--lime);
+            border-radius: 14px;
+            padding: 26px;
+            margin-top: 26px;
+        }
+
+        .summary-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            color: var(--lime);
+            margin-bottom: 18px;
+        }
+
+        .summary-title svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .summary-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .summary-item:last-child { border-bottom: none; }
+
+        .summary-num {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            border-radius: 50%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--slate-900);
+        }
+
+        .summary-item span {
+            color: var(--slate-400);
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--glass-border);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .nav-btn.prev {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
+            color: var(--slate-400);
+        }
+
+        .nav-btn.prev:hover:not(:disabled) {
+            border-color: var(--lime);
+            color: var(--lime);
+        }
+
+        .nav-btn.next {
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            color: var(--slate-900);
+        }
+
+        .nav-btn.next:hover:not(:disabled) {
+            transform: translateX(4px);
+            box-shadow: 0 8px 25px var(--lime-glow);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .slide-counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--slate-500);
+        }
+
+        .slide-counter span {
+            color: var(--lime);
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-box {
+            background: var(--glass);
+            border: 1px solid var(--lime);
+            border-radius: 22px;
+            padding: 45px;
+            text-align: center;
+            max-width: 460px;
+            backdrop-filter: blur(20px);
+            animation: popUp 0.4s ease-out;
+        }
+
+        @keyframes popUp {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-icon {
+            width: 85px;
+            height: 85px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-icon svg {
+            width: 42px;
+            height: 42px;
+            color: var(--slate-900);
+        }
+
+        .modal-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            color: var(--lime);
+            margin-bottom: 14px;
+        }
+
+        .modal-text {
+            color: var(--slate-400);
+            line-height: 1.7;
+            margin-bottom: 26px;
+        }
+
+        .modal-btn {
+            padding: 14px 36px;
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            border: none;
+            border-radius: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            color: var(--slate-900);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px var(--lime-glow);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 36px 20px;
+            color: var(--slate-500);
+            font-size: 0.8rem;
+        }
+
+        footer span { color: var(--lime); }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .content-main { padding: 24px; }
+            .slide-head { flex-direction: column; gap: 14px; }
+            .sidebar { position: static; }
+            .step-markers { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene">
+        <div class="pipe-bg"></div>
+        <div class="pipe-bg"></div>
+        <div class="pipe-bg"></div>
+        <div class="pipe-bg"></div>
+        <div class="pipe-bg"></div>
+    </div>
+    <div class="gradient-bg"></div>
+    <div class="grid-lines"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="step-badge">
+                <div class="badge-icon"></div>
+                <span class="badge-text">MAC280 • Prof. Khalid Kassou</span>
+            </div>
+            <h1 class="main-title">
+                <span class="title-accent">MOVING PIPES</span>
+            </h1>
+            <p class="subtitle">Create pipe obstacles that move across the screen - the secret behind Flappy Bird's illusion of flight</p>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon lime">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <h4></h4>
+                    <span></span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon cyan">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <h4 id="doneCount">0/10</h4>
+                    <span>Completed</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <div class="stat-info">
+                    <h4>2</h4>
+                    <span>Pipes</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pink">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <h4>Vector3</h4>
+                    <span>Movement</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-header">
+                <span class="progress-title">YOUR PROGRESS</span>
+                <span class="progress-pct" id="progressPct">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="step-markers" id="stepMarkers"></div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="side-card">
+                    <div class="side-title">TUTORIAL STEPS</div>
+                    <nav class="nav-list" id="navList"></nav>
+                </div>
+
+                <div class="side-card">
+                    <div class="side-title">KEY CONCEPTS</div>
+                    <div class="concept-tags">
+                        <span class="concept-tag">Parent/Child</span>
+                        <span class="concept-tag">BoxCollider2D</span>
+                        <span class="concept-tag">Vector3</span>
+                        <span class="concept-tag">Transform</span>
+                        <span class="concept-tag">Prefabs</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content -->
+            <main class="content-main">
+                <!-- Slide 1 -->
+                <article class="slide active" data-slide="1">
+                    <header class="slide-head">
+                        <div class="slide-num">01</div>
+                        <div class="slide-titles">
+                            <h2>The Secret of Flappy Bird</h2>
+                            <p>The illusion of flight revealed</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Here's the secret: while it looks like the bird is flying through pipes, <strong>the bird is actually staying completely still!</strong> The pipes move across the screen from right to left, creating the illusion of movement.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"The Secret of a flying bird with Flappy Bird is while it looks like the bird is flying, it's actually flapping along through a wall of pipes. The bird is not actually flying - the bird stays completely still and the pipes move across the screen."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="The Secret of Flappy Bird" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 1: The secret behind Flappy Bird's movement</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip lime">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <div class="tip-content">
+                            <strong>GAME DESIGN TRICK</strong>
+                            <p>This is a common technique in 2D games! Instead of moving the player through a level, move the level past the player. It's simpler and more efficient.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 2 -->
+                <article class="slide" data-slide="2">
+                    <header class="slide-head">
+                        <div class="slide-num">02</div>
+                        <div class="slide-titles">
+                            <h2>Creating the Pipe Parent Object</h2>
+                            <p>Setting up the pipe hierarchy</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        In Step 3, we'll make pipes spawn, move across the screen, and delete themselves when they disappear. First, create a new empty GameObject called <strong>"Pipe"</strong> and position it on the bird to get the sizing right.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"In step three we are going to make a pipe spawn, move across the screen and then delete themselves when they disappear from the screen. We will start by making the object we want to spawn - this will be two pipes which move across the screen from left to right."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Creating Pipe Parent" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 2: Creating the pipe parent GameObject</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 3 -->
+                <article class="slide" data-slide="3">
+                    <header class="slide-head">
+                        <div class="slide-num">03</div>
+                        <div class="slide-titles">
+                            <h2>Creating Child Objects (Top Pipe)</h2>
+                            <p>Parent-Child hierarchy explained</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Inside the Pipe parent, create another GameObject called <strong>"Top Pipe"</strong>. This is a <strong>child</strong> of the parent. By nesting objects this way, we can move all pipes at once just by moving the parent!
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Let's make another game object called Pipe, put it exactly on the bird for now to get the sizing right. Then we will make another object within this one called Top Pipe - this is a child of the first game object parent. This way we can nest multiple game objects and move all of them at once just by moving the parent."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Creating Child Objects" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 3: Creating the Top Pipe child object</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip cyan">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <div class="tip-content">
+                            <strong>PARENT-CHILD BENEFITS</strong>
+                            <p>When you move, rotate, or scale a parent object, all children move with it. The parent acts as a pivot point for the entire group!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 4 -->
+                <article class="slide" data-slide="4">
+                    <header class="slide-head">
+                        <div class="slide-num">04</div>
+                        <div class="slide-titles">
+                            <h2>Adding Components to the Pipe</h2>
+                            <p>Sprite Renderer and Box Collider</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Just like the bird, add a <strong>Sprite Renderer</strong> for the pipe image. But this time, add a <strong>Box Collider 2D</strong> (not Circle!) because pipes are rectangular. We don't need Rigidbody2D since pipes aren't affected by physics.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Let's repeat what we did for the bird - add Sprite Renderer for the pipe image and add a collider, a Box Collider 2D this time and not Circle Collider. And we don't need a Rigidbody because it is not going to be affected by physics."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Adding Components" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 4: Adding Sprite Renderer and Box Collider 2D</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                            <div class="feature-text">
+                                <strong>Sprite Renderer</strong>
+                                <span>Makes the pipe visible by displaying the pipe image</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z"/></svg></div>
+                            <div class="feature-text">
+                                <strong>Box Collider 2D</strong>
+                                <span>Rectangular collision shape - perfect for pipes!</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></div>
+                            <div class="feature-text">
+                                <strong>No Rigidbody2D Needed</strong>
+                                <span>Pipes don't need gravity - they move via script only</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 5 -->
+                <article class="slide" data-slide="5">
+                    <header class="slide-head">
+                        <div class="slide-num">05</div>
+                        <div class="slide-titles">
+                            <h2>Positioning the Top Pipe</h2>
+                            <p>Move it above the bird</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        After adding the components, move the Top Pipe up above the bird. Keep the <strong>X position at zero</strong> so both pipes stay aligned. This ensures the gap between pipes is centered on the parent's position.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"We can then move it up above the bird but keep the X position as zero."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Positioning Top Pipe" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 5: Positioning the top pipe above the bird</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 6 -->
+                <article class="slide" data-slide="6">
+                    <header class="slide-head">
+                        <div class="slide-num">06</div>
+                        <div class="slide-titles">
+                            <h2>Creating the Bottom Pipe</h2>
+                            <p>Duplicate and flip</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <strong>Duplicate</strong> the Top Pipe object (Ctrl+D), rename it "Bottom Pipe", and flip it upside down by changing the <strong>Y Scale to -1</strong>. Then move it below the bird. Now you have a complete pipe pair!
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Finally we can duplicate this whole Top Pipe object, call it Bottom Pipe and flip it upside down by changing the Y scale to minus 1. Then move it down below the bird."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Creating Bottom Pipe" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 6: Duplicating and flipping to create bottom pipe</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip orange">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <div class="tip-content">
+                            <strong>FLIP TRICK: Y SCALE = -1</strong>
+                            <p>Setting Y Scale to -1 flips the sprite vertically. This is much easier than rotating 180 degrees or creating a separate upside-down image!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 7 -->
+                <article class="slide" data-slide="7">
+                    <header class="slide-head">
+                        <div class="slide-num">07</div>
+                        <div class="slide-titles">
+                            <h2>Testing Parent-Child Movement</h2>
+                            <p>See the hierarchy in action</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Now test the parent-child relationship! When you move, scale, or rotate the <strong>Pipe parent</strong> object, both the Top Pipe and Bottom Pipe move together. The parent acts as the pivot point.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"As you can see, if we mess with the Pipe parent's game object, both pipes move and scale and of course rotate along with it, with the parent as the pivot point."</p>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Parent-Child Movement" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 7: Both pipes moving together with the parent</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 8 -->
+                <article class="slide" data-slide="8">
+                    <header class="slide-head">
+                        <div class="slide-num">08</div>
+                        <div class="slide-titles">
+                            <h2>Creating the Pipe Script</h2>
+                            <p>Add movement logic</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Add a new script to the Pipe parent object. Create a <code>public float moveSpeed</code> variable with a default value. This will appear in the Inspector and control how fast the pipes move.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"So let's add a script to this parent object to make it move across the screen. Once we add the script, we will start by creating a variable for move speed. If we give a raw number here it will fill this as the default value in Unity, but we can always change it there later."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">PipeMoveScript.cs</div>
+                        </div>
+                        <div class="code-body">
+<span class="keyword">public class</span> <span class="type">PipeMoveScript</span> : <span class="type">MonoBehaviour</span>
+{
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="comment">// Default value of 10 - adjustable in Inspector</span>
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">public</span> <span class="type">float</span> moveSpeed = <span class="number">10</span>;
+
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">void</span> <span class="method">Start</span>() { <br><br>&nbsp;&nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp;&nbsp}
+    
+    <br><Br>&nbsp;&nbsp;&nbsp;&nbsp<span class="keyword">void</span> <span class="method">Update</span>() { <br><br>&nbsp;&nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp;&nbsp}
+<br><br>}
+                        </div>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Creating Pipe Script" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 8: Creating the pipe movement script</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 9 -->
+                <article class="slide" data-slide="9">
+                    <header class="slide-head">
+                        <div class="slide-num">09</div>
+                        <div class="slide-titles">
+                            <h2>Vector3 vs Vector2</h2>
+                            <p>Why we need three dimensions</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        For movement, we use <strong>Vector3</strong> instead of Vector2 because Transform has three coordinates (X, Y, Z). Even in 2D games, Unity is fundamentally a 3D engine, so Transform.position requires Vector3.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"This time we're going to have to use a Vector3 instead of a Vector2 because the Transform has three numbers - X, Y, and Z. Even though we are making our game in 2D, Unity is still fundamentally a 3D engine."</p>
+                    </div>
+
+                    <div class="compare-grid">
+                        <div class="compare-card v2">
+                            <h4>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                                VECTOR2 (X, Y)
+                            </h4>
+                            <p>Used for <code>Rigidbody2D.velocity</code> - physics calculations only need 2D coordinates.</p>
+                        </div>
+                        <div class="compare-card v3">
+                            <h4>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                VECTOR3 (X, Y, Z)
+                            </h4>
+                            <p>Used for <code>Transform.position</code> - Unity's 3D engine requires all three axes.</p>
+                        </div>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Vector3 vs Vector2" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 9: Understanding Vector3 for Transform movement</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 10 -->
+                <article class="slide" data-slide="10">
+                    <header class="slide-head">
+                        <div class="slide-num">10</div>
+                        <div class="slide-titles">
+                            <h2>Writing the Movement Code</h2>
+                            <p>Making pipes move left</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        In Update, we take the current position and <strong>add</strong> to it using <code>Vector3.left * moveSpeed</code>. This moves the object left every frame. The pipes now smoothly glide across the screen!
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-head">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"We will take the current transform.position and then equals - don't forget the sign equals - and we want to add to its current position. So write transform.position again (that means current position), plus Vector3.left times moveSpeed. That way the game object will move on the left side."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">PipeMoveScript.cs</div>
+                        </div>
+                        <div class="code-body">
+<span class="keyword">public</span> <span class="type">float</span> moveSpeed = <span class="number">10</span>;
+
+<span class="keyword">void</span> <span class="method">Update</span>()
+{
+    <span class="comment">// Move left every frame</span>
+    <span class="comment">// current position = current position + left direction * speed</span>
+    transform.position = transform.position + (<span class="type">Vector3</span>.left * moveSpeed);
+}
+                        </div>
+                    </div>
+
+                    <div class="video-section">
+                        <div class="video-wrapper">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Movement Code" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 10: Pipes moving smoothly across the screen!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip lime">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="tip-content">
+                            <strong>SUCCESS!</strong>
+                            <p>Your pipes now move smoothly from right to left across the screen! This is exactly what we want for the Flappy Bird obstacles.</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-box">
+                        <h3 class="summary-title">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            TUTORIAL SUMMARY
+                        </h3>
+                        <div class="summary-list">
+                            <div class="summary-item">
+                                <div class="summary-num">1</div>
+                                <span>The bird stays still - pipes create the illusion of flight</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">2</div>
+                                <span>Create a parent Pipe object with Top/Bottom children</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">3</div>
+                                <span>Add Sprite Renderer and Box Collider 2D to pipes</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">4</div>
+                                <span>Flip bottom pipe with Y Scale = -1</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">5</div>
+                                <span>Use Vector3 for Transform.position movement</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">6</div>
+                                <span>Add to current position with Vector3.left * speed</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Navigation -->
+                <nav class="nav-controls">
+                    <button class="nav-btn prev" id="prevBtn" disabled>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        PREVIOUS
+                    </button>
+                    <div class="slide-counter">
+                        Slide <span id="currentNum">1</span> / <span id="totalNum">10</span>
+                    </div>
+                    <button class="nav-btn next" id="nextBtn">
+                        NEXT
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </nav>
+            </main>
+        </div>
+
+        <footer>
+            Moving Pipes Tutorial • MAC280 • <span>Prof. Khalid Kassou</span>
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <div class="modal-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h2 class="modal-title">TUTORIAL COMPLETE!</h2>
+            <p class="modal-text">Great work! You've learned how to create pipe obstacles that move across the screen. You now understand parent-child hierarchies, Box Colliders, and Vector3 movement!</p>
+            <button class="modal-btn" onclick="closeModal()">CONTINUE</button>
+        </div>
+    </div>
+
+    <script>
+        const slides = [
+            { id: 1, title: "The Secret" },
+            { id: 2, title: "Pipe Parent" },
+            { id: 3, title: "Child Objects" },
+            { id: 4, title: "Components" },
+            { id: 5, title: "Position Top" },
+            { id: 6, title: "Bottom Pipe" },
+            { id: 7, title: "Test Hierarchy" },
+            { id: 8, title: "Pipe Script" },
+            { id: 9, title: "Vector3" },
+            { id: 10, title: "Movement Code" }
+        ];
+
+        let current = 1;
+        let done = new Set();
+        const total = slides.length;
+
+        function init() {
+            document.getElementById('totalNum').textContent = total;
+            buildNav();
+            buildMarkers();
+            updateUI();
+            setupKeys();
+        }
+
+        function buildNav() {
+            const nav = document.getElementById('navList');
+            slides.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `nav-item ${s.id === 1 ? 'active' : ''}`;
+                item.dataset.id = s.id;
+                item.innerHTML = `<div class="nav-num">${s.id}</div><div class="nav-text">${s.title}</div>`;
+                item.onclick = () => goTo(s.id);
+                nav.appendChild(item);
+            });
+        }
+
+        function buildMarkers() {
+            const markers = document.getElementById('stepMarkers');
+            slides.forEach(s => {
+                const m = document.createElement('div');
+                m.className = `marker ${s.id === 1 ? 'active' : ''}`;
+                m.dataset.id = s.id;
+                m.innerHTML = `<div class="marker-dot"></div><div class="marker-num">${s.id}</div>`;
+                m.onclick = () => goTo(s.id);
+                markers.appendChild(m);
+            });
+        }
+
+        function goTo(id) {
+            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.slide[data-slide="${id}"]`).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.nav-item[data-id="${id}"]`).classList.add('active');
+
+            document.querySelectorAll('.marker').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.marker[data-id="${id}"]`).classList.add('active');
+
+            current = id;
+            updateUI();
+        }
+
+        function markDone(id) {
+            done.add(id);
+            updateUI();
+            if (done.size === total) {
+                setTimeout(() => document.getElementById('modal').classList.add('show'), 300);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('currentNum').textContent = current;
+            document.getElementById('prevBtn').disabled = current === 1;
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.innerHTML = current === total
+                ? `COMPLETE <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`
+                : `NEXT <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+
+            const pct = Math.round((done.size / total) * 100);
+            document.getElementById('progressPct').textContent = `${pct}%`;
+            document.getElementById('progressFill').style.width = `${pct}%`;
+            document.getElementById('doneCount').textContent = `${done.size}/${total}`;
+
+            document.querySelectorAll('.nav-item').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                el.classList.toggle('done', done.has(id));
+                el.querySelector('.nav-num').textContent = done.has(id) ? '✓' : id;
+            });
+
+            document.querySelectorAll('.marker').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                el.classList.toggle('done', done.has(id));
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function setupKeys() {
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft' && current > 1) goTo(current - 1);
+                if (e.key === 'ArrowRight' && current < total) goTo(current + 1);
+                if (e.key === ' ') { e.preventDefault(); markDone(current); }
+                if (e.key >= '1' && e.key <= '9') goTo(Math.min(parseInt(e.key), total));
+                if (e.key === '0') goTo(10);
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        document.getElementById('prevBtn').onclick = () => { if (current > 1) goTo(current - 1); };
+        document.getElementById('nextBtn').onclick = () => {
+            markDone(current);
+            if (current < total) goTo(current + 1);
+        };
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
