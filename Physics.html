@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Bird Physics & Scripting | MAC280</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --primary-glow: rgba(255, 107, 53, 0.4);
+            --secondary: #00d4aa;
+            --secondary-glow: rgba(0, 212, 170, 0.3);
+            --accent: #a855f7;
+            --accent-glow: rgba(168, 85, 247, 0.3);
+            --warning: #fbbf24;
+            --bg-darkest: #050508;
+            --bg-dark: #0c0c12;
+            --bg-card: rgba(12, 12, 18, 0.9);
+            --bg-elevated: rgba(20, 20, 30, 0.95);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-darkest);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-effects {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-effects::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 40%, var(--primary-glow) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 60%, var(--secondary-glow) 0%, transparent 50%),
+                radial-gradient(ellipse 50% 30% at 50% 80%, var(--accent-glow) 0%, transparent 50%);
+            opacity: 0.5;
+            animation: bgShift 25s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgShift {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.1) rotate(3deg); }
+        }
+
+        /* Hex Grid Pattern */
+        .hex-grid {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L55 20V50L30 65L5 50V20L30 5Z' fill='none' stroke='rgba(255,107,53,0.05)' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 60px 60px;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 50px 20px 40px;
+            position: relative;
+        }
+
+        .header-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 24px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-family: 'Fira Code', monospace;
+            font-size: 2.0rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            animation: fadeDown 0.6s ease-out;
+        }
+
+        .header-tag::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .header-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            animation: fadeDown 0.6s ease-out 0.1s backwards;
+        }
+
+        .header-title .highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--warning) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeDown 0.6s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 25px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(20px);
+            animation: fadeUp 0.6s ease-out 0.3s backwards;
+            flex-wrap: wrap;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+
+        .stat-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .stat-icon.orange svg { color: var(--primary); }
+        .stat-icon.green svg { color: var(--secondary); }
+        .stat-icon.purple svg { color: var(--accent); }
+
+        .stat-info {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Progress Timeline */
+        .timeline-section {
+            margin-bottom: 30px;
+            animation: fadeUp 0.6s ease-out 0.4s backwards;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timeline-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .timeline-percent {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 6px;
+            background: var(--glass);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .timeline-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .timeline-nodes {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .timeline-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .timeline-node:hover {
+            transform: translateY(-2px);
+        }
+
+        .node-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--bg-dark);
+            border: 2px solid var(--glass-border);
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .timeline-node.completed .node-dot {
+            background: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .timeline-node.completed .node-dot::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--bg-dark);
+            font-weight: bold;
+        }
+
+        .timeline-node.active .node-dot {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .node-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 80px;
+            line-height: 1.3;
+        }
+
+        .timeline-node.active .node-label,
+        .timeline-node.completed .node-label {
+            color: var(--text-secondary);
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 30px;
+            animation: fadeUp 0.6s ease-out 0.5s backwards;
+        }
+
+        @media (max-width: 1100px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-header-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--warning));
+            border-radius: 10px;
+        }
+
+        .nav-header-icon svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+
+        .nav-header-text {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background: var(--glass);
+            border-color: var(--glass-border);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        .nav-item.completed {
+            opacity: 0.7;
+        }
+
+        .nav-item.completed:hover {
+            opacity: 1;
+        }
+
+        .nav-num {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active .nav-num {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .nav-item.completed .nav-num {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: var(--bg-dark);
+        }
+
+        .nav-text {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+        .nav-item.active .nav-text {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Component Info Card */
+        .info-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+        }
+
+        .info-card-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .component-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            margin: 4px;
+        }
+
+        .component-tag svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Main Content */
+        .content-area {
+            background: var(--bg-elevated);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            min-height: 800px;
+        }
+
+        /* Slides */
+        .slide {
+            display: none;
+            animation: slideFade 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideFade {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 25px;
+            margin-bottom: 35px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .slide-number {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--warning) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-title-group h2 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .slide-title-group p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .slide-body {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        /* Transcript */
+        .transcript {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 191, 36, 0.05) 100%);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 16px;
+            padding: 25px 30px;
+            margin: 30px 0;
+        }
+
+        .transcript::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--primary), var(--warning));
+            border-radius: 4px 0 0 4px;
+        }
+
+        .transcript-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .transcript-header svg {
+            width: 18px;
+            height: 18px;
+            color: var(--primary);
+        }
+
+        .transcript-header span {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--primary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .transcript-text {
+            font-style: italic;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        /* Video Container */
+        .video-block {
+            margin: 30px 0;
+        }
+
+        .video-frame {
+            position: relative;
+            background: var(--bg-dark);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+
+        .video-frame:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 40px var(--primary-glow);
+        }
+
+        .video-aspect {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, rgba(255, 107, 53, 0.1) 100%);
+        }
+
+        .video-aspect iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Video Placeholder */
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, rgba(255, 107, 53, 0.1) 100%);
+            color: var(--text-muted);
+        }
+
+        .video-placeholder svg {
+            width: 60px;
+            height: 60px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .video-placeholder-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .video-caption {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .video-caption svg {
+            width: 18px;
+            height: 18px;
+            color: var(--primary);
+        }
+
+        .video-caption span {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Tip Box */
+        .tip-box {
+            display: flex;
+            gap: 18px;
+            padding: 22px 25px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 212, 170, 0.03) 100%);
+            border: 1px solid rgba(0, 212, 170, 0.25);
+            border-radius: 14px;
+            margin: 25px 0;
+        }
+
+        .tip-box.warning {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.03) 100%);
+            border-color: rgba(251, 191, 36, 0.25);
+        }
+
+        .tip-box.purple {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0.03) 100%);
+            border-color: rgba(168, 85, 247, 0.25);
+        }
+
+        .tip-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            color: var(--secondary);
+        }
+
+        .tip-box.warning .tip-icon { color: var(--warning); }
+        .tip-box.purple .tip-icon { color: var(--accent); }
+
+        .tip-content strong {
+            display: block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--secondary);
+            margin-bottom: 6px;
+        }
+
+        .tip-box.warning .tip-content strong { color: var(--warning); }
+        .tip-box.purple .tip-content strong { color: var(--accent); }
+
+        .tip-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 25px 0;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .code-dots span:nth-child(1) { background: #ff5f57; }
+        .code-dots span:nth-child(2) { background: #febc2e; }
+        .code-dots span:nth-child(3) { background: #28c840; }
+
+        .code-filename {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .code-content {
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            overflow-x: auto;
+        }
+
+        .code-content .keyword { color: var(--accent); }
+        .code-content .class { color: var(--secondary); }
+        .code-content .method { color: var(--warning); }
+        .code-content .comment { color: var(--text-muted); font-style: italic; }
+
+        /* Feature List */
+        .feature-list {
+            display: grid;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 18px 20px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .feature-icon svg {
+            width: 18px;
+            height: 18px;
+            color: var(--secondary);
+        }
+
+        .feature-text strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .feature-text span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Summary */
+        .summary-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--secondary);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .summary-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .summary-title svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .summary-steps {
+            display: grid;
+            gap: 12px;
+        }
+
+        .summary-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .summary-step:last-child {
+            border-bottom: none;
+        }
+
+        .summary-num {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--warning));
+            border-radius: 50%;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .summary-step span {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--glass-border);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn.prev {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+        }
+
+        .nav-btn.prev:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .nav-btn.next {
+            background: linear-gradient(135deg, var(--primary), var(--warning));
+            color: white;
+        }
+
+        .nav-btn.next:hover:not(:disabled) {
+            transform: translateX(5px);
+            box-shadow: 0 5px 30px var(--primary-glow);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .slide-counter {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .slide-counter span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+            animation: modalIn 0.3s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-box {
+            background: var(--bg-elevated);
+            border: 1px solid var(--secondary);
+            border-radius: 24px;
+            padding: 50px;
+            text-align: center;
+            max-width: 480px;
+            animation: modalSlide 0.4s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: celebrate 0.6s ease-out;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .modal-icon svg {
+            width: 45px;
+            height: 45px;
+            color: white;
+        }
+
+        .modal-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .modal-btn {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border: none;
+            border-radius: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 30px var(--secondary-glow);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer span {
+            color: var(--primary);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .content-area { padding: 25px; }
+            .slide-header { flex-direction: column; gap: 15px; }
+            .stats-bar { gap: 20px; }
+            .sidebar { position: static; }
+            .timeline-nodes { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"></div>
+    <div class="hex-grid"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-tag">
+                MAC280 • Prof. Khalid Kassou
+            </div>
+            <h1 class="header-title">
+                <span class="highlight">Physics & Scripting</span>
+            </h1>
+            <p class="header-subtitle">Add Rigidbody2D, Circle Collider, and write your first C# script to control the bird</p>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-icon orange">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">~</div>
+                    <div class="stat-label"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon green">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="completedStat">0/9</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-icon purple">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Components</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-section">
+            <div class="timeline-header">
+                <div class="timeline-title">Progress Timeline</div>
+                <div class="timeline-percent" id="progressPercent">0%</div>
+            </div>
+            <div class="timeline-track">
+                <div class="timeline-fill" id="timelineFill"></div>
+            </div>
+            <div class="timeline-nodes" id="timelineNodes"></div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="nav-card">
+                    <div class="nav-header">
+                        <div class="nav-header-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </div>
+                        <div class="nav-header-text">Tutorial Steps</div>
+                    </div>
+                    <nav class="nav-list" id="navList"></nav>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-title">Components Used</div>
+                    <div class="component-tag">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        Rigidbody2D
+                    </div>
+                    <div class="component-tag">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        CircleCollider2D
+                    </div>
+                    <div class="component-tag">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                        </svg>
+                        BirdScript.cs
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                <!-- Slide 1 -->
+                <article class="slide active" data-slide="1">
+                    <header class="slide-header">
+                        <div class="slide-number">01</div>
+                        <div class="slide-title-group">
+                            <h2>Introduction to Physics & Movement</h2>
+                            <p>Overview of what we'll build in this tutorial</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        In this step, we'll use physics and programming code to give our bird movement capabilities. The bird will be able to move upward, downward, left, right, forward, and backward. We'll add components to make it a physics object affected by gravity, then write code to make it fly when pressing the space bar.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"In this step two we're going to use more physics and programming code to actually give our bird some movement... we are going to use more components to make the bird into a physics object that is affected by gravity."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="https://www.youtube.com/embed/Y7ZL6vnAh-k?si=_hRFRBAvDtcdtv3b&amp;clip=UgkxaTh0B2e6odGqabwrrVFaTPwBmrsDC662&amp;clipt=EIIHGPGmAg" 
+                                    title="Introduction to Physics" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 1: Overview of physics and movement concepts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="tip-content">
+                            <strong>What You'll Learn</strong>
+                            <p>By the end of this tutorial, your bird will respond to gravity and you'll have the foundation for player-controlled flight mechanics.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 2 -->
+                <article class="slide" data-slide="2">
+                    <header class="slide-header">
+                        <div class="slide-number">02</div>
+                        <div class="slide-title-group">
+                            <h2>Adding Rigidbody2D Component</h2>
+                            <p>Turn your bird into a physics object</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        The Rigidbody2D component transforms our bird into a physics object with gravity. We use "2D" because we're making a 2D game. Make sure you're on the Scene panel (not Game), select the bird, then go to the Inspector to add the component.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Make sure you are on the scene panel not the game panel... highlight the bird, come to the inspector side... click add component and then we're going to look for Rigidbody... I'm going to choose Rigidbody 2D, this is the one responsible for physics in 2D games."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="https://www.youtube.com/embed/Y7ZL6vnAh-k?si=MhhEFJWeMFg8deUF&amp;clip=Ugkx7BZoA676M0p1OhJZ4sH_vGM4F-udkUUu&amp;clipt=ELTKDhjr1xA" 
+                                    title="Adding Rigidbody2D" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 2: Adding Rigidbody2D component to the bird</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box warning">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <div class="tip-content">
+                            <strong>Important</strong>
+                            <p>If you don't see Rigidbody in the dropdown, just type the first letter "R" in the search bar to find it quickly.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 3 -->
+                <article class="slide" data-slide="3">
+                    <header class="slide-header">
+                        <div class="slide-number">03</div>
+                        <div class="slide-title-group">
+                            <h2>Understanding Rigidbody2D Properties</h2>
+                            <p>Gravity Scale, Mass, and Damping explained</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Once Rigidbody2D is added, your bird becomes affected by gravity. The component has several important properties that control how physics affects your object.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"We can increase or decrease the gravity scale but by default it is set to one and the mass, the weight of our bird is also set to one. For linear damping and angular damping I would explain this in future lectures."</p>
+                    </div>
+
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Gravity Scale (Default: 1)</strong>
+                                <span>Controls how strongly gravity affects the object. Higher = falls faster.</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Mass (Default: 1)</strong>
+                                <span>The weight of your object. Affects collision interactions.</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Linear & Angular Damping</strong>
+                                <span>Controls how quickly movement and rotation slow down over time.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Rigidbody2D Properties" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 3: Rigidbody2D properties in the Inspector</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 4 -->
+                <article class="slide" data-slide="4">
+                    <header class="slide-header">
+                        <div class="slide-number">04</div>
+                        <div class="slide-title-group">
+                            <h2>Testing the Gravity Effect</h2>
+                            <p>Play the game and watch the bird fall</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Now let's test our physics! When you play the game, gravity will be applied to the bird and it will fall down. You can stop the game to return to the initial position.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"So you see here that our bird fell down. Now if you go back I can completely stop the game by pressing this button right here... go back to the scene view or scene panel. Let's play again and you will see that it's going to fall down. That's the effect of gravity."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Testing Gravity" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 4: Bird falling due to gravity effect</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <div class="tip-content">
+                            <strong>Pro Tip</strong>
+                            <p>When you stop the game, the bird automatically resets to its initial position, rotation, and scale. This is Unity's Play Mode behavior.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 5 -->
+                <article class="slide" data-slide="5">
+                    <header class="slide-header">
+                        <div class="slide-number">05</div>
+                        <div class="slide-title-group">
+                            <h2>Practice: Remove and Re-add Rigidbody2D</h2>
+                            <p>Reinforce your learning</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Let's practice what we learned. Remove the Rigidbody2D component completely, play the game (nothing will happen), then add it back. This helps reinforce the importance of the component.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"I'm going to completely remove, click on this three dots on the right side of Rigidbody and I'm going to remove it completely. So when you remove it completely, when you play the game nothing is going to happen because there is no rigid body."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Practice Rigidbody2D" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 5: Removing and re-adding Rigidbody2D</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box warning">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <div class="tip-content">
+                            <strong>Remember</strong>
+                            <p>Without Rigidbody2D, your GameObject won't be affected by physics. It will just stay in place!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 6 -->
+                <article class="slide" data-slide="6">
+                    <header class="slide-header">
+                        <div class="slide-number">06</div>
+                        <div class="slide-title-group">
+                            <h2>Adding Circle Collider 2D</h2>
+                            <p>Enable collision detection</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        After adding Rigidbody2D, we need the bird to interact with other objects. The Circle Collider 2D component allows collision detection. We use a circle because our bird has a circular shape.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"After adding the component Rigidbody 2D to our bird we want also the bird to be able to interact with other objects. So let's add another component... the component is called Circle Collider. Why specifically Circle Collider? Because the shape of our bird is circular."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="https://www.youtube.com/embed/Y7ZL6vnAh-k?si=QoniKEL7FjUOGOt9&amp;clip=UgkxDmDrVTE8mbQhjJlmg4vHA-5q5Pihny_k&amp;clipt=EP_SEBiX1RM" 
+                                    title="Adding Circle Collider" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 6: Adding Circle Collider 2D component</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box purple">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <div class="tip-content">
+                            <strong>Collider Types</strong>
+                            <p>Unity offers different collider shapes: Circle, Box, Polygon, Edge, and Capsule. Choose based on your sprite's shape!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 7 -->
+                <article class="slide" data-slide="7">
+                    <header class="slide-header">
+                        <div class="slide-number">07</div>
+                        <div class="slide-title-group">
+                            <h2>Adjusting the Collider Radius</h2>
+                            <p>Fine-tune the collision boundary</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        The collider should be slightly smaller than the bird sprite for better collision detection. Adjust the radius in the Inspector, or use the Scale tool to resize the bird to fit inside the collider.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"The best way to make the circle collider effective is to make it a little bit smaller than our bird. I'm going to come to the inspector side... control the radius of our collider... you see here we have one arrow on the left side, one arrow on the right side, and then on the scene panel the circle becomes smaller."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="https://www.youtube.com/embed/Y7ZL6vnAh-k?si=n81ARTr3v9lLsuZa&amp;clip=Ugkx_W0zhraqwDQRVN2GGT95m8kobO90VrQT&amp;clipt=EInSExjs1xY" 
+                                    title="Adjusting Collider" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 7: Adjusting the Circle Collider radius</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 8 -->
+                <article class="slide" data-slide="8">
+                    <header class="slide-header">
+                        <div class="slide-number">08</div>
+                        <div class="slide-title-group">
+                            <h2>Circle Collider Roles & Features</h2>
+                            <p>Understanding what colliders do</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        The Circle Collider 2D serves multiple purposes in your game. Understanding these roles helps you build better physics interactions.
+                    </div>
+
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Collision Detection</strong>
+                                <span>Detects collisions with other 2D objects using circular shape - ideal for round objects.</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Physics Interaction</strong>
+                                <span>Enables realistic physical interactions like bouncing and sliding based on circular boundary.</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Trigger Functionality</strong>
+                                <span>Can act as trigger to detect overlaps without physical collision.</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                </svg>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Adjustable Radius</strong>
+                                <span>Allows fine-tuning of collision area to match visual representation.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="https://www.youtube.com/embed/Y7ZL6vnAh-k?si=YnaAOl-CnE8OXnoM&amp;clip=UgkxBjlAKTnRKZQVAzsOJNz_u41xQMQmEtV2&amp;clipt=EMClGRj76hw" 
+                                    title="Collider Features" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 8: Understanding collider functionality</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 9 -->
+                <article class="slide" data-slide="9">
+                    <header class="slide-header">
+                        <div class="slide-number">09</div>
+                        <div class="slide-title-group">
+                            <h2>Creating the BirdScript</h2>
+                            <p>Add programming logic to your bird</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Now we'll add a C# script to control our bird's physics through code. Create a new script component, name it "BirdScript", and it will open in Visual Studio Code with the basic Unity script structure.
+                    </div>
+
+                    <div class="transcript">
+                        <div class="transcript-header">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"I'm going to click add component and then I'm going to search for a new script... I'm going to name it BirdScript... once I hit enter you will see a file is going to appear on the assets side. If I double click here, it's going to open VS Code with general syntax of C# for game programming that has two things: the Start method and the Update method."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="https://www.youtube.com/embed/Y7ZL6vnAh-k?si=hjBCrEZr6A0QMGrk&amp;clip=UgkxMOsX2f28OcQQ8vF6bejvf4wtB9581AaT&amp;clipt=EKzXHxitnyM" 
+                                    title="Creating BirdScript" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 9: Creating and opening BirdScript.cs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="code-filename">BirdScript.cs</div>
+                        </div>
+                        <div class="code-content">
+<span class="keyword">using</span> UnityEngine;<br><br>
+
+<span class="keyword">public class</span> <span class="class">BirdScript</span> : <span class="class">MonoBehaviour</span>
+{
+    <br><br><span class="comment">// Start is called before the first frame update</span><br><br>
+    <span class="keyword">void</span> <span class="method">Start</span>()
+    {<br><br>
+        
+    }
+
+    <br><br><span class="comment">// Update is called once per frame</span><br><br>
+    <span class="keyword">void</span> <span class="method">Update</span>()
+    {<br>
+        
+    }<br>
+}
+                        </div>
+                    </div>
+
+                    <div class="tip-box">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <div class="tip-content">
+                            <strong>Script Methods</strong>
+                            <p><strong>Start()</strong> runs once when the game starts. <strong>Update()</strong> runs every frame - this is where we'll add movement logic!</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <h3 class="summary-title">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Tutorial Summary
+                        </h3>
+                        <div class="summary-steps">
+                            <div class="summary-step">
+                                <div class="summary-num">1</div>
+                                <span>Add Rigidbody2D component for physics and gravity</span>
+                            </div>
+                            <div class="summary-step">
+                                <div class="summary-num">2</div>
+                                <span>Understand gravity scale, mass, and damping properties</span>
+                            </div>
+                            <div class="summary-step">
+                                <div class="summary-num">3</div>
+                                <span>Test the gravity effect by playing the game</span>
+                            </div>
+                            <div class="summary-step">
+                                <div class="summary-num">4</div>
+                                <span>Add Circle Collider 2D for collision detection</span>
+                            </div>
+                            <div class="summary-step">
+                                <div class="summary-num">5</div>
+                                <span>Adjust collider radius to fit the bird sprite</span>
+                            </div>
+                            <div class="summary-step">
+                                <div class="summary-num">6</div>
+                                <span>Create BirdScript.cs for custom programming logic</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Navigation -->
+                <nav class="nav-controls">
+                    <button class="nav-btn prev" id="prevBtn" disabled>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Previous
+                    </button>
+                    <div class="slide-counter">
+                        Slide <span id="currentSlide">1</span> / <span id="totalSlides">9</span>
+                    </div>
+                    <button class="nav-btn next" id="nextBtn">
+                        Next
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </nav>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            Unity Physics & Scripting Tutorial • MAC280 • <span>Prof. Khalid Kassou</span>
+        </footer>
+    </div>
+
+    <!-- Completion Modal -->
+    <div class="modal-backdrop" id="modal">
+        <div class="modal-box">
+            <div class="modal-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h2 class="modal-title">Tutorial Complete!</h2>
+            <p class="modal-text">
+                Excellent work! You've learned how to add physics components and create scripts in Unity. Your bird now has gravity, collision detection, and is ready for custom programming!
+            </p>
+            <button class="modal-btn" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const slides = [
+            { id: 1, title: "Introduction", short: "Overview" },
+            { id: 2, title: "Adding Rigidbody2D", short: "Rigidbody" },
+            { id: 3, title: "Rigidbody Properties", short: "Properties" },
+            { id: 4, title: "Testing Gravity", short: "Testing" },
+            { id: 5, title: "Practice Exercise", short: "Practice" },
+            { id: 6, title: "Circle Collider 2D", short: "Collider" },
+            { id: 7, title: "Adjusting Radius", short: "Radius" },
+            { id: 8, title: "Collider Features", short: "Features" },
+            { id: 9, title: "Creating BirdScript", short: "Script" }
+        ];
+
+        let currentSlide = 1;
+        let completed = new Set();
+        const totalSlides = slides.length;
+
+        // Initialize
+        function init() {
+            document.getElementById('totalSlides').textContent = totalSlides;
+            buildNav();
+            buildTimeline();
+            updateUI();
+            setupKeyboard();
+        }
+
+        // Build navigation
+        function buildNav() {
+            const nav = document.getElementById('navList');
+            slides.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `nav-item ${s.id === 1 ? 'active' : ''}`;
+                item.dataset.slide = s.id;
+                item.innerHTML = `
+                    <div class="nav-num">${s.id}</div>
+                    <div class="nav-text">${s.title}</div>
+                `;
+                item.onclick = () => goTo(s.id);
+                nav.appendChild(item);
+            });
+        }
+
+        // Build timeline
+        function buildTimeline() {
+            const timeline = document.getElementById('timelineNodes');
+            slides.forEach(s => {
+                const node = document.createElement('div');
+                node.className = `timeline-node ${s.id === 1 ? 'active' : ''}`;
+                node.dataset.slide = s.id;
+                node.innerHTML = `
+                    <div class="node-dot"></div>
+                    <div class="node-label">${s.short}</div>
+                `;
+                node.onclick = () => goTo(s.id);
+                timeline.appendChild(node);
+            });
+        }
+
+        // Navigate to slide
+        function goTo(id) {
+            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.slide[data-slide="${id}"]`).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.nav-item[data-slide="${id}"]`).classList.add('active');
+
+            document.querySelectorAll('.timeline-node').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.timeline-node[data-slide="${id}"]`).classList.add('active');
+
+            currentSlide = id;
+            updateUI();
+        }
+
+        // Mark complete
+        function markComplete(id) {
+            completed.add(id);
+            updateUI();
+            
+            if (completed.size === totalSlides) {
+                setTimeout(() => {
+                    document.getElementById('modal').classList.add('active');
+                }, 300);
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('currentSlide').textContent = currentSlide;
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentSlide === totalSlides) {
+                nextBtn.innerHTML = `Complete <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+            } else {
+                nextBtn.innerHTML = `Next <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+            }
+
+            // Progress
+            const percent = Math.round((completed.size / totalSlides) * 100);
+            document.getElementById('progressPercent').textContent = `${percent}%`;
+            document.getElementById('timelineFill').style.width = `${percent}%`;
+            document.getElementById('completedStat').textContent = `${completed.size}/${totalSlides}`;
+
+            // Completed states
+            document.querySelectorAll('.nav-item').forEach(el => {
+                const id = parseInt(el.dataset.slide);
+                el.classList.toggle('completed', completed.has(id));
+                el.querySelector('.nav-num').textContent = completed.has(id) ? '✓' : id;
+            });
+
+            document.querySelectorAll('.timeline-node').forEach(el => {
+                const id = parseInt(el.dataset.slide);
+                el.classList.toggle('completed', completed.has(id));
+            });
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Keyboard navigation
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft' && currentSlide > 1) goTo(currentSlide - 1);
+                if (e.key === 'ArrowRight' && currentSlide < totalSlides) goTo(currentSlide + 1);
+                if (e.key === ' ') { e.preventDefault(); markComplete(currentSlide); }
+                if (e.key >= '1' && e.key <= '9') goTo(parseInt(e.key));
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        // Button handlers
+        document.getElementById('prevBtn').onclick = () => {
+            if (currentSlide > 1) goTo(currentSlide - 1);
+        };
+
+        document.getElementById('nextBtn').onclick = () => {
+            markComplete(currentSlide);
+            if (currentSlide < totalSlides) goTo(currentSlide + 1);
+        };
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
