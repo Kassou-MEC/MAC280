@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity C# Scripting Tutorial | MAC280</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --emerald: #10b981;
+            --emerald-glow: rgba(16, 185, 129, 0.3);
+            --violet: #8b5cf6;
+            --violet-glow: rgba(139, 92, 246, 0.25);
+            --rose: #f43f5e;
+            --rose-glow: rgba(244, 63, 94, 0.2);
+            --amber: #f59e0b;
+            --sky: #0ea5e9;
+            --bg-base: #030712;
+            --bg-surface: #0f172a;
+            --bg-elevated: rgba(15, 23, 42, 0.95);
+            --bg-card: rgba(30, 41, 59, 0.5);
+            --border: rgba(148, 163, 184, 0.1);
+            --border-hover: rgba(148, 163, 184, 0.2);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Effects */
+        .bg-wrapper {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--emerald-glow);
+            top: -200px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--violet-glow);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 400px;
+            height: 400px;
+            background: var(--rose-glow);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* Dot Grid */
+        .dot-grid {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 50px 20px 40px;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            margin-bottom: 28px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .badge-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--emerald);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .badge-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 2.0rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        .main-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.8rem, 7vw, 4.5rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+            animation: fadeIn 0.6s ease-out 0.1s backwards;
+        }
+
+        .title-gradient {
+            background: linear-gradient(135deg, var(--emerald) 0%, var(--sky) 50%, var(--violet) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+            animation: fadeIn 0.6s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Info Cards Row */
+        .info-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.6s ease-out 0.3s backwards;
+        }
+
+        .info-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .info-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .info-icon.green { background: rgba(16, 185, 129, 0.15); }
+        .info-icon.violet { background: rgba(139, 92, 246, 0.15); }
+        .info-icon.rose { background: rgba(244, 63, 94, 0.15); }
+        .info-icon.amber { background: rgba(245, 158, 11, 0.15); }
+
+        .info-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-icon.green svg { color: var(--emerald); }
+        .info-icon.violet svg { color: var(--violet); }
+        .info-icon.rose svg { color: var(--rose); }
+        .info-icon.amber svg { color: var(--amber); }
+
+        .info-data {
+            flex: 1;
+        }
+
+        .info-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 32px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(20px);
+            animation: fadeIn 0.6s ease-out 0.4s backwards;
+        }
+
+        .progress-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .progress-label {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .progress-value {
+            font-family: 'Source Code Pro', monospace;
+            color: var(--emerald);
+            font-size: 0.95rem;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--emerald), var(--sky));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .step-indicators {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .step-dot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .step-dot:hover { transform: scale(1.1); }
+
+        .dot-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--bg-base);
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .step-dot.done .dot-circle {
+            background: var(--emerald);
+            border-color: var(--emerald);
+        }
+
+        .step-dot.active .dot-circle {
+            border-color: var(--sky);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
+        }
+
+        .dot-num {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .step-dot.active .dot-num,
+        .step-dot.done .dot-num {
+            color: var(--text-secondary);
+        }
+
+        /* Main Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+            animation: fadeIn 0.6s ease-out 0.5s backwards;
+        }
+
+        @media (max-width: 1024px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .sidebar-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-card);
+        }
+
+        .nav-item.active {
+            background: rgba(14, 165, 233, 0.1);
+            border-color: rgba(14, 165, 233, 0.3);
+        }
+
+        .nav-item.done {
+            opacity: 0.6;
+        }
+
+        .nav-item.done:hover {
+            opacity: 1;
+        }
+
+        .nav-num {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .nav-item.active .nav-num {
+            background: var(--sky);
+            border-color: var(--sky);
+            color: white;
+        }
+
+        .nav-item.done .nav-num {
+            background: var(--emerald);
+            border-color: var(--emerald);
+            color: white;
+        }
+
+        .nav-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .nav-item.active .nav-title {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Concepts Card */
+        .concept-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .concept-tag {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.8rem;
+            color: var(--violet);
+        }
+
+        .concept-tag svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            min-height: 850px;
+        }
+
+        /* Slides */
+        .slide {
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .slide.active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .slide-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--emerald), var(--sky));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-titles h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .slide-titles p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .slide-body {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+
+        /* Transcript */
+        .transcript-box {
+            position: relative;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.02));
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin: 28px 0;
+        }
+
+        .transcript-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--amber);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .transcript-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .transcript-label svg {
+            width: 18px;
+            height: 18px;
+            color: var(--amber);
+        }
+
+        .transcript-label span {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.75rem;
+            color: var(--amber);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .transcript-text {
+            font-style: italic;
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* Video */
+        .video-block {
+            margin: 28px 0;
+        }
+
+        .video-frame {
+            background: var(--bg-base);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .video-frame:hover {
+            border-color: var(--emerald);
+            box-shadow: 0 0 40px var(--emerald-glow);
+        }
+
+        .video-aspect {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            background: linear-gradient(135deg, var(--bg-surface), rgba(16, 185, 129, 0.05));
+        }
+
+        .video-aspect iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-placeholder svg {
+            width: 64px;
+            height: 64px;
+            color: var(--emerald);
+            opacity: 0.4;
+            margin-bottom: 16px;
+        }
+
+        .video-placeholder span {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .video-caption {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .video-caption svg {
+            width: 18px;
+            height: 18px;
+            color: var(--emerald);
+        }
+
+        .video-caption span {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Tip Box */
+        .tip {
+            display: flex;
+            gap: 16px;
+            padding: 20px 24px;
+            border-radius: 14px;
+            margin: 24px 0;
+        }
+
+        .tip.green {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .tip.violet {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .tip.rose {
+            background: rgba(244, 63, 94, 0.08);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .tip.sky {
+            background: rgba(14, 165, 233, 0.08);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+
+        .tip-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .tip.green .tip-icon { color: var(--emerald); }
+        .tip.violet .tip-icon { color: var(--violet); }
+        .tip.rose .tip-icon { color: var(--rose); }
+        .tip.sky .tip-icon { color: var(--sky); }
+
+        .tip-body strong {
+            display: block;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .tip.green .tip-body strong { color: var(--emerald); }
+        .tip.violet .tip-body strong { color: var(--violet); }
+        .tip.rose .tip-body strong { color: var(--rose); }
+        .tip.sky .tip-body strong { color: var(--sky); }
+
+        .tip-body p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            margin: 24px 0;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .code-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dots span:nth-child(1) { background: #ff5f57; }
+        .code-dots span:nth-child(2) { background: #febc2e; }
+        .code-dots span:nth-child(3) { background: #28c840; }
+
+        .code-filename {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .code-content {
+            padding: 20px 24px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            overflow-x: auto;
+        }
+
+        .code-content .keyword { color: var(--violet); }
+        .code-content .type { color: var(--sky); }
+        .code-content .method { color: var(--amber); }
+        .code-content .string { color: var(--emerald); }
+        .code-content .comment { color: var(--text-muted); font-style: italic; }
+        .code-content .number { color: var(--rose); }
+
+        /* Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        @media (max-width: 700px) {
+            .comparison { grid-template-columns: 1fr; }
+        }
+
+        .compare-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .compare-card h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .compare-card h4 svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .compare-card.start h4 { color: var(--emerald); }
+        .compare-card.update h4 { color: var(--sky); }
+
+        .compare-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Feature Grid */
+        .features {
+            display: grid;
+            gap: 14px;
+            margin: 24px 0;
+        }
+
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 18px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.25s;
+        }
+
+        .feature:hover {
+            border-color: var(--emerald);
+            transform: translateX(4px);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-base);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .feature-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--emerald);
+        }
+
+        .feature-text strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .feature-text span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Summary */
+        .summary {
+            background: var(--bg-base);
+            border: 1px solid var(--emerald);
+            border-radius: 16px;
+            padding: 28px;
+            margin-top: 28px;
+        }
+
+        .summary-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--emerald);
+            margin-bottom: 20px;
+        }
+
+        .summary-title svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .summary-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-item:last-child { border-bottom: none; }
+
+        .summary-num {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--emerald), var(--sky));
+            border-radius: 50%;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .summary-item span {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 36px;
+            padding-top: 28px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .nav-btn.prev {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .nav-btn.prev:hover:not(:disabled) {
+            border-color: var(--sky);
+            color: var(--sky);
+        }
+
+        .nav-btn.next {
+            background: linear-gradient(135deg, var(--emerald), var(--sky));
+            color: white;
+        }
+
+        .nav-btn.next:hover:not(:disabled) {
+            transform: translateX(4px);
+            box-shadow: 0 8px 30px var(--emerald-glow);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .slide-count {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .slide-count span {
+            color: var(--emerald);
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.9);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-bg.show {
+            display: flex;
+            animation: fadeModal 0.3s ease-out;
+        }
+
+        @keyframes fadeModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--emerald);
+            border-radius: 24px;
+            padding: 50px;
+            text-align: center;
+            max-width: 480px;
+            animation: popModal 0.4s ease-out;
+        }
+
+        @keyframes popModal {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 28px;
+            background: linear-gradient(135deg, var(--emerald), var(--sky));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-icon svg {
+            width: 45px;
+            height: 45px;
+            color: white;
+        }
+
+        .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--emerald);
+            margin-bottom: 16px;
+        }
+
+        .modal-text {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .modal-btn {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, var(--emerald), var(--sky));
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px var(--emerald-glow);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer span { color: var(--emerald); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content { padding: 24px; }
+            .slide-header { flex-direction: column; gap: 16px; }
+            .sidebar { position: static; }
+            .step-indicators { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-wrapper">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+    <div class="dot-grid"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="course-badge">
+                <div class="badge-dot"></div>
+                <span class="badge-text">MAC280 • Prof. Khalid Kassou</span>
+            </div>
+            <h1 class="main-title">
+                <span class="title-gradient">C# Scripting in Unity</span>
+            </h1>
+            <p class="subtitle">Learn to write scripts, control GameObjects, handle input, and create interactive gameplay mechanics</p>
+        </header>
+
+        <!-- Info Row -->
+        <div class="info-row">
+            <div class="info-card">
+                <div class="info-icon green">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="info-data">
+                    <div class="info-value"></div>
+                    <div class="info-label"></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon violet">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="info-data">
+                    <div class="info-value" id="doneCount">0/11</div>
+                    <div class="info-label">Completed</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon rose">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                </div>
+                <div class="info-data">
+                    <div class="info-value">C#</div>
+                    <div class="info-label">Language</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon amber">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div class="info-data">
+                    <div class="info-value">5</div>
+                    <div class="info-label">Concepts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-top">
+                <span class="progress-label">YOUR PROGRESS</span>
+                <span class="progress-value" id="progressPct">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="step-indicators" id="stepDots"></div>
+        </div>
+
+        <!-- Layout -->
+        <div class="layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-card">
+                    <div class="sidebar-title">Tutorial Steps</div>
+                    <nav class="nav-items" id="navItems"></nav>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">Key Concepts</div>
+                    <div class="concept-list">
+                        <div class="concept-tag">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Start() & Update()
+                        </div>
+                        <div class="concept-tag">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                            References
+                        </div>
+                        <div class="concept-tag">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                            Vector2 Velocity
+                        </div>
+                        <div class="concept-tag">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            If Statements
+                        </div>
+                        <div class="concept-tag">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                            Input System
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Slide 1 -->
+                <article class="slide active" data-slide="1">
+                    <header class="slide-header">
+                        <div class="slide-num">01</div>
+                        <div class="slide-titles">
+                            <h2>Introduction to C# in Unity</h2>
+                            <p>Getting started with Visual Studio</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Welcome to programming in C# for Unity! We'll be using Visual Studio as our code editor. The key thing to understand right now is the two main methods in every Unity script: <strong>Start()</strong> and <strong>Update()</strong>.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Welcome to programming in C# for Unity Hub. I'm using Visual Studio for that reason. I will take you very slow and we will write in C#, the programming language. The only thing to worry about right now is these two methods: the Start method and the Update method."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Introduction to C#" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 1: Introduction to C# scripting in Unity</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison">
+                        <div class="compare-card start">
+                            <h4>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                                Start() Method
+                            </h4>
+                            <p>Runs <strong>once</strong> as soon as the script is enabled. Perfect for initialization code.</p>
+                        </div>
+                        <div class="compare-card update">
+                            <h4>
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Update() Method
+                            </h4>
+                            <p>Runs <strong>constantly</strong> every single frame while the script is enabled.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 2 -->
+                <article class="slide" data-slide="2">
+                    <header class="slide-header">
+                        <div class="slide-num">02</div>
+                        <div class="slide-titles">
+                            <h2>Accessing GameObject Properties</h2>
+                            <p>Changing the name via script</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        In the Start method, we can access our GameObject and its properties. By typing <code>gameObject.name</code>, we can access and modify the name that appears in the Inspector. This demonstrates how scripts interact with the Unity Editor.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"In the Start we can type gameObject... and then we can access the name of the object. We have many options to choose from - all the options are properties of the inspector: the static, the tag, the layer, and the name."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">BirdScript.cs</div>
+                        </div>
+                        <div class="code-content">
+<span class="keyword">void</span> <span class="method">Start</span>()
+{
+    <span class="comment">// Access and change the GameObject's name</span>
+    <span class="type">gameObject</span>.name = <span class="string">"Bob Burington"</span>;
+}
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Accessing GameObject" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 2: Changing GameObject name via script</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip rose">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div class="tip-body">
+                            <strong>Important: Save Your Files!</strong>
+                            <p>Always save your script (File → Save or Ctrl+S) before going back to Unity. Changes won't apply until saved!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 3 -->
+                <article class="slide" data-slide="3">
+                    <header class="slide-header">
+                        <div class="slide-num">03</div>
+                        <div class="slide-titles">
+                            <h2>Understanding References</h2>
+                            <p>Connecting scripts to components</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        By default, scripts can only talk to the GameObject's name and Transform. To access other components like Rigidbody2D, we need to create a <strong>reference</strong> - a special slot that connects our script to the component.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Initially script can only talk to the gameObject name and the Transform. Right now the script is completely unaware of the other components. So we need to make a special slot on this script for Rigidbody2D so we can then talk to it and send commands. This is called a reference."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Understanding References" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 3: Understanding the concept of references</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip violet">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <div class="tip-body">
+                            <strong>What's a Reference?</strong>
+                            <p>Think of a reference as a "connection wire" between your script and a component. Without it, your script can't communicate with that component.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 4 -->
+                <article class="slide" data-slide="4">
+                    <header class="slide-header">
+                        <div class="slide-num">04</div>
+                        <div class="slide-titles">
+                            <h2>Creating a Public Reference</h2>
+                            <p>Declaring the Rigidbody2D variable</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        We declare a <strong>public</strong> variable of type Rigidbody2D. The "public" modifier makes this variable appear in the Inspector, where we can drag and drop the Rigidbody2D component to connect it.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"We're going to declare a variable or reference and this reference should be public and it's called myRigidBody. This public modifier is going to allow this myRigidBody reference to appear on the Inspector side."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">BirdScript.cs</div>
+                        </div>
+                        <div class="code-content">
+<span class="keyword">public class</span> <span class="type">BirdScript</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// Public reference - appears in Inspector</span>
+    <span class="keyword">public</span> <span class="type">Rigidbody2D</span> myRigidBody;
+
+    <span class="keyword">void</span> <span class="method">Start</span>()
+    {
+        
+    }
+}
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Public Reference" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 4: Creating a public Rigidbody2D reference</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip green">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="tip-body">
+                            <strong>Connecting the Reference</strong>
+                            <p>After saving the script, go to Unity, select the Bird, and drag the Rigidbody2D component into the "My Rigid Body" field in the Inspector.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 5 -->
+                <article class="slide" data-slide="5">
+                    <header class="slide-header">
+                        <div class="slide-num">05</div>
+                        <div class="slide-titles">
+                            <h2>Understanding Vector2</h2>
+                            <p>2D coordinates and movement</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <strong>Vector2</strong> represents 2D coordinates with X and Y values. The center is (0, 0). Moving along X changes horizontal position, moving along Y changes vertical position. For upward movement, we use (0, 1) - no horizontal change, positive vertical change.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Vector2 is two dimensions. At the center is (0, 0). Once we move, the X axis and Y axis coordinates will change depending on the direction of our GameObject. Since we want just to move up our bird, the zero is going to be for X and one for Y."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Vector2 Explanation" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 5: Understanding Vector2 coordinates</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="features">
+                        <div class="feature">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></div>
+                            <div class="feature-text">
+                                <strong>Vector2(1, 0) → Move Right</strong>
+                                <span>Positive X, no Y change</span>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/></svg></div>
+                            <div class="feature-text">
+                                <strong>Vector2(-1, 0) → Move Left</strong>
+                                <span>Negative X, no Y change</span>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg></div>
+                            <div class="feature-text">
+                                <strong>Vector2(0, 1) → Move Up</strong>
+                                <span>No X change, positive Y</span>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div>
+                            <div class="feature-text">
+                                <strong>Vector2(0, -1) → Move Down</strong>
+                                <span>No X change, negative Y</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 6 -->
+                <article class="slide" data-slide="6">
+                    <header class="slide-header">
+                        <div class="slide-num">06</div>
+                        <div class="slide-titles">
+                            <h2>Setting Velocity</h2>
+                            <p>Making the bird fly continuously</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Using our Rigidbody2D reference, we can set the <strong>velocity</strong> property. Velocity controls how fast and in which direction the object moves. We multiply Vector2.up by a value to control speed.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"We're going to look for velocity... and fix this velocity to Vector2. We can control the movement of the bird by specifying a multiplier that controls the scale of the movement. In this case we'll multiply it by 10."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">BirdScript.cs</div>
+                        </div>
+                        <div class="code-content">
+<span class="keyword">void</span> <span class="method">Update</span>()
+{
+    <span class="comment">// Set upward velocity - runs every frame!</span>
+    myRigidBody.velocity = <span class="type">Vector2</span>.up * <span class="number">10</span>;
+}
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Setting Velocity" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 6: Setting velocity to make the bird fly</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip rose">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div class="tip-body">
+                            <strong>Problem: Continuous Flight!</strong>
+                            <p>With this code in Update(), the bird flies up constantly! There's no gravity effect. We need to add a condition to control when this happens.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 7 -->
+                <article class="slide" data-slide="7">
+                    <header class="slide-header">
+                        <div class="slide-num">07</div>
+                        <div class="slide-titles">
+                            <h2>Introduction to If Statements</h2>
+                            <p>The fundamental gate of programming</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        An <strong>if statement</strong> is like a gate. You can surround code with a "fence" (curly brackets), and every frame that code will be ignored UNLESS the game meets the specified condition - then the gate opens and the code executes.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"It's time to use the most fundamental bit of programming: the if statement. An if statement is like a gate. You can surround some code with a fence (curly brackets). Every frame that code will be completely ignored unless the game meets the specified condition written on the gate - in which case the gate opens and the code is read and executed."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="If Statements" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 7: Understanding if statements as gates</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip sky">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <div class="tip-body">
+                            <strong>The Gate Analogy</strong>
+                            <p>Think of curly brackets { } as fences around your code. The condition in parentheses ( ) is the key to the gate. Only when the condition is true does the gate open!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 8 -->
+                <article class="slide" data-slide="8">
+                    <header class="slide-header">
+                        <div class="slide-num">08</div>
+                        <div class="slide-titles">
+                            <h2>Detecting Space Bar Input</h2>
+                            <p>Using Unity's Input system</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        To detect when the player presses the space bar, we use Unity's <strong>Input</strong> system. <code>Input.GetKeyDown(KeyCode.Space)</code> asks Unity: "Was the space bar pressed on this frame?" We check if this equals <code>true</code>.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"This time we are not talking to a component, we are actually talking to Unity itself - specifically its Input system. We will write Input, then GetKeyDown, and in brackets KeyCode.Space. This asks Unity if the space bar has been pressed on this frame."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">BirdScript.cs</div>
+                        </div>
+                        <div class="code-content">
+<span class="keyword">void</span> <span class="method">Update</span>()
+{
+    <span class="comment">// Check if space bar was pressed this frame</span>
+    <span class="keyword">if</span> (<span class="type">Input</span>.<span class="method">GetKeyDown</span>(<span class="type">KeyCode</span>.Space) == <span class="keyword">true</span>)
+    {
+        <span class="comment">// Flap! Add upward velocity</span>
+        myRigidBody.velocity = <span class="type">Vector2</span>.up * <span class="number">10</span>;
+    }
+}
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Input Detection" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 8: Detecting space bar input</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip violet">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <div class="tip-body">
+                            <strong>Single vs Double Equals</strong>
+                            <p><strong>=</strong> (single) assigns a value. <strong>==</strong> (double) checks if two things are equal. In conditions, always use ==!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 9 -->
+                <article class="slide" data-slide="9">
+                    <header class="slide-header">
+                        <div class="slide-num">09</div>
+                        <div class="slide-titles">
+                            <h2>Testing the Flap Mechanic</h2>
+                            <p>Your bird now responds to input!</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Now in Update, every frame the game checks: "Has the space bar been pressed?" If yes, the code fires and the bird flaps upward. If not, it skips the code and tries again next frame. We've created a character that reacts to player input!
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Now in Update, every frame the game will go to the gate and be asked: 'Has the space bar just been pressed?' If yes, the code will fire and the bird will flap. If not, it will skip the code in the curly brackets and try again next frame. Tada! The bird goes up when we press space!"</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Testing Flap" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 9: Testing the flap mechanic in action</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tip green">
+                        <svg class="tip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="tip-body">
+                            <strong>Success!</strong>
+                            <p>You've created a character that responds to player input! The bird falls with gravity and flaps up when you press space - the core mechanic of Flappy Bird!</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 10 -->
+                <article class="slide" data-slide="10">
+                    <header class="slide-header">
+                        <div class="slide-num">10</div>
+                        <div class="slide-titles">
+                            <h2>Creating Flap Strength Variable</h2>
+                            <p>The smart way to adjust values</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Changing the multiplier (10) in the script every time you want to test different speeds is tedious. The smart solution: create a <strong>public float</strong> variable called flapStrength and use it instead of the hardcoded number.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"Instead of changing the multiplier from 10 to 6, going back to Unity, playing... it's not a really smart way. The best way is to declare a public reference, a float, and name it flapStrength. This variable is going to replace the value 10 in our script."</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots"><span></span><span></span><span></span></div>
+                            <div class="code-filename">BirdScript.cs</div>
+                        </div>
+                        <div class="code-content">
+<span class="keyword">public class</span> <span class="type">BirdScript</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="keyword">public</span> <span class="type">Rigidbody2D</span> myRigidBody;
+    <span class="keyword">public</span> <span class="type">float</span> flapStrength;  <span class="comment">// Appears in Inspector!</span>
+
+    <span class="keyword">void</span> <span class="method">Update</span>()
+    {
+        <span class="keyword">if</span> (<span class="type">Input</span>.<span class="method">GetKeyDown</span>(<span class="type">KeyCode</span>.Space))
+        {
+            myRigidBody.velocity = <span class="type">Vector2</span>.up * flapStrength;
+        }
+    }
+}
+                        </div>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Flap Strength Variable" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 10: Creating the flapStrength variable</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 11 -->
+                <article class="slide" data-slide="11">
+                    <header class="slide-header">
+                        <div class="slide-num">11</div>
+                        <div class="slide-titles">
+                            <h2>Adjusting Values in the Inspector</h2>
+                            <p>No more script editing for tweaks!</p>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        Now the flapStrength variable appears in the Inspector! You can change it from 0 to 10 (or any value), play the game, and instantly see the results. No need to go back to the script - this is the professional way to tune game values.
+                    </div>
+
+                    <div class="transcript-box">
+                        <div class="transcript-label">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                            <span>Video Transcript</span>
+                        </div>
+                        <p class="transcript-text">"If we go back to Unity you will see on the Inspector side that a component flapStrength is added, initialized to zero. We're going to change it to 10 and play the game. No need to go back to script and change it there! We can play with this flapStrength component, increase it, decrease it, and you will see the velocity of our bird without worrying about changing the script."</p>
+                    </div>
+
+                    <div class="video-block">
+                        <div class="video-frame">
+                            <div class="video-aspect">
+                                <!-- PASTE YOUR YOUTUBE CLIP URL HERE -->
+                                <iframe 
+                                    src="PASTE_YOUTUBE_CLIP_URL_HERE" 
+                                    title="Inspector Values" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <div class="video-caption">
+                                <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <span>Fig 11: Adjusting flapStrength in the Inspector</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary">
+                        <h3 class="summary-title">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Tutorial Summary
+                        </h3>
+                        <div class="summary-list">
+                            <div class="summary-item">
+                                <div class="summary-num">1</div>
+                                <span>Start() runs once, Update() runs every frame</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">2</div>
+                                <span>Access GameObject properties via gameObject.name</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">3</div>
+                                <span>Create public references to access components</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">4</div>
+                                <span>Vector2 represents 2D coordinates (X, Y)</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">5</div>
+                                <span>Use velocity to control movement speed/direction</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">6</div>
+                                <span>If statements control when code executes</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">7</div>
+                                <span>Input.GetKeyDown detects key presses</span>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-num">8</div>
+                                <span>Public variables appear in the Inspector for easy tweaking</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Navigation -->
+                <nav class="nav-controls">
+                    <button class="nav-btn prev" id="prevBtn" disabled>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        Previous
+                    </button>
+                    <div class="slide-count">
+                        Slide <span id="currentNum">1</span> / <span id="totalNum">11</span>
+                    </div>
+                    <button class="nav-btn next" id="nextBtn">
+                        Next
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </nav>
+            </main>
+        </div>
+
+        <footer>
+            C# Scripting Tutorial • MAC280 • <span>Prof. Khalid Kassou</span>
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-bg" id="modal">
+        <div class="modal-card">
+            <div class="modal-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h2 class="modal-title">Tutorial Complete!</h2>
+            <p class="modal-text">Excellent work! You've learned the fundamentals of C# scripting in Unity - from accessing GameObjects to handling player input and creating responsive game mechanics!</p>
+            <button class="modal-btn" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        const slides = [
+            { id: 1, title: "Intro to C# in Unity" },
+            { id: 2, title: "Accessing GameObject" },
+            { id: 3, title: "Understanding References" },
+            { id: 4, title: "Public Reference" },
+            { id: 5, title: "Vector2 Basics" },
+            { id: 6, title: "Setting Velocity" },
+            { id: 7, title: "If Statements" },
+            { id: 8, title: "Space Bar Input" },
+            { id: 9, title: "Testing Flap" },
+            { id: 10, title: "Flap Strength Var" },
+            { id: 11, title: "Inspector Values" }
+        ];
+
+        let current = 1;
+        let done = new Set();
+        const total = slides.length;
+
+        function init() {
+            document.getElementById('totalNum').textContent = total;
+            buildNav();
+            buildDots();
+            update();
+            setupKeys();
+        }
+
+        function buildNav() {
+            const nav = document.getElementById('navItems');
+            slides.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `nav-item ${s.id === 1 ? 'active' : ''}`;
+                item.dataset.id = s.id;
+                item.innerHTML = `<div class="nav-num">${s.id}</div><div class="nav-title">${s.title}</div>`;
+                item.onclick = () => goTo(s.id);
+                nav.appendChild(item);
+            });
+        }
+
+        function buildDots() {
+            const dots = document.getElementById('stepDots');
+            slides.forEach(s => {
+                const dot = document.createElement('div');
+                dot.className = `step-dot ${s.id === 1 ? 'active' : ''}`;
+                dot.dataset.id = s.id;
+                dot.innerHTML = `<div class="dot-circle"></div><div class="dot-num">${s.id}</div>`;
+                dot.onclick = () => goTo(s.id);
+                dots.appendChild(dot);
+            });
+        }
+
+        function goTo(id) {
+            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.slide[data-slide="${id}"]`).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.nav-item[data-id="${id}"]`).classList.add('active');
+
+            document.querySelectorAll('.step-dot').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.step-dot[data-id="${id}"]`).classList.add('active');
+
+            current = id;
+            update();
+        }
+
+        function markDone(id) {
+            done.add(id);
+            update();
+            if (done.size === total) {
+                setTimeout(() => document.getElementById('modal').classList.add('show'), 300);
+            }
+        }
+
+        function update() {
+            document.getElementById('currentNum').textContent = current;
+            document.getElementById('prevBtn').disabled = current === 1;
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.innerHTML = current === total
+                ? `Complete <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`
+                : `Next <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+
+            const pct = Math.round((done.size / total) * 100);
+            document.getElementById('progressPct').textContent = `${pct}%`;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('doneCount').textContent = `${done.size}/${total}`;
+
+            document.querySelectorAll('.nav-item').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                el.classList.toggle('done', done.has(id));
+                el.querySelector('.nav-num').textContent = done.has(id) ? '✓' : id;
+            });
+
+            document.querySelectorAll('.step-dot').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                el.classList.toggle('done', done.has(id));
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function setupKeys() {
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft' && current > 1) goTo(current - 1);
+                if (e.key === 'ArrowRight' && current < total) goTo(current + 1);
+                if (e.key === ' ') { e.preventDefault(); markDone(current); }
+                if (e.key >= '1' && e.key <= '9') goTo(Math.min(parseInt(e.key), total));
+                if (e.key === '0') goTo(10);
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        document.getElementById('prevBtn').onclick = () => { if (current > 1) goTo(current - 1); };
+        document.getElementById('nextBtn').onclick = () => {
+            markDone(current);
+            if (current < total) goTo(current + 1);
+        };
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
