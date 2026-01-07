@@ -1,0 +1,2513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Practice Lab | MAC280</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --error-light: #fee2e2;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --gray-light: #94a3b8;
+            --light: #f1f5f9;
+            --white: #ffffff;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-unity: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Animation */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--gradient-unity);
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(2%, 2%) rotate(1deg); }
+            50% { transform: translate(0, 4%) rotate(0deg); }
+            75% { transform: translate(-2%, 2%) rotate(-1deg); }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .logo-text span {
+            color: var(--primary-light);
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .stat-icon {
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--primary-light);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 30px;
+            font-size: 0.875rem;
+            color: var(--primary-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-light);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.7;
+        }
+
+        /* Topic Cards */
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .topic-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .topic-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .topic-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .topic-card.selected {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+        }
+
+        .topic-card.selected::before {
+            transform: scaleX(1);
+        }
+
+        .topic-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .topic-icon.gameobject {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+        }
+
+        .topic-icon.physics {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+        }
+
+        .topic-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .topic-desc {
+            color: var(--gray-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .topic-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .topic-tag {
+            padding: 0.35rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--gray-light);
+        }
+
+        /* Start Button */
+        .start-btn {
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Practice Section */
+        .practice-section {
+            display: none;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .practice-section.active {
+            display: block;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .progress-count {
+            color: var(--primary-light);
+            font-weight: 700;
+        }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Question Card */
+        .question-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.9rem;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--primary-light);
+        }
+
+        .question-number {
+            font-size: 0.9rem;
+            color: var(--gray-light);
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 600;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .question-text code {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: var(--primary-light);
+        }
+
+        /* Multiple Choice */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 1.1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateX(5px);
+        }
+
+        .option-btn.selected {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+        }
+
+        .option-btn.incorrect {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--error);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--success);
+        }
+
+        .option-btn.incorrect .option-letter {
+            background: var(--error);
+        }
+
+        /* Fill in the Blank */
+        .fill-blank-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            line-height: 2.2;
+        }
+
+        .blank-input {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            min-width: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .blank-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .blank-input.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .blank-input.incorrect {
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Code Completion */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-header {
+            padding: 0.75rem 1.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27ca40; }
+
+        .code-filename {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--gray-light);
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .line-number {
+            color: var(--gray);
+            user-select: none;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        .code-text {
+            flex: 1;
+        }
+
+        .code-keyword { color: #c792ea; }
+        .code-class { color: #82aaff; }
+        .code-method { color: #f78c6c; }
+        .code-comment { color: #676e95; font-style: italic; }
+        .code-string { color: #c3e88d; }
+
+        .code-dropdown {
+            padding: 0.3rem 0.75rem;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .code-dropdown.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+        }
+
+        .code-dropdown.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error);
+        }
+
+        /* Ordering Question */
+        .ordering-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .order-item {
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .order-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .order-item.dragging {
+            opacity: 0.5;
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .order-item.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+
+        .order-item.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+        }
+
+        .order-handle {
+            color: var(--gray-light);
+            font-size: 1.25rem;
+        }
+
+        .order-number {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .order-item.correct .order-number {
+            background: var(--success);
+        }
+
+        .order-item.incorrect .order-number {
+            background: var(--error);
+        }
+
+        /* True/False */
+        .tf-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .tf-btn {
+            flex: 1;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .tf-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+        }
+
+        .tf-btn.true:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .tf-btn.false:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .tf-btn.selected.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+        }
+
+        .tf-btn.selected.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error);
+        }
+
+        /* Matching */
+        .matching-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .match-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .match-item {
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .match-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .match-item.selected {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+        }
+
+        .match-item.matched {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+
+        .match-arrows {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-top: 0.5rem;
+        }
+
+        .match-arrow {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-size: 1.25rem;
+        }
+
+        /* New Matching Styles */
+        .match-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 0 0.5rem;
+            align-items: center;
+        }
+
+        .match-line {
+            height: 52px;
+            width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .match-line::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .match-line.connected::before {
+            background: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .match-line.correct::before {
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .match-line.incorrect::before {
+            background: var(--error);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .match-line .line-number {
+            background: var(--dark);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            z-index: 1;
+        }
+
+        .match-line.correct .line-number {
+            color: var(--success);
+        }
+
+        .match-line.incorrect .line-number {
+            color: var(--error);
+        }
+
+        .match-item {
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-height: 52px;
+        }
+
+        .match-item .match-text {
+            flex: 1;
+        }
+
+        .match-item .match-label {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .match-item:hover:not(.matched):not(.correct):not(.incorrect) {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .match-item.selected {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .match-item.matched {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .match-item.correct {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+        }
+
+        .match-item.correct .match-label {
+            background: var(--success);
+        }
+
+        .match-item.incorrect {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--error);
+        }
+
+        .match-item.incorrect .match-label {
+            background: var(--error);
+        }
+
+        .matching-controls {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .matching-instructions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-light);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .instruction-icon {
+            font-size: 1.1rem;
+        }
+
+        .match-progress {
+            margin-left: auto;
+            padding: 0.3rem 0.75rem;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-light);
+        }
+
+        .matching-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* Feedback */
+        .feedback {
+            padding: 1.25rem 1.5rem;
+            border-radius: 14px;
+            margin-top: 1.5rem;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.show {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .feedback-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .feedback-content h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feedback.correct h4 { color: var(--success); }
+        .feedback.incorrect h4 { color: var(--error); }
+
+        .feedback-content p {
+            color: var(--gray-light);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.9rem 1.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn.primary {
+            background: var(--gradient-1);
+            border: none;
+            color: white;
+        }
+
+        .nav-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .results-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .results-score {
+            font-size: 4rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-details {
+            color: var(--gray-light);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .results-breakdown {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .breakdown-item {
+            text-align: center;
+        }
+
+        .breakdown-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .breakdown-value.correct { color: var(--success); }
+        .breakdown-value.incorrect { color: var(--error); }
+
+        .breakdown-label {
+            color: var(--gray-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .results-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        /* Question Dots */
+        .question-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .q-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .q-dot.current {
+            background: var(--primary);
+            transform: scale(1.3);
+        }
+
+        .q-dot.answered {
+            background: var(--success);
+        }
+
+        .q-dot.wrong {
+            background: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 1rem;
+            }
+
+            .header-stats {
+                display: none;
+            }
+
+            .main-container {
+                padding: 5rem 1rem 1rem;
+            }
+
+            .welcome-title {
+                font-size: 2rem;
+            }
+
+            .question-card {
+                padding: 1.5rem;
+            }
+
+            .question-text {
+                font-size: 1.15rem;
+            }
+
+            .tf-container {
+                flex-direction: column;
+            }
+
+            .matching-container {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .match-lines {
+                flex-direction: row;
+                padding: 0.5rem 0;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .match-line {
+                width: 40px;
+                height: 30px;
+            }
+
+            .match-line::before {
+                width: 2px;
+                height: 100%;
+            }
+
+            .matching-instructions {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .match-progress {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+
+            .matching-buttons {
+                flex-direction: column;
+            }
+
+            .results-breakdown {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Hint Button */
+        .hint-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .hint-btn:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+
+        .hint-box {
+            padding: 1rem 1.25rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+            color: var(--gray-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .hint-box.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Timer */
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+        }
+
+        .timer-icon {
+            color: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="particles" id="particles"></div>
+
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">U</div>
+            <div class="logo-text">Unity <span>Practice Lab</span></div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-icon">🎯</span>
+                <span>Score: <span class="stat-value" id="headerScore">0</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🔥</span>
+                <span>Streak: <span class="stat-value" id="headerStreak">0</span></span>
+            </div>
+            <div class="timer">
+                <span class="timer-icon">⏱️</span>
+                <span id="timer">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Welcome Section -->
+        <section class="welcome-section" id="welcomeSection">
+            <div class="welcome-badge">
+                <span>✨</span>
+                <span>MAC280 • Prof. Khalid Kassou</span>
+            </div>
+            <h1 class="welcome-title">Unity Practice Lab</h1>
+            <p class="welcome-subtitle">
+                Test your knowledge of Unity fundamentals with interactive questions covering GameObjects, Physics, and C# Scripting.
+            </p>
+
+            <div class="topics-grid">
+                <div class="topic-card" data-topic="gameobject" onclick="toggleTopic(this)">
+                    <div class="topic-icon gameobject">🎮</div>
+                    <h3 class="topic-title">GameObject Basics</h3>
+                    <p class="topic-desc">
+                        Learn about GameObjects, SpriteRenderer components, asset importing, and basic transforms.
+                    </p>
+                    <div class="topic-meta">
+                        <span class="topic-tag">7 Questions</span>
+                        <span class="topic-tag">Beginner</span>
+                    </div>
+                </div>
+
+                <div class="topic-card" data-topic="physics" onclick="toggleTopic(this)">
+                    <div class="topic-icon physics">⚡</div>
+                    <h3 class="topic-title">Physics & Scripting</h3>
+                    <p class="topic-desc">
+                        Master Rigidbody2D, Circle Colliders, gravity, collision detection, and C# scripting basics.
+                    </p>
+                    <div class="topic-meta">
+                        <span class="topic-tag">8 Questions</span>
+                        <span class="topic-tag">Intermediate</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn" onclick="startPractice()" disabled>
+                Select a Topic to Begin
+            </button>
+        </section>
+
+        <!-- Practice Section -->
+        <section class="practice-section" id="practiceSection">
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span class="progress-title">
+                        <span>📊</span> Progress
+                    </span>
+                    <span class="progress-count">
+                        <span id="currentQ">1</span> / <span id="totalQ">15</span>
+                    </span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="question-dots" id="questionDots"></div>
+
+            <div id="questionContainer"></div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn secondary" id="prevBtn" onclick="prevQuestion()" disabled>
+                    ← Previous
+                </button>
+                <button class="nav-btn primary" id="nextBtn" onclick="nextQuestion()">
+                    Next →
+                </button>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section" id="resultsSection">
+            <div class="results-icon" id="resultsIcon">🏆</div>
+            <h2 class="results-title" id="resultsTitle">Great Job!</h2>
+            <div class="results-score" id="resultsScore">85%</div>
+            <p class="results-details" id="resultsDetails">You answered 12 out of 15 questions correctly</p>
+            
+            <div class="results-breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-value correct" id="correctCount">12</div>
+                    <div class="breakdown-label">Correct</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value incorrect" id="incorrectCount">3</div>
+                    <div class="breakdown-label">Incorrect</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value" id="timeSpent" style="color: var(--primary-light)">5:32</div>
+                    <div class="breakdown-label">Time Spent</div>
+                </div>
+            </div>
+
+            <div class="results-actions">
+                <button class="nav-btn secondary" onclick="reviewAnswers()">
+                    📋 Review Answers
+                </button>
+                <button class="nav-btn primary" onclick="restartPractice()">
+                    🔄 Try Again
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Question Bank
+        const questionBank = {
+            gameobject: [
+                {
+                    type: 'multiple',
+                    question: 'What is a GameObject in Unity?',
+                    options: [
+                        'A 3D model file format',
+                        'An empty container with position, rotation, and scale properties',
+                        'A type of animation controller',
+                        'A scripting language'
+                    ],
+                    correct: 1,
+                    explanation: 'A GameObject is like an empty container or box. It has properties like position, rotation, and scale, but is invisible until components are added.',
+                    hint: 'Think of it as an empty box that can hold anything you want.'
+                },
+                {
+                    type: 'truefalse',
+                    question: 'An empty GameObject is visible in the game by default.',
+                    correct: false,
+                    explanation: 'An empty GameObject is invisible until you add a rendering component like SpriteRenderer to make it visible.',
+                    hint: 'What makes things visible in Unity?'
+                },
+                {
+                    type: 'ordering',
+                    question: 'Arrange the steps to create and display a Bird sprite in the correct order:',
+                    items: [
+                        'Create empty GameObject',
+                        'Rename it to "Bird"',
+                        'Import bird image asset',
+                        'Add SpriteRenderer component',
+                        'Drag sprite to Sprite field'
+                    ],
+                    correct: [0, 1, 2, 3, 4],
+                    explanation: 'The correct workflow is: Create → Name → Import → Add Renderer → Assign Sprite',
+                    hint: 'You need something to render before you can see it.'
+                },
+                {
+                    type: 'multiple',
+                    question: 'Which component makes a GameObject visible in a 2D game?',
+                    options: [
+                        'Rigidbody2D',
+                        'BoxCollider2D',
+                        'SpriteRenderer',
+                        'AudioSource'
+                    ],
+                    correct: 2,
+                    explanation: 'SpriteRenderer is the component that renders 2D sprites on screen, making them visible.',
+                    hint: 'The name of this component describes what it does - it renders something.'
+                },
+                {
+                    type: 'fillblank',
+                    question: 'To import an image asset into Unity, go to Assets → _____ New Asset.',
+                    blanks: ['Import'],
+                    explanation: 'The menu path is Assets → Import New Asset, which opens a file browser to select your image.',
+                    hint: 'What action brings external files into Unity?'
+                },
+                {
+                    type: 'multiple',
+                    question: 'Which panel do you use to create a new empty GameObject by right-clicking?',
+                    options: [
+                        'Project panel',
+                        'Inspector panel',
+                        'Hierarchy panel',
+                        'Console panel'
+                    ],
+                    correct: 2,
+                    explanation: 'Right-clicking in the Hierarchy panel opens a context menu where you can select "Create Empty".',
+                    hint: 'This panel shows all objects in your current scene.'
+                },
+                {
+                    type: 'code',
+                    question: 'What property in the Transform component controls the size of a GameObject?',
+                    codeTemplate: [
+                        { text: '// Transform properties', type: 'comment' },
+                        { text: 'Position: (0, 0, 0)', type: 'normal' },
+                        { text: 'Rotation: (0, 0, 0)', type: 'normal' },
+                        { text: '______: (1, 1, 1)', type: 'blank', options: ['Scale', 'Size', 'Dimension', 'Bounds'], correct: 0 }
+                    ],
+                    explanation: 'Scale controls the size of a GameObject. The default value (1, 1, 1) represents the original size.',
+                    hint: 'This property makes things bigger or smaller.'
+                }
+            ],
+            physics: [
+                {
+                    type: 'multiple',
+                    question: 'Which component makes a GameObject affected by gravity in a 2D game?',
+                    options: [
+                        'Gravity2D',
+                        'Rigidbody2D',
+                        'PhysicsEngine2D',
+                        'GravityController'
+                    ],
+                    correct: 1,
+                    explanation: 'Rigidbody2D is the component that enables physics simulation including gravity for 2D objects.',
+                    hint: 'The name includes "body" and refers to physics concepts.'
+                },
+                {
+                    type: 'truefalse',
+                    question: 'The Gravity Scale property in Rigidbody2D is set to 0 by default.',
+                    correct: false,
+                    explanation: 'The default Gravity Scale is 1, not 0. A value of 0 would mean no gravity effect.',
+                    hint: 'What happens when you add Rigidbody2D and play? Does the object fall?'
+                },
+                {
+                    type: 'multiple',
+                    question: 'Why do we use "Circle Collider 2D" for a bird sprite that has a circular shape?',
+                    options: [
+                        'It\'s the only collider available',
+                        'It matches the sprite\'s circular shape for accurate collision',
+                        'It uses less memory',
+                        'It\'s required for Rigidbody2D to work'
+                    ],
+                    correct: 1,
+                    explanation: 'Choosing a collider shape that matches your sprite gives more accurate collision detection.',
+                    hint: 'Think about how collision detection works with shapes.'
+                },
+                {
+                    type: 'fillblank',
+                    question: 'In a Rigidbody2D, the _____ property controls how strongly gravity affects the object.',
+                    blanks: ['Gravity Scale'],
+                    acceptableAnswers: [['Gravity Scale', 'gravity scale', 'GravityScale', 'gravityScale', 'gravity']],
+                    explanation: 'Gravity Scale multiplies the gravity effect. Higher values make objects fall faster.',
+                    hint: 'This property "scales" how much gravity is applied.'
+                },
+                {
+                    type: 'multiple',
+                    question: 'What happens when you play the game after adding Rigidbody2D to an object?',
+                    options: [
+                        'The object moves to the right',
+                        'The object starts rotating',
+                        'The object falls down due to gravity',
+                        'Nothing happens until you add a script'
+                    ],
+                    correct: 2,
+                    explanation: 'With Rigidbody2D and default gravity scale of 1, the object will fall down due to gravity.',
+                    hint: 'What effect does gravity have on real objects?'
+                },
+                {
+                    type: 'code',
+                    question: 'Complete the basic Unity script structure:',
+                    codeTemplate: [
+                        { text: 'using UnityEngine;', type: 'keyword' },
+                        { text: '', type: 'normal' },
+                        { text: 'public class BirdScript : MonoBehaviour', type: 'class' },
+                        { text: '{', type: 'normal' },
+                        { text: '    void ______()', type: 'blank', options: ['Start', 'Begin', 'Init', 'Load'], correct: 0 },
+                        { text: '    {', type: 'normal' },
+                        { text: '        // Called before first frame', type: 'comment' },
+                        { text: '    }', type: 'normal' },
+                        { text: '', type: 'normal' },
+                        { text: '    void ______()', type: 'blank', options: ['Update', 'Loop', 'Tick', 'Frame'], correct: 0 },
+                        { text: '    {', type: 'normal' },
+                        { text: '        // Called every frame', type: 'comment' },
+                        { text: '    }', type: 'normal' },
+                        { text: '}', type: 'normal' }
+                    ],
+                    explanation: 'Start() runs once at the beginning, Update() runs every frame - these are Unity\'s core lifecycle methods.',
+                    hint: 'These are the two most common Unity lifecycle methods.'
+                },
+                {
+                    type: 'matching',
+                    question: 'Match each Rigidbody2D property with its function:',
+                    leftItems: ['Mass', 'Gravity Scale', 'Linear Damping', 'Angular Damping'],
+                    rightItems: ['Weight of the object', 'Strength of gravity effect', 'Slows movement over time', 'Slows rotation over time'],
+                    correct: [0, 1, 2, 3],
+                    explanation: 'Understanding these properties helps you tune physics behavior for your game.',
+                    hint: 'Think about what each property name suggests.'
+                },
+                {
+                    type: 'truefalse',
+                    question: 'A Circle Collider 2D can act as a trigger to detect overlaps without physical collision.',
+                    correct: true,
+                    explanation: 'By enabling "Is Trigger" on a collider, it detects overlaps without causing physical collision response.',
+                    hint: 'Colliders have a special mode for detection without physics.'
+                }
+            ]
+        };
+
+        // App State
+        let state = {
+            selectedTopics: [],
+            questions: [],
+            currentIndex: 0,
+            answers: [],
+            score: 0,
+            streak: 0,
+            maxStreak: 0,
+            startTime: null,
+            timerInterval: null
+        };
+
+        // Initialize particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Topic Selection
+        function toggleTopic(card) {
+            const topic = card.dataset.topic;
+            card.classList.toggle('selected');
+            
+            if (card.classList.contains('selected')) {
+                if (!state.selectedTopics.includes(topic)) {
+                    state.selectedTopics.push(topic);
+                }
+            } else {
+                state.selectedTopics = state.selectedTopics.filter(t => t !== topic);
+            }
+
+            updateStartButton();
+        }
+
+        function updateStartButton() {
+            const btn = document.getElementById('startBtn');
+            if (state.selectedTopics.length > 0) {
+                btn.disabled = false;
+                const count = state.selectedTopics.reduce((sum, topic) => sum + questionBank[topic].length, 0);
+                btn.textContent = `Start Practice (${count} Questions)`;
+            } else {
+                btn.disabled = true;
+                btn.textContent = 'Select a Topic to Begin';
+            }
+        }
+
+        // Start Practice
+        function startPractice() {
+            // Gather and shuffle questions
+            state.questions = [];
+            state.selectedTopics.forEach(topic => {
+                questionBank[topic].forEach(q => {
+                    state.questions.push({ ...q, topic });
+                });
+            });
+            shuffleArray(state.questions);
+
+            state.currentIndex = 0;
+            state.answers = new Array(state.questions.length).fill(null);
+            state.score = 0;
+            state.streak = 0;
+            state.maxStreak = 0;
+            state.startTime = Date.now();
+
+            // Start timer
+            state.timerInterval = setInterval(updateTimer, 1000);
+
+            // Switch views
+            document.getElementById('welcomeSection').style.display = 'none';
+            document.getElementById('practiceSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+
+            document.getElementById('totalQ').textContent = state.questions.length;
+            
+            createQuestionDots();
+            renderQuestion();
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+            const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const secs = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${mins}:${secs}`;
+        }
+
+        function createQuestionDots() {
+            const container = document.getElementById('questionDots');
+            container.innerHTML = '';
+            state.questions.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'q-dot';
+                if (i === 0) dot.classList.add('current');
+                dot.onclick = () => goToQuestion(i);
+                container.appendChild(dot);
+            });
+        }
+
+        function updateQuestionDots() {
+            const dots = document.querySelectorAll('.q-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.remove('current');
+                if (i === state.currentIndex) dot.classList.add('current');
+                if (state.answers[i] !== null) {
+                    if (state.answers[i].correct) {
+                        dot.classList.add('answered');
+                        dot.classList.remove('wrong');
+                    } else {
+                        dot.classList.add('wrong');
+                        dot.classList.remove('answered');
+                    }
+                }
+            });
+        }
+
+        function goToQuestion(index) {
+            // Reset matching state when changing questions
+            matchingState = {
+                selectedLeft: null,
+                selectedRight: null,
+                matches: {},
+                shuffledRight: []
+            };
+            state.currentIndex = index;
+            renderQuestion();
+        }
+
+        // Render Question
+        function renderQuestion() {
+            const q = state.questions[state.currentIndex];
+            const container = document.getElementById('questionContainer');
+            const answered = state.answers[state.currentIndex] !== null;
+
+            document.getElementById('currentQ').textContent = state.currentIndex + 1;
+            document.getElementById('progressBar').style.width = 
+                ((state.currentIndex + 1) / state.questions.length * 100) + '%';
+
+            updateQuestionDots();
+            updateNavButtons();
+
+            let html = `
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-type">${getTypeLabel(q.type)}</span>
+                        <span class="question-number">Question ${state.currentIndex + 1} of ${state.questions.length}</span>
+                    </div>
+                    <p class="question-text">${formatQuestion(q.question)}</p>
+            `;
+
+            switch (q.type) {
+                case 'multiple':
+                    html += renderMultipleChoice(q, answered);
+                    break;
+                case 'truefalse':
+                    html += renderTrueFalse(q, answered);
+                    break;
+                case 'fillblank':
+                    html += renderFillBlank(q, answered);
+                    break;
+                case 'ordering':
+                    html += renderOrdering(q, answered);
+                    break;
+                case 'code':
+                    html += renderCode(q, answered);
+                    break;
+                case 'matching':
+                    html += renderMatching(q, answered);
+                    break;
+            }
+
+            if (q.hint && !answered) {
+                html += `
+                    <button class="hint-btn" onclick="toggleHint()">
+                        💡 Show Hint
+                    </button>
+                    <div class="hint-box" id="hintBox">${q.hint}</div>
+                `;
+            }
+
+            html += renderFeedback(q, answered);
+            html += `</div>`;
+
+            container.innerHTML = html;
+
+            // Reinitialize ordering drag if needed
+            if (q.type === 'ordering' && !answered) {
+                initDragAndDrop();
+            }
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                multiple: '📝 Multiple Choice',
+                truefalse: '✓✗ True or False',
+                fillblank: '✏️ Fill in the Blank',
+                ordering: '🔢 Put in Order',
+                code: '💻 Code Completion',
+                matching: '🔗 Matching'
+            };
+            return labels[type] || type;
+        }
+
+        function formatQuestion(text) {
+            return text.replace(/`([^`]+)`/g, '<code>$1</code>');
+        }
+
+        // Multiple Choice
+        function renderMultipleChoice(q, answered) {
+            const letters = ['A', 'B', 'C', 'D'];
+            let html = '<div class="options-list">';
+            
+            q.options.forEach((opt, i) => {
+                let classes = 'option-btn';
+                if (answered) {
+                    if (i === q.correct) classes += ' correct';
+                    else if (state.answers[state.currentIndex]?.selected === i) classes += ' incorrect';
+                }
+                
+                html += `
+                    <button class="${classes}" 
+                            onclick="selectMultiple(${i})" 
+                            ${answered ? 'disabled' : ''}>
+                        <span class="option-letter">${letters[i]}</span>
+                        <span>${opt}</span>
+                    </button>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function selectMultiple(index) {
+            const q = state.questions[state.currentIndex];
+            const correct = index === q.correct;
+            
+            state.answers[state.currentIndex] = { selected: index, correct };
+            updateScore(correct);
+            renderQuestion();
+        }
+
+        // True/False
+        function renderTrueFalse(q, answered) {
+            let trueClass = 'tf-btn true';
+            let falseClass = 'tf-btn false';
+            
+            if (answered) {
+                const userAnswer = state.answers[state.currentIndex].selected;
+                if (q.correct === true) {
+                    trueClass += ' selected correct';
+                    if (userAnswer === false) falseClass += ' selected incorrect';
+                } else {
+                    falseClass += ' selected correct';
+                    if (userAnswer === true) trueClass += ' selected incorrect';
+                }
+            }
+            
+            return `
+                <div class="tf-container">
+                    <button class="${trueClass}" onclick="selectTF(true)" ${answered ? 'disabled' : ''}>
+                        <span>✓</span> True
+                    </button>
+                    <button class="${falseClass}" onclick="selectTF(false)" ${answered ? 'disabled' : ''}>
+                        <span>✗</span> False
+                    </button>
+                </div>
+            `;
+        }
+
+        function selectTF(value) {
+            const q = state.questions[state.currentIndex];
+            const correct = value === q.correct;
+            
+            state.answers[state.currentIndex] = { selected: value, correct };
+            updateScore(correct);
+            renderQuestion();
+        }
+
+        // Fill in the Blank
+        function renderFillBlank(q, answered) {
+            let inputClass = 'blank-input';
+            let inputValue = '';
+            
+            if (answered) {
+                const answer = state.answers[state.currentIndex];
+                inputValue = answer.userInput;
+                inputClass += answer.correct ? ' correct' : ' incorrect';
+            }
+            
+            return `
+                <div class="fill-blank-container">
+                    <input type="text" 
+                           class="${inputClass}" 
+                           id="blankInput"
+                           placeholder="Type your answer..."
+                           value="${inputValue}"
+                           ${answered ? 'disabled' : ''}
+                           onkeypress="if(event.key==='Enter') checkFillBlank()">
+                    ${!answered ? `<button class="nav-btn primary" style="padding: 0.5rem 1rem; margin-left: 0.5rem;" onclick="checkFillBlank()">Check</button>` : ''}
+                </div>
+            `;
+        }
+
+        function checkFillBlank() {
+            const input = document.getElementById('blankInput').value.trim();
+            const q = state.questions[state.currentIndex];
+            
+            let correct = false;
+            if (q.acceptableAnswers) {
+                correct = q.acceptableAnswers[0].some(ans => 
+                    input.toLowerCase() === ans.toLowerCase()
+                );
+            } else {
+                correct = q.blanks.some(ans => 
+                    input.toLowerCase() === ans.toLowerCase()
+                );
+            }
+            
+            state.answers[state.currentIndex] = { userInput: input, correct };
+            updateScore(correct);
+            renderQuestion();
+        }
+
+        // Ordering
+        function renderOrdering(q, answered) {
+            let items = answered ? 
+                state.answers[state.currentIndex].order.map(i => ({ text: q.items[i], origIndex: i })) :
+                q.items.map((text, i) => ({ text, origIndex: i }));
+            
+            if (!answered) {
+                shuffleArray(items);
+            }
+            
+            let html = '<div class="ordering-container" id="orderingContainer">';
+            
+            items.forEach((item, i) => {
+                let classes = 'order-item';
+                if (answered) {
+                    classes += item.origIndex === q.correct[i] ? ' correct' : ' incorrect';
+                }
+                
+                html += `
+                    <div class="${classes}" draggable="${!answered}" data-index="${item.origIndex}">
+                        <span class="order-handle">⋮⋮</span>
+                        <span class="order-number">${i + 1}</span>
+                        <span>${item.text}</span>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (!answered) {
+                html += `<button class="nav-btn primary" style="margin-top: 1rem;" onclick="checkOrdering()">Check Order</button>`;
+            }
+            
+            return html;
+        }
+
+        function initDragAndDrop() {
+            const container = document.getElementById('orderingContainer');
+            if (!container) return;
+            
+            const items = container.querySelectorAll('.order-item');
+            let draggedItem = null;
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', () => {
+                    draggedItem = item;
+                    setTimeout(() => item.classList.add('dragging'), 0);
+                });
+                
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    updateOrderNumbers();
+                });
+                
+                item.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    if (afterElement == null) {
+                        container.appendChild(draggedItem);
+                    } else {
+                        container.insertBefore(draggedItem, afterElement);
+                    }
+                });
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.order-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset, element: child };
+                }
+                return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function updateOrderNumbers() {
+            const items = document.querySelectorAll('.order-item .order-number');
+            items.forEach((num, i) => num.textContent = i + 1);
+        }
+
+        function checkOrdering() {
+            const container = document.getElementById('orderingContainer');
+            const items = container.querySelectorAll('.order-item');
+            const order = Array.from(items).map(item => parseInt(item.dataset.index));
+            
+            const q = state.questions[state.currentIndex];
+            const correct = order.every((idx, i) => idx === q.correct[i]);
+            
+            state.answers[state.currentIndex] = { order, correct };
+            updateScore(correct);
+            renderQuestion();
+        }
+
+        // Code Completion
+        function renderCode(q, answered) {
+            let html = '<div class="code-block"><div class="code-header">';
+            html += '<div class="code-dots"><span class="code-dot red"></span><span class="code-dot yellow"></span><span class="code-dot green"></span></div>';
+            html += '<span class="code-filename">BirdScript.cs</span></div>';
+            html += '<div class="code-content">';
+            
+            let lineNum = 1;
+            let blankIndex = 0;
+            
+            q.codeTemplate.forEach(line => {
+                html += '<div class="code-line">';
+                html += `<span class="line-number">${lineNum++}</span>`;
+                html += '<span class="code-text">';
+                
+                if (line.type === 'blank') {
+                    const userAnswer = answered ? state.answers[state.currentIndex].selections[blankIndex] : null;
+                    let selectClass = 'code-dropdown';
+                    if (answered) {
+                        selectClass += userAnswer === line.correct ? ' correct' : ' incorrect';
+                    }
+                    
+                    const parts = line.text.split('______');
+                    html += parts[0];
+                    html += `<select class="${selectClass}" data-blank="${blankIndex}" ${answered ? 'disabled' : ''} onchange="updateCodeSelection(${blankIndex}, this.value)">`;
+                    html += '<option value="">Select...</option>';
+                    line.options.forEach((opt, i) => {
+                        const selected = answered && userAnswer === i ? 'selected' : '';
+                        html += `<option value="${i}" ${selected}>${opt}</option>`;
+                    });
+                    html += '</select>';
+                    if (parts[1]) html += parts[1];
+                    blankIndex++;
+                } else if (line.type === 'comment') {
+                    html += `<span class="code-comment">${line.text}</span>`;
+                } else if (line.type === 'keyword') {
+                    html += `<span class="code-keyword">${line.text}</span>`;
+                } else if (line.type === 'class') {
+                    html += `<span class="code-class">${line.text}</span>`;
+                } else {
+                    html += line.text;
+                }
+                
+                html += '</span></div>';
+            });
+            
+            html += '</div></div>';
+            
+            if (!answered) {
+                html += `<button class="nav-btn primary" style="margin-top: 1rem;" onclick="checkCode()">Check Code</button>`;
+            }
+            
+            return html;
+        }
+
+        let codeSelections = {};
+
+        function updateCodeSelection(blankIndex, value) {
+            codeSelections[blankIndex] = parseInt(value);
+        }
+
+        function checkCode() {
+            const q = state.questions[state.currentIndex];
+            const blanks = q.codeTemplate.filter(l => l.type === 'blank');
+            
+            const selections = {};
+            let allCorrect = true;
+            
+            blanks.forEach((blank, i) => {
+                selections[i] = codeSelections[i] !== undefined ? codeSelections[i] : -1;
+                if (selections[i] !== blank.correct) allCorrect = false;
+            });
+            
+            state.answers[state.currentIndex] = { selections, correct: allCorrect };
+            codeSelections = {};
+            updateScore(allCorrect);
+            renderQuestion();
+        }
+
+        // Matching
+        let matchingState = {
+            selectedLeft: null,
+            selectedRight: null,
+            matches: {},
+            shuffledRight: []
+        };
+
+        function renderMatching(q, answered) {
+            // Initialize or reset matching state for new question
+            if (!answered && Object.keys(matchingState.matches).length === 0) {
+                matchingState = {
+                    selectedLeft: null,
+                    selectedRight: null,
+                    matches: {},
+                    shuffledRight: [...Array(q.rightItems.length).keys()]
+                };
+                shuffleArray(matchingState.shuffledRight);
+            }
+
+            let html = '<div class="matching-container">';
+            
+            // Left column
+            html += '<div class="match-column" id="leftColumn">';
+            q.leftItems.forEach((item, i) => {
+                let classes = 'match-item';
+                const isMatched = matchingState.matches[i] !== undefined;
+                
+                if (answered) {
+                    const userMatch = matchingState.matches[i];
+                    classes += userMatch === q.correct[i] ? ' correct' : ' incorrect';
+                } else {
+                    if (isMatched) classes += ' matched';
+                    if (matchingState.selectedLeft === i) classes += ' selected';
+                }
+                
+                const matchLabel = isMatched && !answered ? 
+                    `<span class="match-label">${matchingState.matches[i] + 1}</span>` : '';
+                
+                html += `<div class="${classes}" data-left="${i}" onclick="${answered ? '' : `selectLeft(${i})`}">
+                    <span class="match-text">${item}</span>
+                    ${matchLabel}
+                </div>`;
+            });
+            html += '</div>';
+            
+            // Center connection lines
+            html += '<div class="match-lines" id="matchLines">';
+            q.leftItems.forEach((_, i) => {
+                const isMatched = matchingState.matches[i] !== undefined;
+                let lineClass = 'match-line';
+                if (answered) {
+                    const userMatch = matchingState.matches[i];
+                    lineClass += userMatch === q.correct[i] ? ' correct' : ' incorrect';
+                } else if (isMatched) {
+                    lineClass += ' connected';
+                }
+                html += `<div class="${lineClass}">
+                    <span class="line-number">${isMatched ? matchingState.matches[i] + 1 : ''}</span>
+                </div>`;
+            });
+            html += '</div>';
+            
+            // Right column (shuffled for display)
+            html += '<div class="match-column" id="rightColumn">';
+            const displayOrder = answered ? matchingState.shuffledRight : matchingState.shuffledRight;
+            
+            displayOrder.forEach((origIndex) => {
+                let classes = 'match-item';
+                const isMatched = Object.values(matchingState.matches).includes(origIndex);
+                
+                if (answered) {
+                    classes += ' answered-right';
+                } else {
+                    if (isMatched) classes += ' matched';
+                    if (matchingState.selectedRight === origIndex) classes += ' selected';
+                }
+                
+                const matchedBy = Object.entries(matchingState.matches).find(([k, v]) => v === origIndex);
+                const matchLabel = matchedBy && !answered ? 
+                    `<span class="match-label">${parseInt(matchedBy[0]) + 1}</span>` : '';
+                
+                html += `<div class="${classes}" data-right="${origIndex}" onclick="${answered ? '' : `selectRight(${origIndex})`}">
+                    ${matchLabel}
+                    <span class="match-text">${q.rightItems[origIndex]}</span>
+                </div>`;
+            });
+            html += '</div>';
+            
+            html += '</div>';
+            
+            if (!answered) {
+                const matchCount = Object.keys(matchingState.matches).length;
+                const totalMatches = q.leftItems.length;
+                
+                html += `<div class="matching-controls">
+                    <p class="matching-instructions">
+                        <span class="instruction-icon">👆</span>
+                        Click an item on the left, then click its match on the right. 
+                        <span class="match-progress">${matchCount}/${totalMatches} matched</span>
+                    </p>
+                    <div class="matching-buttons">
+                        <button class="nav-btn secondary" onclick="clearMatches()" ${matchCount === 0 ? 'disabled' : ''}>
+                            🔄 Clear All
+                        </button>
+                        <button class="nav-btn primary" onclick="checkMatching()" ${matchCount < totalMatches ? 'disabled' : ''}>
+                            ✓ Check Matches
+                        </button>
+                    </div>
+                </div>`;
+            }
+            
+            return html;
+        }
+
+        function selectLeft(index) {
+            const q = state.questions[state.currentIndex];
+            
+            // If already matched, clicking removes the match
+            if (matchingState.matches[index] !== undefined) {
+                delete matchingState.matches[index];
+                matchingState.selectedLeft = null;
+                matchingState.selectedRight = null;
+                renderQuestion();
+                return;
+            }
+            
+            matchingState.selectedLeft = index;
+            
+            // If right is already selected, make match
+            if (matchingState.selectedRight !== null) {
+                makeMatch();
+            } else {
+                renderQuestion();
+            }
+        }
+
+        function selectRight(index) {
+            const q = state.questions[state.currentIndex];
+            
+            // If already matched, clicking removes the match
+            const matchedBy = Object.entries(matchingState.matches).find(([k, v]) => v === index);
+            if (matchedBy) {
+                delete matchingState.matches[parseInt(matchedBy[0])];
+                matchingState.selectedLeft = null;
+                matchingState.selectedRight = null;
+                renderQuestion();
+                return;
+            }
+            
+            matchingState.selectedRight = index;
+            
+            // If left is already selected, make match
+            if (matchingState.selectedLeft !== null) {
+                makeMatch();
+            } else {
+                renderQuestion();
+            }
+        }
+
+        function makeMatch() {
+            if (matchingState.selectedLeft !== null && matchingState.selectedRight !== null) {
+                matchingState.matches[matchingState.selectedLeft] = matchingState.selectedRight;
+                matchingState.selectedLeft = null;
+                matchingState.selectedRight = null;
+                renderQuestion();
+            }
+        }
+
+        function clearMatches() {
+            matchingState.matches = {};
+            matchingState.selectedLeft = null;
+            matchingState.selectedRight = null;
+            renderQuestion();
+        }
+
+        function checkMatching() {
+            const q = state.questions[state.currentIndex];
+            
+            let allCorrect = true;
+            q.leftItems.forEach((_, i) => {
+                if (matchingState.matches[i] !== q.correct[i]) {
+                    allCorrect = false;
+                }
+            });
+            
+            state.answers[state.currentIndex] = { 
+                userMatches: { ...matchingState.matches }, 
+                correct: allCorrect 
+            };
+            updateScore(allCorrect);
+            renderQuestion();
+        }
+
+        // Feedback
+        function renderFeedback(q, answered) {
+            if (!answered) return '<div class="feedback"></div>';
+            
+            const answer = state.answers[state.currentIndex];
+            const feedbackClass = answer.correct ? 'correct' : 'incorrect';
+            const icon = answer.correct ? '✅' : '❌';
+            const title = answer.correct ? 'Correct!' : 'Not Quite';
+            
+            let correctAnswer = '';
+            if (!answer.correct) {
+                if (q.type === 'multiple') {
+                    correctAnswer = `<br><strong>Correct answer:</strong> ${q.options[q.correct]}`;
+                } else if (q.type === 'truefalse') {
+                    correctAnswer = `<br><strong>Correct answer:</strong> ${q.correct ? 'True' : 'False'}`;
+                } else if (q.type === 'fillblank') {
+                    correctAnswer = `<br><strong>Correct answer:</strong> ${q.blanks[0]}`;
+                }
+            }
+            
+            return `
+                <div class="feedback show ${feedbackClass}">
+                    <span class="feedback-icon">${icon}</span>
+                    <div class="feedback-content">
+                        <h4>${title}</h4>
+                        <p>${q.explanation}${correctAnswer}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Hint
+        function toggleHint() {
+            const box = document.getElementById('hintBox');
+            box.classList.toggle('show');
+        }
+
+        // Score
+        function updateScore(correct) {
+            if (correct) {
+                state.score++;
+                state.streak++;
+                if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+            } else {
+                state.streak = 0;
+            }
+            
+            document.getElementById('headerScore').textContent = state.score;
+            document.getElementById('headerStreak').textContent = state.streak;
+        }
+
+        // Navigation
+        function updateNavButtons() {
+            document.getElementById('prevBtn').disabled = state.currentIndex === 0;
+            
+            const nextBtn = document.getElementById('nextBtn');
+            if (state.currentIndex === state.questions.length - 1) {
+                nextBtn.textContent = 'Finish →';
+                nextBtn.onclick = finishPractice;
+            } else {
+                nextBtn.textContent = 'Next →';
+                nextBtn.onclick = nextQuestion;
+            }
+        }
+
+        function prevQuestion() {
+            if (state.currentIndex > 0) {
+                // Reset matching state when changing questions
+                matchingState = {
+                    selectedLeft: null,
+                    selectedRight: null,
+                    matches: {},
+                    shuffledRight: []
+                };
+                state.currentIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (state.currentIndex < state.questions.length - 1) {
+                // Reset matching state when changing questions
+                matchingState = {
+                    selectedLeft: null,
+                    selectedRight: null,
+                    matches: {},
+                    shuffledRight: []
+                };
+                state.currentIndex++;
+                renderQuestion();
+            }
+        }
+
+        // Finish
+        function finishPractice() {
+            clearInterval(state.timerInterval);
+            
+            const total = state.questions.length;
+            const correct = state.answers.filter(a => a && a.correct).length;
+            const incorrect = state.answers.filter(a => a && !a.correct).length;
+            const percentage = Math.round((correct / total) * 100);
+            
+            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+            
+            // Determine result message
+            let icon, title;
+            if (percentage >= 90) {
+                icon = '🏆';
+                title = 'Outstanding!';
+            } else if (percentage >= 70) {
+                icon = '🎉';
+                title = 'Great Job!';
+            } else if (percentage >= 50) {
+                icon = '👍';
+                title = 'Good Effort!';
+            } else {
+                icon = '💪';
+                title = 'Keep Practicing!';
+            }
+            
+            document.getElementById('resultsIcon').textContent = icon;
+            document.getElementById('resultsTitle').textContent = title;
+            document.getElementById('resultsScore').textContent = percentage + '%';
+            document.getElementById('resultsDetails').textContent = 
+                `You answered ${correct} out of ${total} questions correctly`;
+            document.getElementById('correctCount').textContent = correct;
+            document.getElementById('incorrectCount').textContent = incorrect;
+            document.getElementById('timeSpent').textContent = timeStr;
+            
+            document.getElementById('practiceSection').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+        }
+
+        function reviewAnswers() {
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('practiceSection').classList.add('active');
+            state.currentIndex = 0;
+            renderQuestion();
+        }
+
+        function restartPractice() {
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('welcomeSection').style.display = 'block';
+            
+            // Reset
+            state.selectedTopics = [];
+            document.querySelectorAll('.topic-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            updateStartButton();
+            
+            document.getElementById('headerScore').textContent = '0';
+            document.getElementById('headerStreak').textContent = '0';
+            document.getElementById('timer').textContent = '00:00';
+        }
+
+        // Utility
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
