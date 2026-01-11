@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Input System - Advanced Topics (Part 2)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --darker: #0f172a;
+            --light: #f1f5f9;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --cyan: #22d3ee;
+            --purple: #a855f7;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+            bottom: -100px;
+            left: -100px;
+            animation: pulse 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-icon {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .brand-text h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .part-badge {
+            background: linear-gradient(135deg, var(--accent), #f97316);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 30px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .stat i {
+            color: var(--accent);
+            font-size: 18px;
+        }
+
+        .stat-text {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Progress */
+        .progress-bar {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 15px 40px 20px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .progress-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--cyan));
+            border-radius: 10px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Main Layout */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 340px;
+            background: rgba(15, 23, 42, 0.95);
+            border-right: 1px solid rgba(99, 102, 241, 0.2);
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .sidebar-title {
+            padding: 0 20px 15px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-list {
+            padding: 0 12px;
+        }
+
+        .nav-item {
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            background: rgba(51, 65, 85, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background: rgba(51, 65, 85, 0.6);
+            transform: translateX(6px);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-number {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .nav-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .nav-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.3;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 35px 45px;
+        }
+
+        .slide {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto;
+            animation: slideIn 0.5s ease;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .slide-title {
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #fff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .slide-subtitle {
+            font-size: 18px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* Step Cards */
+        .step-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(236, 72, 153, 0.08));
+            border: 2px solid rgba(99, 102, 241, 0.25);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.25);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .step-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text);
+        }
+
+        .step-content strong {
+            color: var(--accent);
+        }
+
+        /* Screenshot Box */
+        .screenshot {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+            margin: 25px 0;
+        }
+
+        .screenshot-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screenshot-caption {
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .caption-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Visual Diagram */
+        .visual-diagram {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .diagram-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Flow Diagram */
+        .flow-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px 0;
+        }
+
+        .flow-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+            border: 2px solid rgba(99, 102, 241, 0.4);
+            padding: 18px 24px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            min-width: 140px;
+            transition: all 0.3s ease;
+        }
+
+        .flow-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .flow-box.highlight {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            border-color: var(--primary);
+        }
+
+        .flow-box i {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--cyan);
+        }
+
+        .flow-arrow {
+            color: var(--accent);
+            font-size: 24px;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: rgba(51, 65, 85, 0.4);
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(51, 65, 85, 0.6);
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 28px rgba(99, 102, 241, 0.2);
+        }
+
+        .card-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .card-text {
+            color: var(--text-dim);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #0d1117;
+            border-radius: 14px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            overflow-x: auto;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .code-lang {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-filename {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .copy-btn {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(99, 102, 241, 0.35);
+        }
+
+        .code-content {
+            font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #e6edf3;
+            white-space: pre;
+        }
+
+        .keyword { color: #ff7b72; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+        .function { color: #d2a8ff; }
+        .type { color: #79c0ff; }
+        .number { color: #79c0ff; }
+        .attribute { color: #7ee787; }
+
+        /* Info Boxes */
+        .info-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04));
+            border-left: 4px solid var(--success);
+            padding: 22px;
+            margin: 22px 0;
+            border-radius: 12px;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: var(--success);
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
+            border-left: 4px solid var(--accent);
+            padding: 22px;
+            margin: 22px 0;
+            border-radius: 12px;
+        }
+
+        .warning-box-title {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .danger-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
+            border-left: 4px solid var(--danger);
+            padding: 22px;
+            margin: 22px 0;
+            border-radius: 12px;
+        }
+
+        .danger-box-title {
+            font-weight: 700;
+            color: var(--danger);
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .comparison-item {
+            background: rgba(51, 65, 85, 0.4);
+            padding: 22px;
+            border-radius: 14px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .comparison-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-list {
+            list-style: none;
+            margin: 0;
+        }
+
+        .comparison-list li {
+            padding: 10px 0;
+            padding-left: 26px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .comparison-list li:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Menu Path */
+        .menu-path {
+            background: rgba(15, 23, 42, 0.7);
+            padding: 16px 22px;
+            border-radius: 12px;
+            border: 2px solid rgba(99, 102, 241, 0.25);
+            margin: 18px 0;
+            font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-path-icon {
+            color: var(--accent);
+            font-size: 18px;
+        }
+
+        /* Interactive Demo */
+        .interactive-demo {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .demo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .demo-player {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .demo-instructions {
+            color: var(--text-dim);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* Input Action Visual */
+        .action-visual {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 14px;
+            padding: 22px;
+            margin: 20px 0;
+            border: 2px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .action-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .action-name {
+            font-weight: 700;
+            font-size: 18px;
+            color: white;
+        }
+
+        .action-type {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .binding-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .binding-item {
+            background: rgba(51, 65, 85, 0.4);
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .binding-key {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .key-icon {
+            background: rgba(99, 102, 241, 0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .binding-device {
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--cyan);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .data-table code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 45px;
+            padding-top: 25px;
+            border-top: 2px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .nav-btn:disabled {
+            background: rgba(100, 116, 139, 0.4);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .slide-count {
+            font-weight: 600;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* Keyboard Shortcuts Display */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            font-size: 12px;
+            color: var(--text-dim);
+            z-index: 100;
+            display: flex;
+            gap: 20px;
+        }
+
+        .keyboard-hint kbd {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+            font-family: monospace;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        /* Unity Window Mockup */
+        .unity-window {
+            background: #2d2d2d;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .unity-titlebar {
+            background: #3c3c3c;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #222;
+        }
+
+        .unity-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .unity-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .unity-dots .red { background: #ff5f57; }
+        .unity-dots .yellow { background: #ffbd2e; }
+        .unity-dots .green { background: #28ca41; }
+
+        .unity-title {
+            color: #aaa;
+            font-size: 12px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .unity-content {
+            padding: 20px;
+            min-height: 180px;
+        }
+
+        .unity-inspector-item {
+            background: #3c3c3c;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unity-label {
+            color: #ccc;
+            font-size: 13px;
+        }
+
+        .unity-field {
+            background: #222;
+            padding: 6px 12px;
+            border-radius: 4px;
+            color: #7ee787;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 250px;
+                border-right: none;
+                border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            }
+            
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .keyboard-hint {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-stats, .part-badge {
+                display: none;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .slide-title {
+                font-size: 28px;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-container {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="brand-text">
+                        
+                        <h1>Advanced Topics & Implementation</h1>
+                    </div>
+                    <span class="part-badge">Unity Input System</span>
+                    <span class="part-badge">MAC280 Prof. Khalid Kassou</span>
+                </div>
+                <div class="header-stats">
+                    <div class="stat">
+                        <i class="fas fa-layer-group"></i>
+                        <span class="stat-text">Input Actions</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-plug"></i>
+                        <span class="stat-text">Event-Driven</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <span class="stat-text">Multiplayer</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-info">
+                <span id="progress-label">Input Action Assets</span>
+                <span id="progress-count">17 / 28</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-list-check"></i>
+                    Advanced Topics
+                </h3>
+                <nav class="nav-list" id="nav-list">
+                    <!-- Generated by JavaScript -->
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                
+                <!-- Slide 17: Input Action Assets Introduction -->
+                <section class="slide active" data-slide="17">
+                    <span class="slide-badge">
+                        <i class="fas fa-folder-open"></i>
+                        Slide 17
+                    </span>
+                    <h1 class="slide-title">Input Action Assets</h1>
+                    <p class="slide-subtitle">Organize your input with powerful action-based architecture</p>
+
+                    <div class="visual-diagram">
+                        <div class="diagram-title">
+                            <i class="fas fa-sitemap"></i>
+                            Input System Architecture
+                        </div>
+                        <div class="flow-container">
+                            <div class="flow-box">
+                                <i class="fas fa-file-code"></i>
+                                Input Action Asset
+                            </div>
+                            <i class="fas fa-arrow-right flow-arrow"></i>
+                            <div class="flow-box">
+                                <i class="fas fa-layer-group"></i>
+                                Action Maps
+                            </div>
+                            <i class="fas fa-arrow-right flow-arrow"></i>
+                            <div class="flow-box highlight">
+                                <i class="fas fa-play-circle"></i>
+                                Actions
+                            </div>
+                            <i class="fas fa-arrow-right flow-arrow"></i>
+                            <div class="flow-box">
+                                <i class="fas fa-link"></i>
+                                Bindings
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <span class="card-icon">📁</span>
+                            <h3 class="card-title">Input Action Asset</h3>
+                            <p class="card-text">A container file (.inputactions) that stores all your input configuration</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">🗺️</span>
+                            <h3 class="card-title">Action Maps</h3>
+                            <p class="card-text">Groups of related actions (e.g., "Player", "UI", "Vehicle")</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">⚡</span>
+                            <h3 class="card-title">Actions</h3>
+                            <p class="card-text">Named events like "Jump", "Move", "Fire" that your code responds to</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">🔗</span>
+                            <h3 class="card-title">Bindings</h3>
+                            <p class="card-text">Physical inputs (keys, buttons) mapped to actions</p>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Why Use Input Action Assets?
+                        </div>
+                        <p><strong>Separation of Concerns:</strong> Input configuration is separate from code, making it easy to modify controls without touching scripts.</p>
+                        <p style="margin-top: 10px;"><strong>Rebindable Controls:</strong> Players can customize their controls at runtime!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 18: Creating Input Action Asset -->
+                <section class="slide" data-slide="18">
+                    <span class="slide-badge">
+                        <i class="fas fa-plus-circle"></i>
+                        Slide 18
+                    </span>
+                    <h1 class="slide-title">Creating Input Action Asset</h1>
+                    <p class="slide-subtitle">Step-by-step guide to creating your first Input Action Asset</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Create the Asset</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Right-click in the Project window</p>
+                            <p>Select <strong>Create → Input Actions</strong></p>
+                            <p>Name it something descriptive like <strong>"PlayerInputActions"</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="menu-path">
+                        <i class="fas fa-folder-tree menu-path-icon"></i>
+                        <span>Project Window → Right Click → Create → Input Actions</span>
+                    </div>
+
+                    <div class="unity-window">
+                        <div class="unity-titlebar">
+                            <div class="unity-dots">
+                                <span class="red"></span>
+                                <span class="yellow"></span>
+                                <span class="green"></span>
+                            </div>
+                            <span class="unity-title">Project - Assets</span>
+                        </div>
+                        <div class="unity-content" style="background: #383838;">
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <div style="text-align: center; padding: 15px;">
+                                    <i class="fas fa-folder" style="font-size: 40px; color: #f4d03f;"></i>
+                                    <p style="color: #aaa; font-size: 12px; margin-top: 8px;">Scripts</p>
+                                </div>
+                                <div style="text-align: center; padding: 15px;">
+                                    <i class="fas fa-folder" style="font-size: 40px; color: #f4d03f;"></i>
+                                    <p style="color: #aaa; font-size: 12px; margin-top: 8px;">Prefabs</p>
+                                </div>
+                                <div style="text-align: center; padding: 15px; background: rgba(99, 102, 241, 0.2); border-radius: 8px; border: 2px solid var(--primary);">
+                                    <i class="fas fa-gamepad" style="font-size: 40px; color: var(--cyan);"></i>
+                                    <p style="color: white; font-size: 12px; margin-top: 8px;">PlayerInputActions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">2</div>
+                            <h3 class="step-title">Open the Editor</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Double-click the newly created asset</p>
+                            <p>This opens the <strong>Input Actions Editor</strong> window</p>
+                            <p>You'll see three columns: <strong>Action Maps</strong>, <strong>Actions</strong>, and <strong>Properties</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-save"></i>
+                            Don't Forget to Save!
+                        </div>
+                        <p>Changes in the Input Actions Editor are <strong>not auto-saved</strong>. Click the "Save Asset" button or press <kbd>Ctrl/Cmd + S</kbd> to save your changes!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 19: Action Maps -->
+                <section class="slide" data-slide="19">
+                    <span class="slide-badge">
+                        <i class="fas fa-map"></i>
+                        Slide 19
+                    </span>
+                    <h1 class="slide-title">Understanding Action Maps</h1>
+                    <p class="slide-subtitle">Organize actions into logical groups for different game states</p>
+
+                    <div class="visual-diagram">
+                        <div class="diagram-title">
+                            <i class="fas fa-layer-group"></i>
+                            Common Action Map Structure
+                        </div>
+                        <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="card" style="border-color: var(--cyan);">
+                                <span class="card-icon">🎮</span>
+                                <h3 class="card-title">Player</h3>
+                                <p class="card-text">Move, Jump, Attack, Interact, Sprint, Crouch</p>
+                            </div>
+                            <div class="card" style="border-color: var(--secondary);">
+                                <span class="card-icon">🖥️</span>
+                                <h3 class="card-title">UI</h3>
+                                <p class="card-text">Navigate, Submit, Cancel, Point, Click</p>
+                            </div>
+                            <div class="card" style="border-color: var(--accent);">
+                                <span class="card-icon">🚗</span>
+                                <h3 class="card-title">Vehicle</h3>
+                                <p class="card-text">Accelerate, Brake, Steer, Exit, Horn</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">+</div>
+                            <h3 class="step-title">Creating an Action Map</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>In the Input Actions Editor, click the <strong>+</strong> button in the Action Maps column</p>
+                            <p>Name it based on the game context (e.g., "Player", "Menu", "Driving")</p>
+                            <p>Only <strong>one Action Map</strong> should be active at a time in most cases</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">Switching Action Maps</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="comment">// Get reference to your input actions</span>
+<span class="keyword">private</span> PlayerInputActions inputActions;
+
+<span class="keyword">void</span> <span class="function">EnterVehicle</span>()
+{
+    <span class="comment">// Disable player controls</span>
+    inputActions.Player.<span class="function">Disable</span>();
+    
+    <span class="comment">// Enable vehicle controls</span>
+    inputActions.Vehicle.<span class="function">Enable</span>();
+}
+
+<span class="keyword">void</span> <span class="function">ExitVehicle</span>()
+{
+    inputActions.Vehicle.<span class="function">Disable</span>();
+    inputActions.Player.<span class="function">Enable</span>();
+}</pre>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Pro Tip
+                        </div>
+                        <p>Switching Action Maps is perfect for context-sensitive controls: different controls when walking vs. driving, in menus vs. gameplay, or swimming vs. on land!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 20: Creating Actions -->
+                <section class="slide" data-slide="20">
+                    <span class="slide-badge">
+                        <i class="fas fa-bolt"></i>
+                        Slide 20
+                    </span>
+                    <h1 class="slide-title">Creating Actions</h1>
+                    <p class="slide-subtitle">Define what inputs your game responds to</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Add a New Action</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Select an Action Map, then click <strong>+</strong> in the Actions column</p>
+                            <p>Name the action descriptively: <strong>"Jump"</strong>, <strong>"Move"</strong>, <strong>"Fire"</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="action-visual">
+                        <div class="action-header">
+                            <div class="action-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div>
+                                <div class="action-name">Jump</div>
+                                <div class="action-type">Action Type: Button</div>
+                            </div>
+                        </div>
+                        <div class="binding-list">
+                            <div class="binding-item">
+                                <div class="binding-key">
+                                    <span class="key-icon">Space</span>
+                                    <span>Spacebar</span>
+                                </div>
+                                <span class="binding-device"><i class="fas fa-keyboard"></i> Keyboard</span>
+                            </div>
+                            <div class="binding-item">
+                                <div class="binding-key">
+                                    <span class="key-icon">A</span>
+                                    <span>South Button</span>
+                                </div>
+                                <span class="binding-device"><i class="fas fa-gamepad"></i> Gamepad</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="color: var(--cyan); margin: 25px 0 15px; font-size: 20px;">
+                        <i class="fas fa-cog"></i> Action Types
+                    </h3>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Button</code></td>
+                                <td>On/Off state, triggers on press</td>
+                                <td>Jump, Fire, Interact</td>
+                            </tr>
+                            <tr>
+                                <td><code>Value</code></td>
+                                <td>Continuous value input</td>
+                                <td>Move (Vector2), Look (Vector2)</td>
+                            </tr>
+                            <tr>
+                                <td><code>Pass Through</code></td>
+                                <td>All input changes pass through</td>
+                                <td>Multiple devices, debugging</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Control Type Matters!
+                        </div>
+                        <p>Set the <strong>Control Type</strong> in the Properties panel to match your expected input:</p>
+                        <p style="margin-top: 8px;"><code>Button</code> for single presses • <code>Vector2</code> for 2D movement • <code>Axis</code> for triggers</p>
+                    </div>
+                </section>
+
+                <!-- Slide 21: Adding Bindings -->
+                <section class="slide" data-slide="21">
+                    <span class="slide-badge">
+                        <i class="fas fa-link"></i>
+                        Slide 21
+                    </span>
+                    <h1 class="slide-title">Adding Bindings</h1>
+                    <p class="slide-subtitle">Connect physical inputs to your actions</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Add a Binding</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Select an Action and click the <strong>+</strong> button next to it</p>
+                            <p>Choose <strong>Add Binding</strong> for simple inputs</p>
+                            <p>Or choose a <strong>Composite</strong> for complex inputs (like WASD movement)</p>
+                        </div>
+                    </div>
+
+                    <div class="visual-diagram">
+                        <div class="diagram-title">
+                            <i class="fas fa-keyboard"></i>
+                            Common Binding Types
+                        </div>
+                        <div class="card-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            <div class="card">
+                                <span class="card-icon">🔘</span>
+                                <h3 class="card-title">Single Binding</h3>
+                                <p class="card-text">One key/button → One action</p>
+                                <div style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                    <code style="color: var(--accent);">Space → Jump</code>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <span class="card-icon">🎯</span>
+                                <h3 class="card-title">2D Vector Composite</h3>
+                                <p class="card-text">Four keys → Movement Vector2</p>
+                                <div style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                    <code style="color: var(--accent);">WASD → Move</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">2</div>
+                            <h3 class="step-title">Configure the Binding Path</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>With the binding selected, look at the <strong>Properties</strong> panel</p>
+                            <p>Click the <strong>Path</strong> dropdown → <strong>Listen</strong> button</p>
+                            <p>Press the desired key/button to automatically detect it!</p>
+                        </div>
+                    </div>
+
+                    <div class="unity-window">
+                        <div class="unity-titlebar">
+                            <div class="unity-dots">
+                                <span class="red"></span>
+                                <span class="yellow"></span>
+                                <span class="green"></span>
+                            </div>
+                            <span class="unity-title">Input Actions Editor - Binding Properties</span>
+                        </div>
+                        <div class="unity-content">
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Path</span>
+                                <span class="unity-field">&lt;Keyboard&gt;/space</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Interactions</span>
+                                <span class="unity-field">None</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Processors</span>
+                                <span class="unity-field">None</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Multi-Device Support
+                        </div>
+                        <p>Add multiple bindings to the same action for different input devices! One action can respond to keyboard, gamepad, and touch all at once.</p>
+                    </div>
+                </section>
+
+                <!-- Slide 22: 2D Composite Bindings -->
+                <section class="slide" data-slide="22">
+                    <span class="slide-badge">
+                        <i class="fas fa-arrows-alt"></i>
+                        Slide 22
+                    </span>
+                    <h1 class="slide-title">2D Composite Bindings</h1>
+                    <p class="slide-subtitle">Create WASD and arrow key movement with Vector2 composites</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Add 2D Vector Composite</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Select your "Move" action (make sure Action Type is <strong>Value</strong> and Control Type is <strong>Vector2</strong>)</p>
+                            <p>Click <strong>+</strong> → <strong>Add 2D Vector Composite</strong></p>
+                            <p>This creates Up/Down/Left/Right binding slots</p>
+                        </div>
+                    </div>
+
+                    <div class="action-visual">
+                        <div class="action-header">
+                            <div class="action-icon">
+                                <i class="fas fa-arrows-alt"></i>
+                            </div>
+                            <div>
+                                <div class="action-name">Move</div>
+                                <div class="action-type">Action Type: Value | Control Type: Vector2</div>
+                            </div>
+                        </div>
+                        <div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; margin-top: 15px;">
+                            <div style="color: var(--cyan); font-weight: 700; margin-bottom: 12px;">📦 WASD [2D Vector]</div>
+                            <div class="binding-list">
+                                <div class="binding-item">
+                                    <span>↑ Up</span>
+                                    <span class="key-icon">W</span>
+                                </div>
+                                <div class="binding-item">
+                                    <span>↓ Down</span>
+                                    <span class="key-icon">S</span>
+                                </div>
+                                <div class="binding-item">
+                                    <span>← Left</span>
+                                    <span class="key-icon">A</span>
+                                </div>
+                                <div class="binding-item">
+                                    <span>→ Right</span>
+                                    <span class="key-icon">D</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">Reading Vector2 Movement</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+<span class="keyword">using</span> UnityEngine.InputSystem;
+
+<span class="keyword">public class</span> <span class="type">PlayerMovement</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;
+    <span class="keyword">private</span> <span class="type">Vector2</span> moveInput;
+
+    <span class="comment">// Called by Player Input component</span>
+    <span class="keyword">public void</span> <span class="function">OnMove</span>(<span class="type">InputValue</span> value)
+    {
+        moveInput = value.<span class="function">Get</span>&lt;<span class="type">Vector2</span>&gt;();
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="type">Vector3</span> movement = <span class="keyword">new</span> <span class="type">Vector3</span>(moveInput.x, <span class="number">0</span>, moveInput.y);
+        transform.<span class="function">Translate</span>(movement * moveSpeed * Time.deltaTime);
+    }
+}</pre>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-gamepad"></i>
+                            Gamepad Support
+                        </div>
+                        <p>Add another binding to the same Move action using <strong>Left Stick [Gamepad]</strong> — the code stays exactly the same!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 23: Player Input Component -->
+                <section class="slide" data-slide="23">
+                    <span class="slide-badge">
+                        <i class="fas fa-user-cog"></i>
+                        Slide 23
+                    </span>
+                    <h1 class="slide-title">Player Input Component</h1>
+                    <p class="slide-subtitle">The easiest way to connect Input Actions to your scripts</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Add the Component</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Select your Player GameObject</p>
+                            <p>Click <strong>Add Component → Player Input</strong></p>
+                            <p>Drag your Input Action Asset to the <strong>Actions</strong> field</p>
+                        </div>
+                    </div>
+
+                    <div class="unity-window">
+                        <div class="unity-titlebar">
+                            <div class="unity-dots">
+                                <span class="red"></span>
+                                <span class="yellow"></span>
+                                <span class="green"></span>
+                            </div>
+                            <span class="unity-title">Inspector - Player</span>
+                        </div>
+                        <div class="unity-content">
+                            <div style="background: #4a4a4a; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-gamepad" style="color: var(--cyan);"></i>
+                                <span style="color: white; font-weight: 700;">Player Input</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Actions</span>
+                                <span class="unity-field">PlayerInputActions</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Default Map</span>
+                                <span class="unity-field">Player</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Behavior</span>
+                                <span class="unity-field" style="color: var(--accent);">Send Messages</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="color: var(--cyan); margin: 25px 0 15px; font-size: 20px;">
+                        <i class="fas fa-cog"></i> Behavior Modes
+                    </h3>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Mode</th>
+                                <th>How It Works</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Send Messages</code></td>
+                                <td>Calls OnActionName() methods</td>
+                                <td>Simple projects, beginners</td>
+                            </tr>
+                            <tr>
+                                <td><code>Broadcast Messages</code></td>
+                                <td>Sends to children too</td>
+                                <td>Complex hierarchies</td>
+                            </tr>
+                            <tr>
+                                <td><code>Invoke Unity Events</code></td>
+                                <td>Uses UnityEvents in Inspector</td>
+                                <td>Designer-friendly, visual</td>
+                            </tr>
+                            <tr>
+                                <td><code>Invoke C# Events</code></td>
+                                <td>Subscribe to events in code</td>
+                                <td>Maximum control, advanced</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Recommended for Beginners
+                        </div>
+                        <p>Start with <strong>Send Messages</strong> — just name your methods <code>OnMove</code>, <code>OnJump</code>, <code>OnFire</code>, etc. and they'll be called automatically!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 24: Send Messages Workflow -->
+                <section class="slide" data-slide="24">
+                    <span class="slide-badge">
+                        <i class="fas fa-envelope"></i>
+                        Slide 24
+                    </span>
+                    <h1 class="slide-title">Send Messages Workflow</h1>
+                    <p class="slide-subtitle">The simplest way to receive input in your scripts</p>
+
+                    <div class="visual-diagram">
+                        <div class="diagram-title">
+                            <i class="fas fa-exchange-alt"></i>
+                            How Send Messages Works
+                        </div>
+                        <div class="flow-container">
+                            <div class="flow-box">
+                                <i class="fas fa-keyboard"></i>
+                                Player Presses Space
+                            </div>
+                            <i class="fas fa-arrow-right flow-arrow"></i>
+                            <div class="flow-box">
+                                <i class="fas fa-gamepad"></i>
+                                "Jump" Action Triggered
+                            </div>
+                            <i class="fas fa-arrow-right flow-arrow"></i>
+                            <div class="flow-box highlight">
+                                <i class="fas fa-code"></i>
+                                OnJump() Called
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">PlayerController.cs - Complete Example</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+<span class="keyword">using</span> UnityEngine.InputSystem;
+
+<span class="keyword">public class</span> <span class="type">PlayerController</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;
+    <span class="keyword">public float</span> jumpForce = <span class="number">10f</span>;
+    
+    <span class="keyword">private</span> <span class="type">Vector2</span> moveInput;
+    <span class="keyword">private</span> <span class="type">Rigidbody</span> rb;
+
+    <span class="keyword">void</span> <span class="function">Start</span>()
+    {
+        rb = <span class="function">GetComponent</span>&lt;<span class="type">Rigidbody</span>&gt;();
+    }
+
+    <span class="comment">// Called automatically when "Move" action is performed</span>
+    <span class="keyword">public void</span> <span class="function">OnMove</span>(<span class="type">InputValue</span> value)
+    {
+        moveInput = value.<span class="function">Get</span>&lt;<span class="type">Vector2</span>&gt;();
+    }
+
+    <span class="comment">// Called automatically when "Jump" action is performed</span>
+    <span class="keyword">public void</span> <span class="function">OnJump</span>(<span class="type">InputValue</span> value)
+    {
+        <span class="keyword">if</span> (value.<span class="function">isPressed</span>)
+        {
+            rb.<span class="function">AddForce</span>(<span class="type">Vector3</span>.up * jumpForce, <span class="type">ForceMode</span>.Impulse);
+        }
+    }
+
+    <span class="keyword">void</span> <span class="function">FixedUpdate</span>()
+    {
+        <span class="type">Vector3</span> movement = <span class="keyword">new</span> <span class="type">Vector3</span>(moveInput.x, <span class="number">0</span>, moveInput.y);
+        rb.<span class="function">MovePosition</span>(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
+    }
+}</pre>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Method Naming Convention
+                        </div>
+                        <p>Method names must follow the pattern <code>On[ActionName]</code> and the script must be on the <strong>same GameObject</strong> as the Player Input component!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 25: Invoke Unity Events -->
+                <section class="slide" data-slide="25">
+                    <span class="slide-badge">
+                        <i class="fas fa-bolt"></i>
+                        Slide 25
+                    </span>
+                    <h1 class="slide-title">Invoke Unity Events</h1>
+                    <p class="slide-subtitle">Visual, designer-friendly input configuration</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Change Behavior Mode</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>On the Player Input component, set <strong>Behavior</strong> to <strong>Invoke Unity Events</strong></p>
+                            <p>A new <strong>Events</strong> section appears in the Inspector</p>
+                        </div>
+                    </div>
+
+                    <div class="unity-window">
+                        <div class="unity-titlebar">
+                            <div class="unity-dots">
+                                <span class="red"></span>
+                                <span class="yellow"></span>
+                                <span class="green"></span>
+                            </div>
+                            <span class="unity-title">Inspector - Player Input Events</span>
+                        </div>
+                        <div class="unity-content">
+                            <div style="background: #4a4a4a; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                                <span style="color: var(--cyan);">▼ Events</span>
+                            </div>
+                            <div style="margin-left: 20px;">
+                                <div style="background: #3c3c3c; padding: 10px; border-radius: 6px; margin: 8px 0;">
+                                    <span style="color: #aaa;">▼ Player</span>
+                                </div>
+                                <div style="margin-left: 20px;">
+                                    <div class="unity-inspector-item">
+                                        <span class="unity-label">Move (CallbackContext)</span>
+                                        <span style="color: var(--accent); font-size: 12px;">+ Add function</span>
+                                    </div>
+                                    <div class="unity-inspector-item">
+                                        <span class="unity-label">Jump (CallbackContext)</span>
+                                        <span style="color: var(--accent); font-size: 12px;">+ Add function</span>
+                                    </div>
+                                    <div class="unity-inspector-item">
+                                        <span class="unity-label">Fire (CallbackContext)</span>
+                                        <span style="color: var(--accent); font-size: 12px;">+ Add function</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">Script for Unity Events</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+<span class="keyword">using</span> UnityEngine.InputSystem;
+
+<span class="keyword">public class</span> <span class="type">PlayerActions</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// Method signature must include InputAction.CallbackContext</span>
+    <span class="keyword">public void</span> <span class="function">HandleMove</span>(<span class="type">InputAction.CallbackContext</span> context)
+    {
+        <span class="type">Vector2</span> input = context.<span class="function">ReadValue</span>&lt;<span class="type">Vector2</span>&gt;();
+        Debug.<span class="function">Log</span>(<span class="string">$"Moving: {input}"</span>);
+    }
+
+    <span class="keyword">public void</span> <span class="function">HandleJump</span>(<span class="type">InputAction.CallbackContext</span> context)
+    {
+        <span class="comment">// Check if this is the "performed" phase (button pressed)</span>
+        <span class="keyword">if</span> (context.performed)
+        {
+            Debug.<span class="function">Log</span>(<span class="string">"Jump!"</span>);
+        }
+    }
+}</pre>
+                    </div>
+
+                    <div class="comparison">
+                        <div class="comparison-item">
+                            <h3 class="comparison-title" style="color: var(--success);">
+                                <i class="fas fa-check-circle"></i>
+                                Advantages
+                            </h3>
+                            <ul class="comparison-list">
+                                <li>Visual setup in Inspector</li>
+                                <li>Designers can modify without code</li>
+                                <li>Methods can be on any GameObject</li>
+                                <li>Multiple functions per action</li>
+                            </ul>
+                        </div>
+                        <div class="comparison-item">
+                            <h3 class="comparison-title" style="color: var(--accent);">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Considerations
+                            </h3>
+                            <ul class="comparison-list">
+                                <li>Requires CallbackContext parameter</li>
+                                <li>Check context.phase for timing</li>
+                                <li>Serialized references can break</li>
+                                <li>Harder to debug connections</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 26: C# Events (Advanced) -->
+                <section class="slide" data-slide="26">
+                    <span class="slide-badge">
+                        <i class="fas fa-code"></i>
+                        Slide 26
+                    </span>
+                    <h1 class="slide-title">C# Events (Advanced)</h1>
+                    <p class="slide-subtitle">Maximum control with event subscriptions</p>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-graduation-cap"></i>
+                            When to Use C# Events
+                        </div>
+                        <p>This approach gives you complete programmatic control. Best for complex games, multiplayer systems, or when you need dynamic event handling.</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">Advanced C# Events Pattern</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+<span class="keyword">using</span> UnityEngine.InputSystem;
+
+<span class="keyword">public class</span> <span class="type">AdvancedPlayerController</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="keyword">private</span> <span class="type">PlayerInput</span> playerInput;
+    <span class="keyword">private</span> <span class="type">InputAction</span> moveAction;
+    <span class="keyword">private</span> <span class="type">InputAction</span> jumpAction;
+
+    <span class="keyword">void</span> <span class="function">Awake</span>()
+    {
+        playerInput = <span class="function">GetComponent</span>&lt;<span class="type">PlayerInput</span>&gt;();
+        
+        <span class="comment">// Get action references</span>
+        moveAction = playerInput.actions[<span class="string">"Move"</span>];
+        jumpAction = playerInput.actions[<span class="string">"Jump"</span>];
+    }
+
+    <span class="keyword">void</span> <span class="function">OnEnable</span>()
+    {
+        <span class="comment">// Subscribe to events</span>
+        jumpAction.performed += <span class="function">OnJumpPerformed</span>;
+        jumpAction.canceled += <span class="function">OnJumpCanceled</span>;
+    }
+
+    <span class="keyword">void</span> <span class="function">OnDisable</span>()
+    {
+        <span class="comment">// Always unsubscribe to prevent memory leaks!</span>
+        jumpAction.performed -= <span class="function">OnJumpPerformed</span>;
+        jumpAction.canceled -= <span class="function">OnJumpCanceled</span>;
+    }
+
+    <span class="keyword">private void</span> <span class="function">OnJumpPerformed</span>(<span class="type">InputAction.CallbackContext</span> ctx)
+    {
+        Debug.<span class="function">Log</span>(<span class="string">"Jump started!"</span>);
+    }
+
+    <span class="keyword">private void</span> <span class="function">OnJumpCanceled</span>(<span class="type">InputAction.CallbackContext</span> ctx)
+    {
+        Debug.<span class="function">Log</span>(<span class="string">"Jump released!"</span>);
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// Read continuous input directly</span>
+        <span class="type">Vector2</span> move = moveAction.<span class="function">ReadValue</span>&lt;<span class="type">Vector2</span>&gt;();
+        transform.<span class="function">Translate</span>(<span class="keyword">new</span> <span class="type">Vector3</span>(move.x, <span class="number">0</span>, move.y) * Time.deltaTime);
+    }
+}</pre>
+                    </div>
+
+                    <div class="danger-box">
+                        <div class="danger-box-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Critical: Always Unsubscribe!
+                        </div>
+                        <p>If you subscribe to events in <code>OnEnable()</code>, you <strong>must</strong> unsubscribe in <code>OnDisable()</code>. Failing to do so causes memory leaks and duplicate event calls!</p>
+                    </div>
+
+                    <h3 style="color: var(--cyan); margin: 25px 0 15px; font-size: 20px;">
+                        <i class="fas fa-layer-group"></i> Action Phases
+                    </h3>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Phase</th>
+                                <th>When It Fires</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>started</code></td>
+                                <td>Input begins</td>
+                                <td>Start charging attack</td>
+                            </tr>
+                            <tr>
+                                <td><code>performed</code></td>
+                                <td>Input completes/threshold met</td>
+                                <td>Execute action</td>
+                            </tr>
+                            <tr>
+                                <td><code>canceled</code></td>
+                                <td>Input releases/interrupted</td>
+                                <td>Stop action, release charge</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Slide 27: Generated C# Class -->
+                <section class="slide" data-slide="27">
+                    <span class="slide-badge">
+                        <i class="fas fa-file-code"></i>
+                        Slide 27
+                    </span>
+                    <h1 class="slide-title">Generated C# Class</h1>
+                    <p class="slide-subtitle">Strongly-typed input with auto-generated code</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Enable Code Generation</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Select your Input Action Asset in the Project window</p>
+                            <p>In the Inspector, check <strong>"Generate C# Class"</strong></p>
+                            <p>Click <strong>Apply</strong> to generate the code</p>
+                        </div>
+                    </div>
+
+                    <div class="unity-window">
+                        <div class="unity-titlebar">
+                            <div class="unity-dots">
+                                <span class="red"></span>
+                                <span class="yellow"></span>
+                                <span class="green"></span>
+                            </div>
+                            <span class="unity-title">Inspector - PlayerInputActions</span>
+                        </div>
+                        <div class="unity-content">
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">☑ Generate C# Class</span>
+                                <span class="unity-field" style="color: var(--success);">✓</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">C# Class File</span>
+                                <span class="unity-field">PlayerInputActions.cs</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">C# Class Name</span>
+                                <span class="unity-field">PlayerInputActions</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">C# Class Namespace</span>
+                                <span class="unity-field">(empty)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">Using the Generated Class</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">PlayerWithGeneratedClass</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// The generated class - no string references needed!</span>
+    <span class="keyword">private</span> <span class="type">PlayerInputActions</span> inputActions;
+
+    <span class="keyword">void</span> <span class="function">Awake</span>()
+    {
+        inputActions = <span class="keyword">new</span> <span class="type">PlayerInputActions</span>();
+    }
+
+    <span class="keyword">void</span> <span class="function">OnEnable</span>()
+    {
+        inputActions.<span class="function">Enable</span>();
+        
+        <span class="comment">// Strongly-typed access to actions!</span>
+        inputActions.Player.Jump.performed += ctx => <span class="function">Jump</span>();
+    }
+
+    <span class="keyword">void</span> <span class="function">OnDisable</span>()
+    {
+        inputActions.<span class="function">Disable</span>();
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// Direct access - IDE autocomplete works!</span>
+        <span class="type">Vector2</span> move = inputActions.Player.Move.<span class="function">ReadValue</span>&lt;<span class="type">Vector2</span>&gt;();
+        
+        <span class="comment">// No more typos in action names</span>
+        <span class="keyword">if</span> (inputActions.Player.Fire.WasPerformedThisFrame())
+        {
+            <span class="function">Fire</span>();
+        }
+    }
+
+    <span class="keyword">void</span> <span class="function">Jump</span>() { <span class="comment">/* Jump logic */</span> }
+    <span class="keyword">void</span> <span class="function">Fire</span>() { <span class="comment">/* Fire logic */</span> }
+}</pre>
+                    </div>
+
+                    <div class="comparison">
+                        <div class="comparison-item">
+                            <h3 class="comparison-title" style="color: var(--success);">
+                                <i class="fas fa-check-circle"></i>
+                                Benefits
+                            </h3>
+                            <ul class="comparison-list">
+                                <li>No magic strings</li>
+                                <li>Full IDE autocomplete</li>
+                                <li>Compile-time error checking</li>
+                                <li>Strongly typed values</li>
+                            </ul>
+                        </div>
+                        <div class="comparison-item">
+                            <h3 class="comparison-title" style="color: var(--cyan);">
+                                <i class="fas fa-info-circle"></i>
+                                Remember
+                            </h3>
+                            <ul class="comparison-list">
+                                <li>Regenerate after changes</li>
+                                <li>Must call Enable() manually</li>
+                                <li>Create new instance in Awake</li>
+                                <li>Dispose/Disable when done</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 28: Summary & Best Practices -->
+                <section class="slide" data-slide="28">
+                    <span class="slide-badge">
+                        <i class="fas fa-trophy"></i>
+                        Slide 28
+                    </span>
+                    <h1 class="slide-title">Summary & Best Practices</h1>
+                    <p class="slide-subtitle">Key takeaways for mastering Unity's Input System</p>
+
+                    <div class="screenshot">
+                        <div class="screenshot-content" style="background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 40px;">
+                            <div style="text-align: center;">
+                                <i class="fas fa-gamepad" style="font-size: 80px; color: var(--cyan); margin-bottom: 20px;"></i>
+                                <h2 style="font-size: 28px; margin-bottom: 10px;">You've Mastered the Input System!</h2>
+                                <p style="color: var(--text-dim);">From basic setup to advanced event-driven architecture</p>
+                            </div>
+                        </div>
+                        <div class="screenshot-caption">
+                            <div class="caption-title">
+                                <i class="fas fa-trophy"></i>
+                                Ready to Build Amazing Games
+                            </div>
+                            <p>You now have all the knowledge needed for professional input handling!</p>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Input Action Assets</h3>
+                            <p class="card-text">Organized, reusable input configuration</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Action Maps</h3>
+                            <p class="card-text">Context-switching for different game states</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Multiple Behaviors</h3>
+                            <p class="card-text">Send Messages, Unity Events, C# Events</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Generated Classes</h3>
+                            <p class="card-text">Type-safe, autocomplete-friendly code</p>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-rocket"></i>
+                            Best Practices Checklist
+                        </div>
+                        <p>✓ Use <strong>Input Action Assets</strong> for organization and rebinding support</p>
+                        <p>✓ Create <strong>separate Action Maps</strong> for different contexts (Player, UI, Vehicle)</p>
+                        <p>✓ Enable <strong>Generate C# Class</strong> for type safety</p>
+                        <p>✓ <strong>Always unsubscribe</strong> from events in OnDisable()</p>
+                        <p>✓ Use <strong>composites</strong> for complex inputs like WASD movement</p>
+                        <p>✓ Test with <strong>multiple input devices</strong> (keyboard + gamepad)</p>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-book-open"></i>
+                            Continue Learning
+                        </div>
+                        <p><strong>Next Topics to Explore:</strong></p>
+                        <p style="margin-top: 8px;">• Runtime rebinding UI • Local multiplayer with PlayerInputManager</p>
+                        <p>• Touch gestures and mobile input • Custom interactions and processors</p>
+                    </div>
+                </section>
+
+                <!-- Navigation Controls -->
+                <div class="nav-controls">
+                    <button class="nav-btn" id="prev-btn">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                    
+                    <span class="slide-count">
+                        <span id="current">17</span> / <span id="total">28</span>
+                    </span>
+                    
+                    <button class="nav-btn" id="next-btn">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Hint -->
+    <div class="keyboard-hint">
+        <span><kbd>←</kbd> Previous</span>
+        <span><kbd>→</kbd> Next</span>
+        <span><kbd>Home</kbd> First</span>
+        <span><kbd>End</kbd> Last</span>
+    </div>
+
+    <script>
+        // Configuration - Starting from slide 17
+        const slides = [
+            { id: 17, title: "Input Action Assets", desc: "Action-based architecture" },
+            { id: 18, title: "Creating Assets", desc: "Step-by-step setup" },
+            { id: 19, title: "Action Maps", desc: "Organize by context" },
+            { id: 20, title: "Creating Actions", desc: "Define input events" },
+            { id: 21, title: "Adding Bindings", desc: "Connect physical inputs" },
+            { id: 22, title: "2D Composites", desc: "WASD movement setup" },
+            { id: 23, title: "Player Input", desc: "Component overview" },
+            { id: 24, title: "Send Messages", desc: "Simple method calls" },
+            { id: 25, title: "Unity Events", desc: "Visual configuration" },
+            { id: 26, title: "C# Events", desc: "Advanced subscriptions" },
+            { id: 27, title: "Generated Class", desc: "Type-safe code" },
+            { id: 28, title: "Summary", desc: "Best practices" }
+        ];
+
+        let currentSlide = 17;
+        const totalSlides = 28;
+        const startSlide = 17;
+
+        // DOM Elements
+        const navList = document.getElementById('nav-list');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const progressLabel = document.getElementById('progress-label');
+        const progressCount = document.getElementById('progress-count');
+        const currentEl = document.getElementById('current');
+        const totalEl = document.getElementById('total');
+
+        // Initialize
+        function init() {
+            renderNav();
+            updateUI();
+            totalEl.textContent = totalSlides;
+        }
+
+        // Render Navigation
+        function renderNav() {
+            navList.innerHTML = '';
+            slides.forEach(slide => {
+                const navItem = document.createElement('div');
+                navItem.className = `nav-item ${slide.id === currentSlide ? 'active' : ''}`;
+                navItem.onclick = () => goToSlide(slide.id);
+                navItem.innerHTML = `
+                    <div class="nav-number">${slide.id}</div>
+                    <div class="nav-info">
+                        <div class="nav-title">${slide.title}</div>
+                        <div class="nav-desc">${slide.desc}</div>
+                    </div>
+                `;
+                navList.appendChild(navItem);
+            });
+        }
+
+        // Go to Slide
+        function goToSlide(id) {
+            if (id < startSlide || id > totalSlides) return;
+            
+            const currentActive = document.querySelector('.slide.active');
+            if (currentActive) {
+                currentActive.classList.remove('active');
+            }
+            
+            const newSlide = document.querySelector(`.slide[data-slide="${id}"]`);
+            if (newSlide) {
+                newSlide.classList.add('active');
+            }
+            
+            currentSlide = id;
+            updateUI();
+            
+            document.querySelector('.content-area').scrollTo(0, 0);
+        }
+
+        // Update UI
+        function updateUI() {
+            // Progress based on Part 2 slides (17-28)
+            const progressPercent = ((currentSlide - startSlide) / (totalSlides - startSlide)) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+            
+            const slide = slides.find(s => s.id === currentSlide);
+            if (slide) {
+                progressLabel.textContent = `${slide.title}: ${slide.desc}`;
+            }
+            progressCount.textContent = `${currentSlide} / ${totalSlides}`;
+            currentEl.textContent = currentSlide;
+            
+            prevBtn.disabled = currentSlide === startSlide;
+            nextBtn.disabled = currentSlide === totalSlides;
+            
+            renderNav();
+        }
+
+        // Event Listeners
+        prevBtn.onclick = () => goToSlide(currentSlide - 1);
+        nextBtn.onclick = () => {
+            if (currentSlide < totalSlides) {
+                goToSlide(currentSlide + 1);
+            } else {
+                // Celebration at the end
+                showCompletionMessage();
+            }
+        };
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides) {
+                goToSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowLeft' && currentSlide > startSlide) {
+                goToSlide(currentSlide - 1);
+            } else if (e.key === 'Home') {
+                goToSlide(startSlide);
+            } else if (e.key === 'End') {
+                goToSlide(totalSlides);
+            }
+        });
+
+        // Copy Code Function
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-block');
+            const code = codeBlock.querySelector('.code-content').innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.style.background = 'rgba(16, 185, 129, 0.3)';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Completion Message
+        function showCompletionMessage() {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="text-align: center; padding: 40px; max-width: 500px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🎮</div>
+                    <h2 style="font-size: 32px; margin-bottom: 15px; background: linear-gradient(90deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Tutorial Complete!
+                    </h2>
+                    <p style="color: #94a3b8; font-size: 18px; margin-bottom: 30px;">
+                        You've mastered Unity's Input System from setup to advanced event-driven architecture!
+                    </p>
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        background: linear-gradient(135deg, #6366f1, #ec4899);
+                        border: none;
+                        padding: 15px 40px;
+                        border-radius: 50px;
+                        color: white;
+                        font-size: 16px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: transform 0.3s ease;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+        }
+
+        // Add fade-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
