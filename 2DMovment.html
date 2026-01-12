@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity 2D Movement - Complete Keyboard Controls Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --darker: #0f172a;
+            --light: #f1f5f9;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --cyan: #22d3ee;
+            --purple: #a855f7;
+            --green: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.1) 0%, transparent 70%);
+            top: -150px;
+            right: -150px;
+            animation: pulse 10s ease-in-out infinite;
+        }
+
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+            bottom: -150px;
+            left: -150px;
+            animation: pulse 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 15px 40px;
+            border-bottom: 2px solid rgba(34, 211, 238, 0.3);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .brand-text h1 {
+            font-size: 30px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--cyan), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 20px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .stat i {
+            color: var(--cyan);
+            font-size: 14px;
+        }
+
+        .stat-text {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        /* Progress */
+        .progress-bar {
+            background: rgba(15, 23, 42, 0.95);
+            padding: 10px 40px 15px;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.15);
+            position: relative;
+            z-index: 10;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .progress-track {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--primary), var(--secondary));
+            border-radius: 10px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.98);
+            border-right: 1px solid rgba(34, 211, 238, 0.15);
+            overflow-y: auto;
+            padding: 15px 0;
+        }
+
+        .sidebar-title {
+            padding: 0 15px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-list {
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            background: rgba(51, 65, 85, 0.25);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-item:hover {
+            background: rgba(51, 65, 85, 0.5);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: rgba(34, 211, 238, 0.15);
+            border-left-color: var(--cyan);
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+        }
+
+        .nav-number {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .nav-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .nav-title {
+            font-weight: 700;
+            font-size: 11px;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .nav-desc {
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px 35px;
+        }
+
+        .slide {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: slideIn 0.4s ease;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .slide-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #fff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .slide-subtitle {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Definition Box */
+        .definition-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 16px 0;
+        }
+
+        .definition-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .definition-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .definition-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 13px;
+            line-height: 1.5;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .definition-list li:last-child {
+            border-bottom: none;
+        }
+
+        .definition-list li::before {
+            content: '•';
+            position: absolute;
+            left: 8px;
+            color: var(--cyan);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .definition-list li strong {
+            color: var(--accent);
+        }
+
+        /* Learning Objectives */
+        .objectives-box {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(34, 211, 238, 0.05));
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 16px 0;
+        }
+
+        .objectives-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .objectives-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .objectives-list li {
+            padding: 6px 0;
+            padding-left: 28px;
+            position: relative;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .objectives-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 6px;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Step Cards */
+        .step-card {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(99, 102, 241, 0.06));
+            border: 2px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 14px 0;
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.2);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .step-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .step-content strong {
+            color: var(--accent);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin: 18px 0;
+        }
+
+        .card {
+            background: rgba(51, 65, 85, 0.35);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(51, 65, 85, 0.5);
+            border-color: var(--cyan);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(34, 211, 238, 0.15);
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .card-text {
+            color: var(--text-dim);
+            line-height: 1.4;
+            font-size: 11px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            overflow-x: auto;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .code-lang {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-filename {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .copy-btn {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            color: var(--text);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(34, 211, 238, 0.35);
+        }
+
+        .code-content {
+            font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #e6edf3;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .keyword { color: #ff7b72; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+        .function { color: #d2a8ff; }
+        .type { color: #79c0ff; }
+        .number { color: #79c0ff; }
+
+        /* Code Explanation */
+        .code-explanation {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 14px 0;
+        }
+
+        .code-explanation-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-explanation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .code-explanation-list li {
+            padding: 8px 0;
+            padding-left: 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-left: 3px solid rgba(245, 158, 11, 0.4);
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0 8px 8px 0;
+            padding: 10px 12px 10px 12px;
+        }
+
+        .code-explanation-list li code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--cyan);
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.03));
+            border-left: 4px solid var(--success);
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 10px;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: var(--success);
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box p {
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .info-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.03));
+            border-left: 4px solid var(--accent);
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 10px;
+        }
+
+        .warning-box-title {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-box p {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* Unity Window */
+        .unity-window {
+            background: #2d2d2d;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 14px 0;
+            border: 2px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .unity-titlebar {
+            background: #3c3c3c;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #222;
+        }
+
+        .unity-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .unity-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .unity-dots .red { background: #ff5f57; }
+        .unity-dots .yellow { background: #ffbd2e; }
+        .unity-dots .green { background: #28ca41; }
+
+        .unity-title {
+            color: #aaa;
+            font-size: 11px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .unity-content {
+            padding: 14px;
+        }
+
+        .unity-inspector-item {
+            background: #3c3c3c;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unity-label {
+            color: #ccc;
+            font-size: 11px;
+        }
+
+        .unity-field {
+            background: #222;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #7ee787;
+            font-family: monospace;
+            font-size: 10px;
+        }
+
+        /* Keyboard Visual */
+        .keyboard-visual {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 16px 0;
+            border: 2px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .keyboard-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin: 6px 0;
+        }
+
+        .key {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
+            border: 2px solid #4a4a5a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .key:hover {
+            transform: translateY(-2px);
+        }
+
+        .key.active {
+            background: linear-gradient(145deg, var(--cyan), var(--primary));
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .key.space {
+            width: 160px;
+        }
+
+        .key-label {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 10px;
+            margin-top: 10px;
+        }
+
+        /* Demo Container */
+        .demo-container {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+            border-radius: 12px;
+            padding: 18px;
+            margin: 16px 0;
+            border: 2px solid rgba(34, 211, 238, 0.25);
+        }
+
+        .demo-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .demo-area {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 10px;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .demo-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+            background-size: 25px 25px;
+        }
+
+        .demo-player {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            border-radius: 8px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.5);
+            transition: left 0.05s, top 0.05s;
+        }
+
+        .demo-player.jumping {
+            animation: jump 0.4s ease;
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-40px); }
+        }
+
+        .demo-instructions {
+            color: var(--text-dim);
+            font-size: 10px;
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .demo-instructions kbd {
+            background: rgba(34, 211, 238, 0.2);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 11px;
+        }
+
+        .data-table th {
+            background: rgba(34, 211, 238, 0.15);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--cyan);
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .data-table code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--accent);
+        }
+
+        /* Menu Path */
+        .menu-path {
+            background: rgba(15, 23, 42, 0.7);
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 2px solid rgba(34, 211, 238, 0.2);
+            margin: 12px 0;
+            font-family: monospace;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-path-icon {
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 18px;
+            border-top: 2px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(34, 211, 238, 0.4);
+        }
+
+        .nav-btn:disabled {
+            background: rgba(100, 116, 139, 0.4);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .slide-count {
+            font-weight: 600;
+            color: var(--text-dim);
+            font-size: 11px;
+        }
+
+        /* Keyboard Hints */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            font-size: 9px;
+            color: var(--text-dim);
+            z-index: 100;
+            display: flex;
+            gap: 12px;
+        }
+
+        .keyboard-hint kbd {
+            background: rgba(34, 211, 238, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-right: 3px;
+            font-family: monospace;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--cyan), var(--primary));
+            border-radius: 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 180px;
+                border-right: none;
+                border-bottom: 1px solid rgba(34, 211, 238, 0.15);
+            }
+
+            .keyboard-hint {
+                display: none;
+            }
+
+            .header-stats {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .content-area {
+                padding: 15px;
+            }
+            
+            .slide-title {
+                font-size: 24px;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .key {
+                width: 38px;
+                height: 38px;
+                font-size: 11px;
+            }
+
+            .key.space {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Unity 2D Movement</h1>
+                        <h1>MAC280</h1>
+                        <h1>Prof. Khalid Kassou</h1>
+                        <p>Complete Keyboard Controls Tutorial</p>
+                    </div>
+                </div>
+                <div class="header-stats">
+                    <div class="stat">
+                        <i class="fas fa-keyboard"></i>
+                        <span class="stat-text">WASD</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-arrows-alt"></i>
+                        <span class="stat-text">Arrows</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-arrow-up"></i>
+                        <span class="stat-text">Spacebar</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-info">
+                <span id="progress-label">Introduction</span>
+                <span id="progress-count">1 / 12</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-list-check"></i>
+                    Topics
+                </h3>
+                <nav class="nav-list" id="nav-list"></nav>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                
+                <!-- Slide 1: Introduction -->
+                <section class="slide active" data-slide="1">
+                    <span class="slide-badge">
+                        <i class="fas fa-rocket"></i>
+                        Getting Started
+                    </span>
+                    <h1 class="slide-title">2D GameObject Movement</h1>
+                    <p class="slide-subtitle">Master keyboard controls for 2D games in Unity using C# scripting</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>GameObject</strong> - The fundamental object in Unity that represents characters, props, scenery, and more</li>
+                            <li><strong>Transform</strong> - Component that stores position, rotation, and scale of a GameObject</li>
+                            <li><strong>Input System</strong> - Unity's system for detecting keyboard, mouse, and controller input</li>
+                            <li><strong>Vector2</strong> - A structure representing a 2D point or direction (x, y coordinates)</li>
+                            <li><strong>deltaTime</strong> - Time elapsed since the last frame, used for frame-rate independent movement</li>
+                        </ul>
+                    </div>
+
+                    <div class="objectives-box">
+                        <div class="objectives-title">
+                            <i class="fas fa-bullseye"></i>
+                            Learning Objectives
+                        </div>
+                        <ul class="objectives-list">
+                            <li>Understand how Unity detects keyboard input</li>
+                            <li>Implement WASD movement controls</li>
+                            <li>Implement Arrow key movement controls</li>
+                            <li>Create spacebar-based jumping mechanics</li>
+                            <li>Use physics-based movement with Rigidbody2D</li>
+                            <li>Apply smooth input using GetAxis method</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <span class="card-icon">⌨️</span>
+                            <h3 class="card-title">WASD Keys</h3>
+                            <p class="card-text">W=Up, A=Left, S=Down, D=Right - Standard PC gaming controls</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">⬆️</span>
+                            <h3 class="card-title">Arrow Keys</h3>
+                            <p class="card-text">↑↓←→ Directional keys for intuitive movement control</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">🚀</span>
+                            <h3 class="card-title">Spacebar Jump</h3>
+                            <p class="card-text">Press space to make character jump upward</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">🎮</span>
+                            <h3 class="card-title">Smooth Input</h3>
+                            <p class="card-text">GetAxis for gradual acceleration and deceleration</p>
+                        </div>
+                    </div>
+
+                    <div class="demo-container">
+                        <div class="demo-title">
+                            <i class="fas fa-play-circle"></i>
+                            Interactive Demo - Try the Controls!
+                        </div>
+                        <div class="demo-area" id="demo-area-intro">
+                            <div class="demo-grid"></div>
+                            <div class="demo-player" id="demo-player-intro" style="left: calc(50% - 18px); top: calc(50% - 18px);">🎮</div>
+                        </div>
+                        <div class="demo-instructions">
+                            Press <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to move • <kbd>Space</kbd> to jump
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 2: Project Setup -->
+                <section class="slide" data-slide="2">
+                    <span class="slide-badge">
+                        <i class="fas fa-folder-plus"></i>
+                        Setup
+                    </span>
+                    <h1 class="slide-title">Project Setup</h1>
+                    <p class="slide-subtitle">Prepare your Unity project with the required components for 2D movement</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Sprite</strong> - A 2D graphic object used for characters, backgrounds, and other visual elements</li>
+                            <li><strong>Rigidbody2D</strong> - Component that enables physics simulation (gravity, forces, collisions) for 2D objects</li>
+                            <li><strong>Collider2D</strong> - Component that defines the shape for physical collisions</li>
+                            <li><strong>Gravity Scale</strong> - Multiplier for gravity effect (0 = no gravity, 1 = normal gravity)</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Create Player Sprite</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>In Unity Editor, right-click in the <strong>Hierarchy</strong> panel</p>
+                            <p>Navigate to <strong>2D Object → Sprites → Square</strong></p>
+                            <p>Rename the created object to <strong>"Player"</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="menu-path">
+                        <i class="fas fa-folder-tree menu-path-icon"></i>
+                        Hierarchy → Right Click → 2D Object → Sprites → Square
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">2</div>
+                            <h3 class="step-title">Add Rigidbody2D Component</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Select the Player object in the Hierarchy</p>
+                            <p>Click <strong>Add Component</strong> in the Inspector panel</p>
+                            <p>Search for and add <strong>"Rigidbody 2D"</strong></p>
+                            <p>Set <strong>Gravity Scale = 0</strong> for top-down games, or keep at 1 for platformers</p>
+                        </div>
+                    </div>
+
+                    <div class="unity-window">
+                        <div class="unity-titlebar">
+                            <div class="unity-dots">
+                                <span class="red"></span>
+                                <span class="yellow"></span>
+                                <span class="green"></span>
+                            </div>
+                            <span class="unity-title">Inspector - Player</span>
+                        </div>
+                        <div class="unity-content">
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Body Type</span>
+                                <span class="unity-field">Dynamic</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Mass</span>
+                                <span class="unity-field">1</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Linear Drag</span>
+                                <span class="unity-field">0</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Gravity Scale</span>
+                                <span class="unity-field">0</span>
+                            </div>
+                            <div class="unity-inspector-item">
+                                <span class="unity-label">Freeze Rotation Z</span>
+                                <span class="unity-field">✓ (checked)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-number">3</div>
+                            <h3 class="step-title">Create C# Script</h3>
+                        </div>
+                        <div class="step-content">
+                            <p>Right-click in the <strong>Project</strong> panel → <strong>Create → C# Script</strong></p>
+                            <p>Name it <strong>"PlayerMovement"</strong></p>
+                            <p>Drag and drop the script onto the Player object</p>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Why Use Rigidbody2D?
+                        </div>
+                        <p><strong>Physics Integration:</strong> Enables proper collision detection with other objects</p>
+                        <p><strong>Force-Based Movement:</strong> Allows realistic physics interactions</p>
+                        <p><strong>Gravity Control:</strong> Easy to enable/disable gravity for different game types</p>
+                    </div>
+                </section>
+
+                <!-- Slide 3: WASD Movement - Basic -->
+                <section class="slide" data-slide="3">
+                    <span class="slide-badge">
+                        <i class="fas fa-keyboard"></i>
+                        WASD Controls
+                    </span>
+                    <h1 class="slide-title">WASD Movement (Basic)</h1>
+                    <p class="slide-subtitle">Implement simple transform-based movement using GetKey method</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Input.GetKey()</strong> - Returns TRUE every frame while the specified key is held down</li>
+                            <li><strong>KeyCode</strong> - Enumeration of all detectable keyboard keys (KeyCode.W, KeyCode.A, etc.)</li>
+                            <li><strong>Transform.Translate()</strong> - Moves the object by the specified direction and distance</li>
+                            <li><strong>Time.deltaTime</strong> - Time in seconds since last frame (~0.016 at 60 FPS)</li>
+                            <li><strong>Vector2.up/down/left/right</strong> - Predefined direction vectors (up = 0,1)</li>
+                        </ul>
+                    </div>
+
+                    <div class="keyboard-visual">
+                        <div class="keyboard-title">
+                            <i class="fas fa-keyboard"></i>
+                            WASD Key Layout
+                        </div>
+                        <div class="keyboard-row">
+                            <div class="key" data-key="w">W</div>
+                        </div>
+                        <div class="keyboard-row">
+                            <div class="key" data-key="a">A</div>
+                            <div class="key" data-key="s">S</div>
+                            <div class="key" data-key="d">D</div>
+                        </div>
+                        <div class="key-label">W = Up (0, 1) • A = Left (-1, 0) • S = Down (0, -1) • D = Right (1, 0)</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">WASDMovementBasic.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">WASDMovementBasic</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// Public variable - visible in Inspector, controls movement speed</span>
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;
+
+    <span class="comment">// Update is called once per frame</span>
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// Check if W key is being held down</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.W))
+        {
+            <span class="comment">// Move upward: Vector2.up = (0, 1)</span>
+            transform.<span class="function">Translate</span>(Vector2.up * moveSpeed * Time.deltaTime);
+        }
+        <span class="comment">// Check if S key is being held down</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.S))
+        {
+            <span class="comment">// Move downward: Vector2.down = (0, -1)</span>
+            transform.<span class="function">Translate</span>(Vector2.down * moveSpeed * Time.deltaTime);
+        }
+        <span class="comment">// Check if A key is being held down</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.A))
+        {
+            <span class="comment">// Move left: Vector2.left = (-1, 0)</span>
+            transform.<span class="function">Translate</span>(Vector2.left * moveSpeed * Time.deltaTime);
+        }
+        <span class="comment">// Check if D key is being held down</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.D))
+        {
+            <span class="comment">// Move right: Vector2.right = (1, 0)</span>
+            transform.<span class="function">Translate</span>(Vector2.right * moveSpeed * Time.deltaTime);
+        }
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Line by Line
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>public float moveSpeed = 5f;</code> - Declares a public variable visible in Unity Inspector. The 'f' suffix indicates a float (decimal) number. Value of 5 means 5 units per second.</li>
+                            <li><code>void Update()</code> - Unity's built-in method called every frame (60 times per second at 60 FPS). Used for input detection and non-physics movement.</li>
+                            <li><code>Input.GetKey(KeyCode.W)</code> - Checks if the W key is currently pressed. Returns true every frame while held down, false when released.</li>
+                            <li><code>transform.Translate()</code> - Moves the GameObject relative to its current position. Takes a Vector (direction and distance) as parameter.</li>
+                            <li><code>Vector2.up * moveSpeed * Time.deltaTime</code> - Calculates movement: direction (0,1) × speed (5) × frame time (~0.016) = smooth, frame-rate independent movement.</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Important: Time.deltaTime
+                        </div>
+                        <p><strong>Without Time.deltaTime:</strong> Movement would be tied to frame rate (faster on powerful PCs, slower on weak ones)</p>
+                        <p><strong>With Time.deltaTime:</strong> Movement is consistent regardless of frame rate - essential for fair gameplay!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 4: Arrow Keys Movement -->
+                <section class="slide" data-slide="4">
+                    <span class="slide-badge">
+                        <i class="fas fa-arrows-alt"></i>
+                        Arrow Keys
+                    </span>
+                    <h1 class="slide-title">Arrow Keys Movement</h1>
+                    <p class="slide-subtitle">Implement directional movement using arrow keys with normalization</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>KeyCode.UpArrow/DownArrow/LeftArrow/RightArrow</strong> - Arrow key identifiers in Unity's input system</li>
+                            <li><strong>Vector2.zero</strong> - A vector with both x and y set to 0, representing no movement</li>
+                            <li><strong>Vector2.normalized</strong> - Returns the vector with magnitude (length) of 1, preserving direction</li>
+                            <li><strong>Diagonal Movement</strong> - Moving in two directions simultaneously (e.g., up + right)</li>
+                        </ul>
+                    </div>
+
+                    <div class="keyboard-visual">
+                        <div class="keyboard-title">
+                            <i class="fas fa-arrows-alt"></i>
+                            Arrow Key Layout
+                        </div>
+                        <div class="keyboard-row">
+                            <div class="key" data-key="arrowup">↑</div>
+                        </div>
+                        <div class="keyboard-row">
+                            <div class="key" data-key="arrowleft">←</div>
+                            <div class="key" data-key="arrowdown">↓</div>
+                            <div class="key" data-key="arrowright">→</div>
+                        </div>
+                        <div class="key-label">↑ = UpArrow • ← = LeftArrow • ↓ = DownArrow • → = RightArrow</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">ArrowKeysMovement.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">ArrowKeysMovement</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// Movement speed in units per second</span>
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;
+    
+    <span class="comment">// Private variable to store movement direction</span>
+    <span class="keyword">private</span> <span class="type">Vector2</span> movement;
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// Reset movement to zero each frame</span>
+        movement = <span class="type">Vector2</span>.zero;
+
+        <span class="comment">// Vertical movement - Up Arrow</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.UpArrow))
+        {
+            movement.y = <span class="number">1f</span>;  <span class="comment">// Set Y to positive (up)</span>
+        }
+        <span class="comment">// Vertical movement - Down Arrow</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.DownArrow))
+        {
+            movement.y = <span class="number">-1f</span>;  <span class="comment">// Set Y to negative (down)</span>
+        }
+        <span class="comment">// Horizontal movement - Left Arrow</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.LeftArrow))
+        {
+            movement.x = <span class="number">-1f</span>;  <span class="comment">// Set X to negative (left)</span>
+        }
+        <span class="comment">// Horizontal movement - Right Arrow</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.RightArrow))
+        {
+            movement.x = <span class="number">1f</span>;  <span class="comment">// Set X to positive (right)</span>
+        }
+
+        <span class="comment">// Normalize to prevent faster diagonal movement</span>
+        movement = movement.normalized;
+
+        <span class="comment">// Apply the movement to transform</span>
+        transform.<span class="function">Translate</span>(movement * moveSpeed * Time.deltaTime);
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Purpose of Each Section
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>private Vector2 movement;</code> - Private variable (not visible in Inspector) stores the combined movement direction as x,y coordinates.</li>
+                            <li><code>movement = Vector2.zero;</code> - Resets movement to (0,0) each frame. Without this, previous frame's values would persist and cause issues.</li>
+                            <li><code>movement.y = 1f;</code> - Sets only the Y component. Using separate if statements (not else if) allows diagonal movement by setting both x and y.</li>
+                            <li><code>movement.normalized</code> - <strong>Critical for fair gameplay!</strong> Without this, diagonal movement (1,1) has magnitude 1.41, making diagonal movement 41% faster than cardinal directions.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-calculator"></i>
+                            Why Normalize? - The Math
+                        </div>
+                        <p><strong>Without normalization:</strong> Moving Up+Right = (1, 1), magnitude = √(1² + 1²) = √2 ≈ 1.414</p>
+                        <p><strong>With normalization:</strong> (1, 1).normalized = (0.707, 0.707), magnitude = 1.0</p>
+                        <p><strong>Result:</strong> Consistent speed in ALL directions!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 5: Combined WASD + Arrow Keys -->
+                <section class="slide" data-slide="5">
+                    <span class="slide-badge">
+                        <i class="fas fa-layer-group"></i>
+                        Combined Input
+                    </span>
+                    <h1 class="slide-title">WASD + Arrow Keys Combined</h1>
+                    <p class="slide-subtitle">Support both input methods for maximum player accessibility</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>|| (OR operator)</strong> - Logical operator that returns true if EITHER condition is true</li>
+                            <li><strong>else if</strong> - Executes only if previous condition was false, prevents conflicting inputs</li>
+                            <li><strong>Input Priority</strong> - When opposite keys pressed, the first checked key wins</li>
+                        </ul>
+                    </div>
+
+                    <div class="objectives-box">
+                        <div class="objectives-title">
+                            <i class="fas fa-bullseye"></i>
+                            Purpose of This Script
+                        </div>
+                        <ul class="objectives-list">
+                            <li>Allow players to use their preferred control scheme</li>
+                            <li>Support both WASD (left hand) and Arrow keys (right hand) simultaneously</li>
+                            <li>Handle conflicting inputs gracefully (e.g., pressing W and S together)</li>
+                            <li>Provide consistent, normalized movement speed</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">CombinedMovement.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">CombinedMovement</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// === VARIABLES ===</span>
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;      <span class="comment">// Movement speed (units/sec)</span>
+    <span class="keyword">private</span> <span class="type">Vector2</span> moveDirection;    <span class="comment">// Stores final movement vector</span>
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// Reset direction each frame</span>
+        moveDirection = <span class="type">Vector2</span>.zero;
+
+        <span class="comment">// === VERTICAL MOVEMENT ===</span>
+        <span class="comment">// Check W key OR Up Arrow for moving up</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.W) || Input.<span class="function">GetKey</span>(KeyCode.UpArrow))
+        {
+            moveDirection.y = <span class="number">1f</span>;
+        }
+        <span class="comment">// Check S key OR Down Arrow for moving down</span>
+        <span class="comment">// Using 'else if' prevents both up and down activating together</span>
+        <span class="keyword">else if</span> (Input.<span class="function">GetKey</span>(KeyCode.S) || Input.<span class="function">GetKey</span>(KeyCode.DownArrow))
+        {
+            moveDirection.y = <span class="number">-1f</span>;
+        }
+
+        <span class="comment">// === HORIZONTAL MOVEMENT ===</span>
+        <span class="comment">// Check A key OR Left Arrow for moving left</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKey</span>(KeyCode.A) || Input.<span class="function">GetKey</span>(KeyCode.LeftArrow))
+        {
+            moveDirection.x = <span class="number">-1f</span>;
+        }
+        <span class="comment">// Check D key OR Right Arrow for moving right</span>
+        <span class="keyword">else if</span> (Input.<span class="function">GetKey</span>(KeyCode.D) || Input.<span class="function">GetKey</span>(KeyCode.RightArrow))
+        {
+            moveDirection.x = <span class="number">1f</span>;
+        }
+
+        <span class="comment">// === APPLY MOVEMENT ===</span>
+        <span class="comment">// Normalize for consistent diagonal speed</span>
+        moveDirection = moveDirection.normalized;
+        
+        <span class="comment">// Move the player</span>
+        transform.<span class="function">Translate</span>(moveDirection * moveSpeed * Time.deltaTime);
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Key Concepts
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)</code> - The || (OR) operator means: "if W is pressed OR if UpArrow is pressed, execute this code". Either input works!</li>
+                            <li><code>else if</code> for opposite directions - Using <code>else if</code> instead of <code>if</code> means that pressing W+S together will only move UP (W is checked first). This prevents the player from getting stuck.</li>
+                            <li>Separate if blocks for vertical/horizontal - Notice vertical uses if/else if, and horizontal uses separate if/else if. This allows diagonal movement (pressing W+D moves up-right).</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Pro Tip: Control Scheme Design
+                        </div>
+                        <p><strong>WASD:</strong> Preferred by most PC gamers, leaves right hand free for mouse</p>
+                        <p><strong>Arrow Keys:</strong> More intuitive for beginners and casual players</p>
+                        <p><strong>Best Practice:</strong> Always support both for maximum accessibility!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 6: GetAxis Smooth Movement -->
+                <section class="slide" data-slide="6">
+                    <span class="slide-badge">
+                        <i class="fas fa-wave-square"></i>
+                        Smooth Input
+                    </span>
+                    <h1 class="slide-title">GetAxis - Smooth Movement</h1>
+                    <p class="slide-subtitle">Professional input handling with built-in smoothing and multi-key support</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Input.GetAxis("Horizontal")</strong> - Returns smooth value from -1 to 1 based on A/D and Left/Right Arrow keys</li>
+                            <li><strong>Input.GetAxis("Vertical")</strong> - Returns smooth value from -1 to 1 based on W/S and Up/Down Arrow keys</li>
+                            <li><strong>Input.GetAxisRaw()</strong> - Returns instant -1, 0, or 1 with no smoothing</li>
+                            <li><strong>Vector2.ClampMagnitude()</strong> - Limits vector length to specified maximum value</li>
+                            <li><strong>Smoothing/Interpolation</strong> - Gradual transition between values for fluid movement</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <span class="card-icon">🎯</span>
+                            <h3 class="card-title">Horizontal Axis</h3>
+                            <p class="card-text">A/D keys and ←/→ arrows automatically mapped</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">📊</span>
+                            <h3 class="card-title">Vertical Axis</h3>
+                            <p class="card-text">W/S keys and ↑/↓ arrows automatically mapped</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✨</span>
+                            <h3 class="card-title">Smooth Values</h3>
+                            <p class="card-text">Gradual acceleration from 0 to 1 when pressing</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">🎮</span>
+                            <h3 class="card-title">Gamepad Ready</h3>
+                            <p class="card-text">Also works with controller analog sticks!</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">SmoothMovement.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">SmoothMovement</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// === CONFIGURATION ===</span>
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;          <span class="comment">// Base movement speed</span>
+    
+    <span class="comment">// === PRIVATE VARIABLES ===</span>
+    <span class="keyword">private float</span> horizontalInput;        <span class="comment">// Stores left/right input (-1 to 1)</span>
+    <span class="keyword">private float</span> verticalInput;          <span class="comment">// Stores up/down input (-1 to 1)</span>
+    <span class="keyword">private</span> <span class="type">Vector2</span> moveVector;           <span class="comment">// Combined movement direction</span>
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// === GET INPUT ===</span>
+        <span class="comment">// GetAxis returns smooth values from -1 to 1</span>
+        <span class="comment">// Automatically handles: A/D, Left/Right Arrow, Gamepad</span>
+        horizontalInput = Input.<span class="function">GetAxis</span>(<span class="string">"Horizontal"</span>);
+        verticalInput = Input.<span class="function">GetAxis</span>(<span class="string">"Vertical"</span>);
+
+        <span class="comment">// === CREATE MOVEMENT VECTOR ===</span>
+        moveVector = <span class="keyword">new</span> <span class="type">Vector2</span>(horizontalInput, verticalInput);
+        
+        <span class="comment">// === CLAMP MAGNITUDE ===</span>
+        <span class="comment">// Ensures diagonal movement isn't faster than cardinal</span>
+        moveVector = <span class="type">Vector2</span>.<span class="function">ClampMagnitude</span>(moveVector, <span class="number">1f</span>);
+
+        <span class="comment">// === APPLY MOVEMENT ===</span>
+        transform.<span class="function">Translate</span>(moveVector * moveSpeed * Time.deltaTime);
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Why GetAxis is Superior
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>Input.GetAxis("Horizontal")</code> - Unity's Input Manager automatically handles A, D, LeftArrow, RightArrow, AND gamepad left stick! One line replaces multiple GetKey checks.</li>
+                            <li><code>Smooth values -1 to 1</code> - When you press D, value gradually increases: 0 → 0.3 → 0.6 → 0.9 → 1.0. This creates smooth acceleration instead of instant full-speed movement.</li>
+                            <li><code>Vector2.ClampMagnitude(moveVector, 1f)</code> - Different from normalized! ClampMagnitude allows values less than 1 (for analog stick partial tilt) but caps maximum at 1.</li>
+                        </ul>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Returns</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>GetAxis()</code></td>
+                                <td>Smooth -1 to 1</td>
+                                <td>Natural, smooth movement with acceleration</td>
+                            </tr>
+                            <tr>
+                                <td><code>GetAxisRaw()</code></td>
+                                <td>Instant -1, 0, or 1</td>
+                                <td>Precise, snappy controls (fighting games, platformers)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Slide 7: Rigidbody2D Physics Movement -->
+                <section class="slide" data-slide="7">
+                    <span class="slide-badge">
+                        <i class="fas fa-atom"></i>
+                        Physics-Based
+                    </span>
+                    <h1 class="slide-title">Rigidbody2D Movement</h1>
+                    <p class="slide-subtitle">Proper physics integration for collision detection and realistic movement</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Rigidbody2D</strong> - Component that makes GameObject respond to physics (gravity, forces, collisions)</li>
+                            <li><strong>rb.velocity</strong> - The current speed and direction of the Rigidbody (Vector2)</li>
+                            <li><strong>rb.MovePosition()</strong> - Moves Rigidbody to position while respecting physics</li>
+                            <li><strong>FixedUpdate()</strong> - Called at fixed intervals (default 50x/sec), used for physics calculations</li>
+                            <li><strong>GetComponent&lt;T&gt;()</strong> - Retrieves a component of type T attached to the GameObject</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-box-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Why Use Rigidbody2D Instead of Transform?
+                        </div>
+                        <p><strong>Transform.Translate Problem:</strong> Moves object directly, ignoring physics. Objects can pass through walls!</p>
+                        <p><strong>Rigidbody2D Solution:</strong> Uses Unity's physics engine for proper collision detection and response.</p>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">PhysicsMovement.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">PhysicsMovement</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// === CONFIGURATION ===</span>
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;      <span class="comment">// Movement speed</span>
+    
+    <span class="comment">// === COMPONENT REFERENCES ===</span>
+    <span class="keyword">private</span> <span class="type">Rigidbody2D</span> rb;            <span class="comment">// Reference to Rigidbody2D component</span>
+    
+    <span class="comment">// === INPUT STORAGE ===</span>
+    <span class="keyword">private</span> <span class="type">Vector2</span> movement;          <span class="comment">// Stores movement direction</span>
+
+    <span class="keyword">void</span> <span class="function">Start</span>()
+    {
+        <span class="comment">// Cache the Rigidbody2D component for better performance</span>
+        <span class="comment">// GetComponent is expensive - only call once in Start!</span>
+        rb = <span class="function">GetComponent</span>&lt;<span class="type">Rigidbody2D</span>&gt;();
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// === INPUT DETECTION ===</span>
+        <span class="comment">// Read input in Update (runs every frame)</span>
+        <span class="comment">// GetAxisRaw for instant, responsive controls</span>
+        movement.x = Input.<span class="function">GetAxisRaw</span>(<span class="string">"Horizontal"</span>);
+        movement.y = Input.<span class="function">GetAxisRaw</span>(<span class="string">"Vertical"</span>);
+        
+        <span class="comment">// Normalize for consistent diagonal speed</span>
+        movement = movement.normalized;
+    }
+
+    <span class="keyword">void</span> <span class="function">FixedUpdate</span>()
+    {
+        <span class="comment">// === PHYSICS MOVEMENT ===</span>
+        <span class="comment">// Apply movement in FixedUpdate (fixed physics timestep)</span>
+        <span class="comment">// Method 1: Direct velocity assignment</span>
+        rb.velocity = movement * moveSpeed;
+        
+        <span class="comment">// Alternative Method 2: MovePosition (more precise)</span>
+        <span class="comment">// rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);</span>
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Physics Concepts
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>GetComponent&lt;Rigidbody2D&gt;()</code> - Finds and returns the Rigidbody2D attached to this GameObject. Called once in Start() and stored in 'rb' variable for performance.</li>
+                            <li><code>Update() vs FixedUpdate()</code> - <strong>Update()</strong> runs every frame (variable rate). <strong>FixedUpdate()</strong> runs at fixed intervals (default 0.02 seconds = 50 times/sec). Physics must be in FixedUpdate for consistency!</li>
+                            <li><code>rb.velocity = movement * moveSpeed</code> - Directly sets the Rigidbody's velocity. Physics engine handles collision detection automatically.</li>
+                            <li><code>rb.MovePosition()</code> - Alternative method that moves toward a position. Better for precise movement but requires Time.fixedDeltaTime.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-info-circle"></i>
+                            Update vs FixedUpdate - Critical Difference
+                        </div>
+                        <p><strong>Update():</strong> Called every frame (60x/sec at 60 FPS, 144x/sec at 144 FPS). Use for INPUT detection.</p>
+                        <p><strong>FixedUpdate():</strong> Called at fixed intervals (50x/sec by default). Use for PHYSICS calculations.</p>
+                        <p><strong>Why it matters:</strong> Physics calculations need consistent timing. Variable frame rates in Update() cause jittery physics!</p>
+                    </div>
+                </section>
+
+                <!-- Slide 8: Spacebar Jump -->
+                <section class="slide" data-slide="8">
+                    <span class="slide-badge">
+                        <i class="fas fa-arrow-up"></i>
+                        Jump Mechanics
+                    </span>
+                    <h1 class="slide-title">Spacebar Jump</h1>
+                    <p class="slide-subtitle">Implement jumping mechanics with GetKeyDown and ground detection</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Input.GetKeyDown()</strong> - Returns TRUE only on the FIRST frame the key is pressed</li>
+                            <li><strong>Input.GetKey()</strong> - Returns TRUE every frame while the key is HELD down</li>
+                            <li><strong>Input.GetKeyUp()</strong> - Returns TRUE only on the frame the key is RELEASED</li>
+                            <li><strong>isGrounded</strong> - Boolean flag tracking whether player is touching the ground</li>
+                            <li><strong>jumpForce</strong> - The upward velocity applied when jumping</li>
+                        </ul>
+                    </div>
+
+                    <div class="keyboard-visual">
+                        <div class="keyboard-title">
+                            <i class="fas fa-arrow-up"></i>
+                            Spacebar for Jump
+                        </div>
+                        <div class="keyboard-row">
+                            <div class="key space" data-key=" ">SPACE</div>
+                        </div>
+                        <div class="key-label">Press Space to Jump • GetKeyDown detects single press</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">JumpMovement.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">JumpMovement</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// === MOVEMENT SETTINGS ===</span>
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;       <span class="comment">// Horizontal movement speed</span>
+    <span class="keyword">public float</span> jumpForce = <span class="number">10f</span>;      <span class="comment">// Upward force when jumping</span>
+    
+    <span class="comment">// === STATE TRACKING ===</span>
+    <span class="keyword">public bool</span> isGrounded = <span class="keyword">true</span>;    <span class="comment">// Is player on ground?</span>
+    
+    <span class="comment">// === COMPONENTS ===</span>
+    <span class="keyword">private</span> <span class="type">Rigidbody2D</span> rb;            <span class="comment">// Physics component</span>
+    <span class="keyword">private</span> <span class="type">Vector2</span> movement;          <span class="comment">// Movement direction</span>
+
+    <span class="keyword">void</span> <span class="function">Start</span>()
+    {
+        <span class="comment">// Get and store Rigidbody2D reference</span>
+        rb = <span class="function">GetComponent</span>&lt;<span class="type">Rigidbody2D</span>&gt;();
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// === HORIZONTAL INPUT ===</span>
+        movement.x = Input.<span class="function">GetAxisRaw</span>(<span class="string">"Horizontal"</span>);
+
+        <span class="comment">// === JUMP INPUT ===</span>
+        <span class="comment">// GetKeyDown = only triggers ONCE when key is first pressed</span>
+        <span class="comment">// && isGrounded = only allow jump when on ground</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKeyDown</span>(KeyCode.Space) && isGrounded)
+        {
+            <span class="function">Jump</span>();
+        }
+    }
+
+    <span class="keyword">void</span> <span class="function">FixedUpdate</span>()
+    {
+        <span class="comment">// Apply horizontal movement, preserve vertical velocity (gravity)</span>
+        rb.velocity = <span class="keyword">new</span> <span class="type">Vector2</span>(movement.x * moveSpeed, rb.velocity.y);
+    }
+
+    <span class="keyword">void</span> <span class="function">Jump</span>()
+    {
+        <span class="comment">// Apply upward velocity for jump</span>
+        <span class="comment">// Preserve horizontal velocity (movement.x), set vertical to jumpForce</span>
+        rb.velocity = <span class="keyword">new</span> <span class="type">Vector2</span>(rb.velocity.x, jumpForce);
+        
+        <span class="comment">// Mark player as not grounded (in air)</span>
+        isGrounded = <span class="keyword">false</span>;
+    }
+
+    <span class="comment">// === GROUND DETECTION (Simple Method) ===</span>
+    <span class="keyword">void</span> <span class="function">OnCollisionEnter2D</span>(<span class="type">Collision2D</span> collision)
+    {
+        <span class="comment">// When player touches something, they're grounded</span>
+        isGrounded = <span class="keyword">true</span>;
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Jump Mechanics
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>Input.GetKeyDown(KeyCode.Space)</code> - Returns true ONLY on the first frame Space is pressed. Unlike GetKey, holding Space won't trigger multiple jumps.</li>
+                            <li><code>&& isGrounded</code> - The AND operator ensures BOTH conditions must be true: Space pressed AND player on ground. Prevents infinite jumping in mid-air!</li>
+                            <li><code>new Vector2(rb.velocity.x, jumpForce)</code> - Creates a new velocity: keeps current horizontal speed (rb.velocity.x) but sets vertical to jumpForce. This allows jumping while moving.</li>
+                            <li><code>OnCollisionEnter2D()</code> - Unity automatically calls this when Rigidbody2D touches another collider. Simple ground detection method.</li>
+                        </ul>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>When It Returns TRUE</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>GetKeyDown()</code></td>
+                                <td>First frame key is pressed</td>
+                                <td>Jump, shoot, interact - single actions</td>
+                            </tr>
+                            <tr>
+                                <td><code>GetKey()</code></td>
+                                <td>Every frame while held</td>
+                                <td>Movement, charging attacks</td>
+                            </tr>
+                            <tr>
+                                <td><code>GetKeyUp()</code></td>
+                                <td>Frame key is released</td>
+                                <td>Release charged attack, stop action</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Slide 9: Complete Platformer Controller -->
+                <section class="slide" data-slide="9">
+                    <span class="slide-badge">
+                        <i class="fas fa-gamepad"></i>
+                        Complete Controller
+                    </span>
+                    <h1 class="slide-title">Full Platformer Controller</h1>
+                    <p class="slide-subtitle">Production-ready script with proper ground detection using Physics2D</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Physics2D.OverlapCircle()</strong> - Checks if any colliders overlap a circular area</li>
+                            <li><strong>LayerMask</strong> - Specifies which physics layers to include in detection</li>
+                            <li><strong>Transform groundCheck</strong> - Empty GameObject positioned at player's feet for ground detection</li>
+                            <li><strong>[Header("text")]</strong> - Attribute that adds a header label in the Unity Inspector</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">PlatformerController.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">PlatformerController</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// === MOVEMENT SETTINGS ===</span>
+    [Header(<span class="string">"Movement"</span>)]
+    <span class="keyword">public float</span> moveSpeed = <span class="number">7f</span>;       <span class="comment">// Horizontal speed</span>
+    <span class="keyword">public float</span> jumpForce = <span class="number">12f</span>;      <span class="comment">// Jump power</span>
+    
+    <span class="comment">// === GROUND DETECTION SETTINGS ===</span>
+    [Header(<span class="string">"Ground Check"</span>)]
+    <span class="keyword">public</span> <span class="type">Transform</span> groundCheck;      <span class="comment">// Position to check for ground</span>
+    <span class="keyword">public float</span> groundRadius = <span class="number">0.2f</span>; <span class="comment">// Size of detection circle</span>
+    <span class="keyword">public</span> <span class="type">LayerMask</span> groundLayer;      <span class="comment">// Which layers count as ground</span>
+    
+    <span class="comment">// === PRIVATE VARIABLES ===</span>
+    <span class="keyword">private</span> <span class="type">Rigidbody2D</span> rb;
+    <span class="keyword">private bool</span> isGrounded;
+    <span class="keyword">private float</span> horizontalInput;
+
+    <span class="keyword">void</span> <span class="function">Start</span>()
+    {
+        <span class="comment">// Cache Rigidbody2D reference</span>
+        rb = <span class="function">GetComponent</span>&lt;<span class="type">Rigidbody2D</span>&gt;();
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// === INPUT ===</span>
+        horizontalInput = Input.<span class="function">GetAxisRaw</span>(<span class="string">"Horizontal"</span>);
+        
+        <span class="comment">// === GROUND CHECK ===</span>
+        <span class="comment">// Creates invisible circle at groundCheck position</span>
+        <span class="comment">// Returns true if circle overlaps any collider on groundLayer</span>
+        isGrounded = <span class="type">Physics2D</span>.<span class="function">OverlapCircle</span>(
+            groundCheck.position,   <span class="comment">// Center of circle</span>
+            groundRadius,           <span class="comment">// Radius of circle</span>
+            groundLayer             <span class="comment">// Which layers to check</span>
+        );
+        
+        <span class="comment">// === JUMP ===</span>
+        <span class="keyword">if</span> (Input.<span class="function">GetKeyDown</span>(KeyCode.Space) && isGrounded)
+        {
+            rb.velocity = <span class="keyword">new</span> <span class="type">Vector2</span>(rb.velocity.x, jumpForce);
+        }
+    }
+
+    <span class="keyword">void</span> <span class="function">FixedUpdate</span>()
+    {
+        <span class="comment">// === MOVEMENT ===</span>
+        rb.velocity = <span class="keyword">new</span> <span class="type">Vector2</span>(horizontalInput * moveSpeed, rb.velocity.y);
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Advanced Concepts
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>[Header("Movement")]</code> - Unity Inspector attribute that creates a bold header above the following variables. Makes Inspector organized and readable.</li>
+                            <li><code>Physics2D.OverlapCircle()</code> - Professional ground detection. Creates an invisible circle at groundCheck position and checks if it touches anything on the groundLayer. More reliable than OnCollisionEnter.</li>
+                            <li><code>LayerMask groundLayer</code> - In Unity, create a "Ground" layer, assign it to platforms, then select it in the Inspector. This ensures only ground objects trigger isGrounded, not enemies or items.</li>
+                            <li><code>Transform groundCheck</code> - Create empty child GameObject, position at player's feet, drag into this field. The circle check happens at this position.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-cog"></i>
+                            Setup Instructions for Ground Check
+                        </div>
+                        <p><strong>Step 1:</strong> Create empty child GameObject: Right-click Player → Create Empty → Name it "GroundCheck"</p>
+                        <p><strong>Step 2:</strong> Position at feet: Set GroundCheck Y position to bottom of player sprite</p>
+                        <p><strong>Step 3:</strong> Create Ground layer: Edit → Project Settings → Tags and Layers → Add "Ground" to a User Layer</p>
+                        <p><strong>Step 4:</strong> Assign layer to platforms: Select platform objects → Change Layer to "Ground"</p>
+                        <p><strong>Step 5:</strong> Drag GroundCheck transform into the script's groundCheck field in Inspector</p>
+                    </div>
+                </section>
+
+                <!-- Slide 10: Top-Down Controller -->
+                <section class="slide" data-slide="10">
+                    <span class="slide-badge">
+                        <i class="fas fa-compass"></i>
+                        Top-Down
+                    </span>
+                    <h1 class="slide-title">Top-Down 8-Direction Movement</h1>
+                    <p class="slide-subtitle">Full movement in all directions with sprint functionality</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-book"></i>
+                            Key Definitions
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>Top-Down View</strong> - Camera looks down at the game world from above (like classic Zelda)</li>
+                            <li><strong>8-Direction Movement</strong> - Movement in 4 cardinal directions + 4 diagonal directions</li>
+                            <li><strong>Sprint/Run</strong> - Temporary speed boost while holding a modifier key (Shift)</li>
+                            <li><strong>Gravity Scale = 0</strong> - Disables gravity for top-down games where Y is forward, not up</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">C#</span>
+                            <span class="code-filename">TopDownController.cs</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="code-content"><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">TopDownController</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// === MOVEMENT SETTINGS ===</span>
+    [Header(<span class="string">"Movement"</span>)]
+    <span class="keyword">public float</span> moveSpeed = <span class="number">5f</span>;            <span class="comment">// Normal walking speed</span>
+    <span class="keyword">public float</span> sprintMultiplier = <span class="number">1.5f</span>;  <span class="comment">// Sprint speed = moveSpeed × this</span>
+    
+    <span class="comment">// === PRIVATE VARIABLES ===</span>
+    <span class="keyword">private</span> <span class="type">Rigidbody2D</span> rb;                  <span class="comment">// Physics component</span>
+    <span class="keyword">private</span> <span class="type">Vector2</span> movement;                <span class="comment">// Movement direction</span>
+    <span class="keyword">private float</span> currentSpeed;              <span class="comment">// Active speed (walk or sprint)</span>
+
+    <span class="keyword">void</span> <span class="function">Start</span>()
+    {
+        <span class="comment">// Get Rigidbody2D component</span>
+        rb = <span class="function">GetComponent</span>&lt;<span class="type">Rigidbody2D</span>&gt;();
+        
+        <span class="comment">// IMPORTANT: Disable gravity for top-down games</span>
+        <span class="comment">// In top-down view, Y-axis is forward/backward, not up/down</span>
+        rb.gravityScale = <span class="number">0f</span>;
+    }
+
+    <span class="keyword">void</span> <span class="function">Update</span>()
+    {
+        <span class="comment">// === GET INPUT ===</span>
+        <span class="comment">// Supports WASD, Arrow keys, and gamepad</span>
+        movement.x = Input.<span class="function">GetAxisRaw</span>(<span class="string">"Horizontal"</span>);  <span class="comment">// Left/Right</span>
+        movement.y = Input.<span class="function">GetAxisRaw</span>(<span class="string">"Vertical"</span>);    <span class="comment">// Up/Down</span>
+        
+        <span class="comment">// === NORMALIZE ===</span>
+        <span class="comment">// Ensures diagonal movement isn't faster</span>
+        movement = movement.normalized;
+        
+        <span class="comment">// === SPRINT CHECK ===</span>
+        <span class="comment">// Ternary operator: condition ? valueIfTrue : valueIfFalse</span>
+        <span class="comment">// If Shift held: speed = moveSpeed × 1.5</span>
+        <span class="comment">// If Shift not held: speed = moveSpeed</span>
+        currentSpeed = Input.<span class="function">GetKey</span>(KeyCode.LeftShift) 
+            ? moveSpeed * sprintMultiplier 
+            : moveSpeed;
+    }
+
+    <span class="keyword">void</span> <span class="function">FixedUpdate</span>()
+    {
+        <span class="comment">// === APPLY MOVEMENT ===</span>
+        rb.velocity = movement * currentSpeed;
+    }
+}</pre>
+                    </div>
+
+                    <div class="code-explanation">
+                        <div class="code-explanation-title">
+                            <i class="fas fa-code"></i>
+                            Code Explanation - Top-Down Specifics
+                        </div>
+                        <ul class="code-explanation-list">
+                            <li><code>rb.gravityScale = 0f;</code> - Critical for top-down games! Without this, player would "fall" toward the bottom of the screen. Setting to 0 removes gravity entirely.</li>
+                            <li><code>sprintMultiplier = 1.5f</code> - Multiplier for sprint speed. Normal speed = 5, Sprint speed = 5 × 1.5 = 7.5 units/second.</li>
+                            <li><code>? : (Ternary Operator)</code> - Shorthand if/else. <code>condition ? A : B</code> means "if condition is true, use A; otherwise use B". Cleaner than full if/else for simple choices.</li>
+                            <li><code>Input.GetKey(KeyCode.LeftShift)</code> - Returns true while Left Shift is HELD (not GetKeyDown). Player must hold Shift to maintain sprint.</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <span class="card-icon">🎯</span>
+                            <h3 class="card-title">8-Directional</h3>
+                            <p class="card-text">Up, Down, Left, Right + 4 diagonals with normalized speed</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">🏃</span>
+                            <h3 class="card-title">Sprint (Shift)</h3>
+                            <p class="card-text">Hold Left Shift for 1.5× speed boost</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">⚡</span>
+                            <h3 class="card-title">No Gravity</h3>
+                            <p class="card-text">GravityScale = 0 for overhead perspective</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Slide 11: Variable Reference -->
+                <section class="slide" data-slide="11">
+                    <span class="slide-badge">
+                        <i class="fas fa-code"></i>
+                        Reference
+                    </span>
+                    <h1 class="slide-title">Complete Variable Reference</h1>
+                    <p class="slide-subtitle">All variables explained with types and purposes</p>
+
+                    <div class="definition-box">
+                        <div class="definition-title">
+                            <i class="fas fa-database"></i>
+                            Variable Types in C#
+                        </div>
+                        <ul class="definition-list">
+                            <li><strong>float</strong> - Decimal number (3.14f) - used for speed, force, positions</li>
+                            <li><strong>bool</strong> - True or false value - used for state flags (isGrounded)</li>
+                            <li><strong>Vector2</strong> - Two floats (x, y) - used for 2D positions and directions</li>
+                            <li><strong>Rigidbody2D</strong> - Unity component for 2D physics</li>
+                            <li><strong>Transform</strong> - Unity component for position, rotation, scale</li>
+                            <li><strong>LayerMask</strong> - Specifies which physics layers to interact with</li>
+                        </ul>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Type</th>
+                                <th>Purpose</th>
+                                <th>Typical Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>moveSpeed</code></td>
+                                <td>float</td>
+                                <td>Movement speed in units per second</td>
+                                <td>5f - 10f</td>
+                            </tr>
+                            <tr>
+                                <td><code>jumpForce</code></td>
+                                <td>float</td>
+                                <td>Upward velocity when jumping</td>
+                                <td>10f - 15f</td>
+                            </tr>
+                            <tr>
+                                <td><code>rb</code></td>
+                                <td>Rigidbody2D</td>
+                                <td>Reference to physics component</td>
+                                <td>GetComponent&lt;&gt;</td>
+                            </tr>
+                            <tr>
+                                <td><code>movement</code></td>
+                                <td>Vector2</td>
+                                <td>Current movement direction</td>
+                                <td>(-1,-1) to (1,1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>horizontalInput</code></td>
+                                <td>float</td>
+                                <td>Left/Right input value</td>
+                                <td>-1 to 1</td>
+                            </tr>
+                            <tr>
+                                <td><code>verticalInput</code></td>
+                                <td>float</td>
+                                <td>Up/Down input value</td>
+                                <td>-1 to 1</td>
+                            </tr>
+                            <tr>
+                                <td><code>isGrounded</code></td>
+                                <td>bool</td>
+                                <td>Is player touching ground?</td>
+                                <td>true / false</td>
+                            </tr>
+                            <tr>
+                                <td><code>groundCheck</code></td>
+                                <td>Transform</td>
+                                <td>Position to check for ground</td>
+                                <td>Child object at feet</td>
+                            </tr>
+                            <tr>
+                                <td><code>groundRadius</code></td>
+                                <td>float</td>
+                                <td>Size of ground detection circle</td>
+                                <td>0.1f - 0.3f</td>
+                            </tr>
+                            <tr>
+                                <td><code>groundLayer</code></td>
+                                <td>LayerMask</td>
+                                <td>Which layers count as ground</td>
+                                <td>Select in Inspector</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Best Practices for Variables
+                        </div>
+                        <p><strong>Public variables:</strong> Visible in Inspector. Use for values you want to tweak (speed, force).</p>
+                        <p><strong>Private variables:</strong> Hidden from Inspector. Use for internal state (rb, movement).</p>
+                        <p><strong>[SerializeField]:</strong> Makes private variables visible in Inspector while keeping them private in code.</p>
+                        <p><strong>[Header("Name")]:</strong> Organizes Inspector with section headers.</p>
+                    </div>
+                </section>
+
+                <!-- Slide 12: Summary -->
+                <section class="slide" data-slide="12">
+                    <span class="slide-badge">
+                        <i class="fas fa-trophy"></i>
+                        Complete!
+                    </span>
+                    <h1 class="slide-title">Summary & Best Practices</h1>
+                    <p class="slide-subtitle">Key takeaways for professional 2D movement implementation</p>
+
+                    <div class="objectives-box">
+                        <div class="objectives-title">
+                            <i class="fas fa-check-circle"></i>
+                            What You've Learned
+                        </div>
+                        <ul class="objectives-list">
+                            <li>WASD movement using <code>Input.GetKey(KeyCode.W/A/S/D)</code></li>
+                            <li>Arrow key controls using <code>KeyCode.UpArrow/DownArrow/LeftArrow/RightArrow</code></li>
+                            <li>Smooth input with <code>Input.GetAxis("Horizontal"/"Vertical")</code></li>
+                            <li>Spacebar jumping with <code>Input.GetKeyDown(KeyCode.Space)</code></li>
+                            <li>Physics movement with <code>Rigidbody2D.velocity</code></li>
+                            <li>Ground detection with <code>Physics2D.OverlapCircle()</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Input Methods</h3>
+                            <p class="card-text">GetKey, GetKeyDown, GetAxis, GetAxisRaw</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Movement Types</h3>
+                            <p class="card-text">Transform, Velocity, MovePosition</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Game Loops</h3>
+                            <p class="card-text">Update() for input, FixedUpdate() for physics</p>
+                        </div>
+                        <div class="card">
+                            <span class="card-icon">✅</span>
+                            <h3 class="card-title">Normalization</h3>
+                            <p class="card-text">Consistent speed in all 8 directions</p>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">
+                            <i class="fas fa-star"></i>
+                            Best Practices Checklist
+                        </div>
+                        <p>✓ Always use <strong>Rigidbody2D</strong> for proper collision detection</p>
+                        <p>✓ Read input in <strong>Update()</strong>, apply physics in <strong>FixedUpdate()</strong></p>
+                        <p>✓ Use <strong>GetAxis()</strong> for built-in WASD + Arrow + Gamepad support</p>
+                        <p>✓ <strong>Normalize</strong> diagonal movement for consistent speed</p>
+                        <p>✓ Use <strong>GetKeyDown()</strong> for single-press actions (jump, shoot)</p>
+                        <p>✓ Use <strong>GetKey()</strong> for continuous actions (movement, sprint)</p>
+                        <p>✓ Set <strong>Gravity Scale = 0</strong> for top-down games</p>
+                        <p>✓ Use <strong>Physics2D.OverlapCircle()</strong> for reliable ground detection</p>
+                    </div>
+
+                    <div class="demo-container">
+                        <div class="demo-title">
+                            <i class="fas fa-play-circle"></i>
+                            Final Demo - Test Everything!
+                        </div>
+                        <div class="demo-area" id="demo-area-final">
+                            <div class="demo-grid"></div>
+                            <div class="demo-player" id="demo-player-final" style="left: calc(50% - 18px); top: calc(50% - 18px);">🎮</div>
+                        </div>
+                        <div class="demo-instructions">
+                            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to move • <kbd>Space</kbd> to jump • <kbd>Shift</kbd> to sprint
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Navigation Controls -->
+                <div class="nav-controls">
+                    <button class="nav-btn" id="prev-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                    
+                    <span class="slide-count">
+                        <span id="current">1</span> / <span id="total">12</span>
+                    </span>
+                    
+                    <button class="nav-btn" id="next-btn">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Keyboard Hints -->
+    <div class="keyboard-hint">
+        <span><kbd>←</kbd> Prev</span>
+        <span><kbd>→</kbd> Next</span>
+    </div>
+
+    <script>
+        // Slide Configuration
+        const slides = [
+            { id: 1, title: "Introduction", desc: "Overview & objectives" },
+            { id: 2, title: "Project Setup", desc: "Components setup" },
+            { id: 3, title: "WASD Basic", desc: "GetKey movement" },
+            { id: 4, title: "Arrow Keys", desc: "Directional input" },
+            { id: 5, title: "Combined", desc: "WASD + Arrows" },
+            { id: 6, title: "GetAxis", desc: "Smooth input" },
+            { id: 7, title: "Rigidbody2D", desc: "Physics movement" },
+            { id: 8, title: "Jump", desc: "Spacebar mechanics" },
+            { id: 9, title: "Platformer", desc: "Complete controller" },
+            { id: 10, title: "Top-Down", desc: "8-direction + sprint" },
+            { id: 11, title: "Variables", desc: "Reference guide" },
+            { id: 12, title: "Summary", desc: "Best practices" }
+        ];
+
+        let currentSlide = 1;
+        const totalSlides = slides.length;
+
+        // DOM Elements
+        const navList = document.getElementById('nav-list');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const progressLabel = document.getElementById('progress-label');
+        const progressCount = document.getElementById('progress-count');
+        const currentEl = document.getElementById('current');
+        const totalEl = document.getElementById('total');
+
+        // Initialize
+        function init() {
+            renderNav();
+            updateUI();
+            totalEl.textContent = totalSlides;
+            initDemos();
+        }
+
+        // Render Navigation
+        function renderNav() {
+            navList.innerHTML = '';
+            slides.forEach(slide => {
+                const navItem = document.createElement('div');
+                navItem.className = `nav-item ${slide.id === currentSlide ? 'active' : ''}`;
+                navItem.onclick = () => goToSlide(slide.id);
+                navItem.innerHTML = `
+                    <div class="nav-number">${slide.id}</div>
+                    <div class="nav-info">
+                        <div class="nav-title">${slide.title}</div>
+                        <div class="nav-desc">${slide.desc}</div>
+                    </div>
+                `;
+                navList.appendChild(navItem);
+            });
+        }
+
+        // Go to Slide
+        function goToSlide(id) {
+            if (id < 1 || id > totalSlides) return;
+            
+            const currentActive = document.querySelector('.slide.active');
+            if (currentActive) currentActive.classList.remove('active');
+            
+            const newSlide = document.querySelector(`.slide[data-slide="${id}"]`);
+            if (newSlide) newSlide.classList.add('active');
+            
+            currentSlide = id;
+            updateUI();
+            document.querySelector('.content-area').scrollTo(0, 0);
+        }
+
+        // Update UI
+        function updateUI() {
+            const progress = ((currentSlide - 1) / (totalSlides - 1)) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            const slide = slides[currentSlide - 1];
+            progressLabel.textContent = `${slide.title}: ${slide.desc}`;
+            progressCount.textContent = `${currentSlide} / ${totalSlides}`;
+            currentEl.textContent = currentSlide;
+            
+            prevBtn.disabled = currentSlide === 1;
+            nextBtn.disabled = currentSlide === totalSlides;
+            
+            renderNav();
+        }
+
+        // Event Listeners
+        prevBtn.onclick = () => goToSlide(currentSlide - 1);
+        nextBtn.onclick = () => goToSlide(currentSlide + 1);
+
+        // Keyboard Navigation for Slides
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides) {
+                goToSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowLeft' && currentSlide > 1) {
+                goToSlide(currentSlide - 1);
+            }
+        });
+
+        // Copy Code Function
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-block');
+            const code = codeBlock.querySelector('.code-content').innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.style.background = 'rgba(16, 185, 129, 0.3)';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Interactive Demos
+        function initDemos() {
+            const demos = [
+                { area: 'demo-area-intro', player: 'demo-player-intro' },
+                { area: 'demo-area-final', player: 'demo-player-final' }
+            ];
+
+            const keys = {};
+            let sprint = false;
+
+            document.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                if (e.key === 'Shift') sprint = true;
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    document.querySelectorAll('.demo-player').forEach(p => {
+                        p.classList.add('jumping');
+                        setTimeout(() => p.classList.remove('jumping'), 400);
+                    });
+                }
+                
+                // Highlight keyboard visual keys
+                document.querySelectorAll('.key').forEach(key => {
+                    const keyData = key.dataset.key;
+                    if (keyData === e.key.toLowerCase() || 
+                        (keyData === ' ' && e.key === ' ') ||
+                        (keyData === 'arrowup' && e.key === 'ArrowUp') ||
+                        (keyData === 'arrowdown' && e.key === 'ArrowDown') ||
+                        (keyData === 'arrowleft' && e.key === 'ArrowLeft') ||
+                        (keyData === 'arrowright' && e.key === 'ArrowRight')) {
+                        key.classList.add('active');
+                    }
+                });
+            });
+
+            document.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+                if (e.key === 'Shift') sprint = false;
+                
+                document.querySelectorAll('.key').forEach(key => {
+                    const keyData = key.dataset.key;
+                    if (keyData === e.key.toLowerCase() || 
+                        (keyData === ' ' && e.key === ' ') ||
+                        (keyData === 'arrowup' && e.key === 'ArrowUp') ||
+                        (keyData === 'arrowdown' && e.key === 'ArrowDown') ||
+                        (keyData === 'arrowleft' && e.key === 'ArrowLeft') ||
+                        (keyData === 'arrowright' && e.key === 'ArrowRight')) {
+                        key.classList.remove('active');
+                    }
+                });
+            });
+
+            demos.forEach(demo => {
+                const area = document.getElementById(demo.area);
+                const player = document.getElementById(demo.player);
+                if (!area || !player) return;
+
+                let x = area.offsetWidth / 2 - 18;
+                let y = area.offsetHeight / 2 - 18;
+                const baseSpeed = 4;
+
+                function updatePlayer() {
+                    const speed = sprint ? baseSpeed * 1.6 : baseSpeed;
+                    
+                    if (keys['w'] || keys['arrowup']) y -= speed;
+                    if (keys['s'] || keys['arrowdown']) y += speed;
+                    if (keys['a'] || keys['arrowleft']) x -= speed;
+                    if (keys['d'] || keys['arrowright']) x += speed;
+
+                    x = Math.max(0, Math.min(area.offsetWidth - 36, x));
+                    y = Math.max(0, Math.min(area.offsetHeight - 36, y));
+
+                    player.style.left = x + 'px';
+                    player.style.top = y + 'px';
+
+                    requestAnimationFrame(updatePlayer);
+                }
+                updatePlayer();
+            });
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
