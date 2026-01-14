@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAC280 Lab Assignment | Unity Game Programming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --primary-dark: #1e40af;
+            --accent-green: #10b981;
+            --accent-emerald: #059669;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #475569;
+            --success: #22c55e;
+            --warning: #eab308;
+            --error: #ef4444;
+            --gradient-main: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
+            --gradient-card: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.3);
+            --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--gradient-main);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 1rem; }
+
+        .course-badge {
+            background: var(--gradient-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .lab-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 600; }
+        .header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save { background: #e2e8f0; color: #1e40af; }
+        .btn-save:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,255,255,0.3); }
+        .btn-instructor { background: var(--accent-green); color: white; }
+        .btn-instructor:hover { background: var(--accent-emerald); transform: translateY(-2px); box-shadow: 0 5px 20px rgba(16,185,129,0.4); }
+        .btn-pdf { background: white; color: var(--primary-blue); }
+        .btn-pdf:hover { background: #f8fafc; transform: translateY(-2px); }
+        .btn-submit { background: var(--accent-orange); color: white; }
+        .btn-submit:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-clear { background: var(--accent-red); color: white; }
+        .btn-clear:hover { background: #dc2626; }
+
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-card);
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .timer-display { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 600; color: var(--accent-green); }
+        .timer-display.warning { color: var(--warning); }
+        .timer-display.danger { color: var(--error); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .timer-label { font-size: 0.85rem; color: var(--text-secondary); }
+
+        .main-container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+
+        .lab-info-card {
+            background: var(--gradient-card);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow-card);
+        }
+
+        .lab-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+        .lab-meta h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lab-meta p { color: var(--text-secondary); font-size: 1.1rem; }
+        .lab-stats { display: flex; gap: 1rem; }
+
+        .stat-box {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--primary-blue); display: block; }
+        .stat-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+
+        .student-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .info-field { display: flex; flex-direction: column; gap: 0.5rem; }
+        .info-field label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
+        .info-field input {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .info-field input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+
+        .progress-section { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-color); }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .progress-title { font-weight: 600; font-size: 1.1rem; }
+        .progress-text { font-family: 'JetBrains Mono', monospace; color: var(--accent-green); }
+        .progress-bar { height: 12px; background: var(--bg-input); border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-green), var(--accent-emerald)); border-radius: 6px; transition: width 0.5s ease; width: 0%; }
+
+        .section-card {
+            background: var(--gradient-card);
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .section-header {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; }
+        .section-number { background: var(--primary-blue); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .section-points { background: var(--accent-purple); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
+        .section-content { padding: 1.5rem; }
+
+        .question { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
+        .question:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .question-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+        .question-number { background: var(--bg-input); min-width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; flex-shrink: 0; }
+        .question-text { flex: 1; font-size: 1.05rem; line-height: 5; }
+        .question-points { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+
+        .options-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--bg-input);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .option-item:hover { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); }
+        .option-item.selected { background: rgba(59, 130, 246, 0.2); border-color: var(--primary-blue); }
+        .option-item input[type="radio"] { display: none; }
+        .option-marker { width: 24px; height: 24px; border: 2px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; flex-shrink: 0; transition: all 0.3s ease; }
+        .option-item.selected .option-marker { background: var(--primary-blue); border-color: var(--primary-blue); color: white; }
+        .option-text { flex: 1; }
+
+        .text-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 500px;
+        }
+        .text-input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .text-input.short { min-height: 400px; resize: none; }
+
+        .code-input {
+            width: 100%;
+            background: #0d1117;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            color: #c9d1d9;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 600px;
+            line-height: 1.6;
+        }
+        .code-input:focus { outline: none; border-color: var(--accent-green); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+
+        .code-block { background: #0d1117; border-radius: 10px; padding: 1rem; margin: 1rem 0; overflow-x: auto; border: 1px solid var(--border-color); }
+        .code-block pre { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #c9d1d9; line-height: 1.6; margin: 0; }
+        .code-block .keyword { color: #ff7b72; }
+        .code-block .type { color: #79c0ff; }
+        .code-block .comment { color: #8b949e; }
+        .code-block .method { color: #d2a8ff; }
+        .code-block .number { color: #79c0ff; }
+
+        .matching-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
+        .matching-column { display: flex; flex-direction: column; gap: 0.75rem; }
+        .matching-column h4 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .matching-item { background: var(--bg-input); padding: 0.75rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.75rem; }
+        .matching-item .marker { background: var(--primary-blue); min-width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+        .matching-select { background: var(--bg-dark); border: 2px solid var(--border-color); border-radius: 8px; padding: 0.75rem; color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 0.95rem; cursor: pointer; width: 100%; }
+        .matching-select:focus { outline: none; border-color: var(--primary-blue); }
+
+        .ordering-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .ordering-item { background: var(--bg-input); padding: 0.75rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.75rem; cursor: grab; transition: all 0.3s ease; border: 2px solid transparent; }
+        .ordering-item:hover { background: rgba(59, 130, 246, 0.15); }
+        .ordering-item.dragging { opacity: 0.5; border-color: var(--primary-blue); }
+        .ordering-item .order-num { background: var(--accent-purple); min-width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+        .drag-handle { color: var(--text-muted); cursor: grab; }
+
+        .tf-options { display: flex; gap: 1rem; margin-top: 1rem; }
+        .tf-option { flex: 1; padding: 1rem; background: var(--bg-input); border: 2px solid transparent; border-radius: 10px; cursor: pointer; text-align: center; font-weight: 600; transition: all 0.3s ease; }
+        .tf-option:hover { background: rgba(59, 130, 246, 0.15); }
+        .tf-option.selected.true { background: rgba(34, 197, 94, 0.2); border-color: var(--success); color: var(--success); }
+        .tf-option.selected.false { background: rgba(239, 68, 68, 0.2); border-color: var(--error); color: var(--error); }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border-radius: 20px; padding: 2rem; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); box-shadow: var(--shadow-glow); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 600; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem; line-height: 1; }
+        .modal-close:hover { color: var(--text-primary); }
+        .password-input { width: 100%; background: var(--bg-input); border: 2px solid var(--border-color); border-radius: 10px; padding: 1rem; color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 1rem; }
+        .password-input:focus { outline: none; border-color: var(--primary-blue); }
+        .btn-unlock { width: 100%; background: var(--accent-green); color: white; padding: 1rem; border: none; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-unlock:hover { background: var(--accent-emerald); }
+
+        .grade-display { display: none; }
+        .grade-display.active { display: block; }
+        .grade-summary { background: var(--bg-input); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+        .grade-score { font-family: 'JetBrains Mono', monospace; font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .grade-score.excellent { color: var(--success); }
+        .grade-score.good { color: var(--accent-green); }
+        .grade-score.fair { color: var(--warning); }
+        .grade-score.poor { color: var(--error); }
+        .grade-label { color: var(--text-secondary); font-size: 1.1rem; }
+
+        .grade-breakdown { margin-top: 1.5rem; }
+        .grade-item { background: var(--bg-input); border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; border-left: 4px solid var(--border-color); }
+        .grade-item.correct { border-left-color: var(--success); }
+        .grade-item.incorrect { border-left-color: var(--error); }
+        .grade-item.partial { border-left-color: var(--warning); }
+        .grade-item-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; cursor: pointer; transition: background 0.3s ease; }
+        .grade-item-header:hover { background: rgba(255, 255, 255, 0.05); }
+        .grade-item-left { display: flex; align-items: center; gap: 0.75rem; }
+        .grade-item-status { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .grade-item.correct .grade-item-status { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .grade-item.incorrect .grade-item-status { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .grade-item.partial .grade-item-status { background: rgba(234, 179, 8, 0.2); color: var(--warning); }
+        .grade-item-title { font-weight: 500; }
+        .grade-item-score { font-family: 'JetBrains Mono', monospace; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.9rem; }
+        .grade-item.correct .grade-item-score { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .grade-item.incorrect .grade-item-score { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .grade-item.partial .grade-item-score { background: rgba(234, 179, 8, 0.2); color: var(--warning); }
+
+        .grade-item-details { display: none; padding: 1rem; border-top: 1px solid var(--border-color); background: rgba(0, 0, 0, 0.2); }
+        .grade-item-details.open { display: block; }
+        .detail-row { margin-bottom: 0.75rem; }
+        .detail-row:last-child { margin-bottom: 0; }
+        .detail-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; }
+        .detail-value { background: var(--bg-dark); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.95rem; word-break: break-word; }
+        .detail-value.correct-answer { border-left: 3px solid var(--success); }
+        .detail-value.student-answer { border-left: 3px solid var(--primary-blue); }
+        .detail-value.student-answer.wrong { border-left-color: var(--error); }
+
+        .keywords-matched { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .keyword-tag { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+        .keyword-tag.found { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .keyword-tag.missing { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+
+        .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--bg-card); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: var(--shadow-card); transform: translateY(100px); opacity: 0; transition: all 0.4s ease; z-index: 1001; border: 1px solid var(--border-color); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--error); }
+        .toast-icon { font-size: 1.5rem; }
+
+        .footer { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.9rem; }
+
+        @media print {
+            body { background: white; color: black; }
+            .header, .timer-section, .header-actions, .progress-section { display: none !important; }
+            .main-container { max-width: 100%; padding: 0; }
+            .section-card, .lab-info-card { background: white; border: 1px solid #ddd; box-shadow: none; break-inside: avoid; }
+            .question { break-inside: avoid; }
+        }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: stretch; }
+            .header-actions { justify-content: center; }
+            .lab-header { flex-direction: column; }
+            .lab-stats { justify-content: center; }
+            .matching-container { grid-template-columns: 1fr; }
+            .btn { padding: 0.6rem 1rem; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <span class="course-badge">MAC280</span>
+                <span class="lab-title">Unity Game Programming Lab 1</span>
+            </div>
+            <div class="timer-section">
+                <div>
+                    <div class="timer-display" id="timer">150:00</div>
+                    <div class="timer-label">Time Remaining</div>
+                </div>
+                <button class="btn btn-save" onclick="toggleTimer()" id="timerBtn" style="padding: 0.5rem 1rem; font-size: 0.85rem;">⏸️ Pause</button>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-save" onclick="saveLab()">💾 Save</button>
+                <button class="btn btn-instructor" onclick="openInstructorModal()">🔐 Instructor Grade</button>
+                <button class="btn btn-pdf" onclick="exportPDF()">📄 PDF</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="lab-info-card">
+            <div class="lab-header">
+                <div class="lab-meta">
+                    <h1>Unity Fundamentals Lab</h1>
+                    <p>GameObjects, Physics Components & C# Scripting</p>
+                </div>
+                <div class="lab-stats">
+                    <div class="stat-box"><span class="stat-value">150</span><span class="stat-label">Minutes</span></div>
+                    <div class="stat-box"><span class="stat-value">100</span><span class="stat-label">Points</span></div>
+                    <div class="stat-box"><span class="stat-value" id="questionCount">25</span><span class="stat-label">Questions</span></div>
+                </div>
+            </div>
+            <div class="student-info">
+                <div class="info-field"><label>Student Name</label><input type="text" id="studentName" placeholder="Enter your full name" data-save="true"></div>
+                <div class="info-field"><label>Student ID</label><input type="text" id="studentId" placeholder="Enter your student ID" data-save="true"></div>
+                <div class="info-field"><label>Date</label><input type="text" id="labDate" readonly></div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-title">📊 Lab Progress</span>
+                <span class="progress-text" id="progressText">0 / 25 questions answered</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+
+        <!-- PART 1: GameObjects & Components -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title"><span class="section-number">1</span>GameObjects & Components</div>
+                <span class="section-points">24 Points</span>
+            </div>
+            <div class="section-content">
+                <div class="question" data-question="1" data-type="mc" data-points="3" data-answer="b">
+                    <div class="question-header">
+                        <span class="question-number">1</span>
+                        <div class="question-text">What is the best description of a GameObject in Unity?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q1" value="a"><span class="option-marker">A</span><span class="option-text">A visible sprite that appears in your game scene</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q1" value="b"><span class="option-marker">B</span><span class="option-text">An invisible container with properties like position, rotation, and scale that can hold components</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q1" value="c"><span class="option-marker">C</span><span class="option-text">A C# script that controls game behavior</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q1" value="d"><span class="option-marker">D</span><span class="option-text">A physics engine component that handles collisions</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="2" data-type="mc" data-points="3" data-answer="c">
+                    <div class="question-header">
+                        <span class="question-number">2</span>
+                        <div class="question-text">What are the TWO ways to create an empty GameObject in Unity?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q2" value="a"><span class="option-marker">A</span><span class="option-text">File → New Project and Assets → Create Empty</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q2" value="b"><span class="option-marker">B</span><span class="option-text">Edit → Create Empty and Window → Create Empty</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q2" value="c"><span class="option-marker">C</span><span class="option-text">Right-click in Hierarchy → Create Empty and GameObject menu → Create Empty</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q2" value="d"><span class="option-marker">D</span><span class="option-text">Press Ctrl+G and drag from the Project panel</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="3" data-type="mc" data-points="3" data-answer="a">
+                    <div class="question-header">
+                        <span class="question-number">3</span>
+                        <div class="question-text">Which component makes a GameObject visible in a 2D game?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q3" value="a"><span class="option-marker">A</span><span class="option-text">SpriteRenderer</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q3" value="b"><span class="option-marker">B</span><span class="option-text">Rigidbody2D</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q3" value="c"><span class="option-marker">C</span><span class="option-text">BoxCollider2D</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q3" value="d"><span class="option-marker">D</span><span class="option-text">Transform</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="4" data-type="tf" data-points="3" data-answer="false">
+                    <div class="question-header">
+                        <span class="question-number">4</span>
+                        <div class="question-text">True or False: A GameObject with only a Transform component and no SpriteRenderer will still be visible in the Game view.</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="tf-options">
+                        <div class="tf-option true" data-value="true" onclick="selectTF(this, 4)">TRUE</div>
+                        <div class="tf-option false" data-value="false" onclick="selectTF(this, 4)">FALSE</div>
+                    </div>
+                    <input type="hidden" name="q4" value="">
+                </div>
+
+                <div class="question" data-question="5" data-type="short" data-points="4">
+                    <div class="question-header">
+                        <span class="question-number">5</span>
+                        <div class="question-text">Describe the menu path to import a new image asset (like a bird sprite) into your Unity project.</div>
+                        <span class="question-points">4 pts</span>
+                    </div>
+                    <textarea class="text-input short" name="q5" placeholder="Enter the menu path..." data-save="true"></textarea>
+                </div>
+
+                <div class="question" data-question="6" data-type="order" data-points="5" data-order="1,2,3,4,5,6">
+                    <div class="question-header">
+                        <span class="question-number">6</span>
+                        <div class="question-text">Arrange these steps in the correct order to create a visible Bird GameObject:</div>
+                        <span class="question-points">5 pts</span>
+                    </div>
+                    <div class="ordering-list" id="orderList6">
+                        <div class="ordering-item" draggable="true" data-order-value="3"><span class="drag-handle">☰</span><span class="order-num">?</span><span>Import bird image asset</span></div>
+                        <div class="ordering-item" draggable="true" data-order-value="1"><span class="drag-handle">☰</span><span class="order-num">?</span><span>Create empty GameObject</span></div>
+                        <div class="ordering-item" draggable="true" data-order-value="5"><span class="drag-handle">☰</span><span class="order-num">?</span><span>Drag sprite to Sprite field</span></div>
+                        <div class="ordering-item" draggable="true" data-order-value="4"><span class="drag-handle">☰</span><span class="order-num">?</span><span>Add SpriteRenderer component</span></div>
+                        <div class="ordering-item" draggable="true" data-order-value="2"><span class="drag-handle">☰</span><span class="order-num">?</span><span>Rename GameObject to "Bird"</span></div>
+                        <div class="ordering-item" draggable="true" data-order-value="6"><span class="drag-handle">☰</span><span class="order-num">?</span><span>Adjust Transform scale</span></div>
+                    </div>
+                    <input type="hidden" name="q6" value="">
+                </div>
+
+                <div class="question" data-question="7" data-type="short" data-points="3">
+                    <div class="question-header">
+                        <span class="question-number">7</span>
+                        <div class="question-text">What Transform property would you modify to make a sprite appear smaller or larger in the game?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <textarea class="text-input short" name="q7" placeholder="Enter your answer..." data-save="true"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 2: Physics Components -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title"><span class="section-number">2</span>Physics Components</div>
+                <span class="section-points">26 Points</span>
+            </div>
+            <div class="section-content">
+                <div class="question" data-question="8" data-type="mc" data-points="3" data-answer="b">
+                    <div class="question-header">
+                        <span class="question-number">8</span>
+                        <div class="question-text">Which component transforms a GameObject into a physics object affected by gravity?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q8" value="a"><span class="option-marker">A</span><span class="option-text">CircleCollider2D</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q8" value="b"><span class="option-marker">B</span><span class="option-text">Rigidbody2D</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q8" value="c"><span class="option-marker">C</span><span class="option-text">SpriteRenderer</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q8" value="d"><span class="option-marker">D</span><span class="option-text">Transform</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="9" data-type="mc" data-points="3" data-answer="c">
+                    <div class="question-header">
+                        <span class="question-number">9</span>
+                        <div class="question-text">Why do we use "Rigidbody2D" instead of just "Rigidbody" for a game like Flappy Bird?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q9" value="a"><span class="option-marker">A</span><span class="option-text">Rigidbody2D is faster to process</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q9" value="b"><span class="option-marker">B</span><span class="option-text">Rigidbody only works with 3D models</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q9" value="c"><span class="option-marker">C</span><span class="option-text">Rigidbody2D is designed for 2D games and works with 2D physics</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q9" value="d"><span class="option-marker">D</span><span class="option-text">There is no difference between them</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="10" data-type="match" data-points="4" data-answers="2,1,4,3">
+                    <div class="question-header">
+                        <span class="question-number">10</span>
+                        <div class="question-text">Match each Rigidbody2D property with its correct description:</div>
+                        <span class="question-points">4 pts</span>
+                    </div>
+                    <div class="matching-container">
+                        <div class="matching-column">
+                            <h4>Properties</h4>
+                            <div class="matching-item"><span class="marker">A</span><span>Gravity Scale</span></div>
+                            <div class="matching-item"><span class="marker">B</span><span>Mass</span></div>
+                            <div class="matching-item"><span class="marker">C</span><span>Linear Damping</span></div>
+                            <div class="matching-item"><span class="marker">D</span><span>Angular Damping</span></div>
+                        </div>
+                        <div class="matching-column">
+                            <h4>Descriptions</h4>
+                            <div class="matching-item"><select class="matching-select" name="q10_a" data-save="true"><option value="">Select...</option><option value="1">1. The weight of the object</option><option value="2">2. Controls how strongly gravity affects the object</option><option value="3">3. How quickly rotation slows down</option><option value="4">4. How quickly movement slows down</option></select></div>
+                            <div class="matching-item"><select class="matching-select" name="q10_b" data-save="true"><option value="">Select...</option><option value="1">1. The weight of the object</option><option value="2">2. Controls how strongly gravity affects the object</option><option value="3">3. How quickly rotation slows down</option><option value="4">4. How quickly movement slows down</option></select></div>
+                            <div class="matching-item"><select class="matching-select" name="q10_c" data-save="true"><option value="">Select...</option><option value="1">1. The weight of the object</option><option value="2">2. Controls how strongly gravity affects the object</option><option value="3">3. How quickly rotation slows down</option><option value="4">4. How quickly movement slows down</option></select></div>
+                            <div class="matching-item"><select class="matching-select" name="q10_d" data-save="true"><option value="">Select...</option><option value="1">1. The weight of the object</option><option value="2">2. Controls how strongly gravity affects the object</option><option value="3">3. How quickly rotation slows down</option><option value="4">4. How quickly movement slows down</option></select></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question" data-question="11" data-type="tf" data-points="3" data-answer="true">
+                    <div class="question-header">
+                        <span class="question-number">11</span>
+                        <div class="question-text">True or False: When you stop playing a game in Unity, the GameObject returns to its initial position, rotation, and scale.</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="tf-options">
+                        <div class="tf-option true" data-value="true" onclick="selectTF(this, 11)">TRUE</div>
+                        <div class="tf-option false" data-value="false" onclick="selectTF(this, 11)">FALSE</div>
+                    </div>
+                    <input type="hidden" name="q11" value="">
+                </div>
+
+                <div class="question" data-question="12" data-type="mc" data-points="3" data-answer="a">
+                    <div class="question-header">
+                        <span class="question-number">12</span>
+                        <div class="question-text">For a bird with a round shape, which collider type is most appropriate?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q12" value="a"><span class="option-marker">A</span><span class="option-text">CircleCollider2D</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q12" value="b"><span class="option-marker">B</span><span class="option-text">BoxCollider2D</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q12" value="c"><span class="option-marker">C</span><span class="option-text">PolygonCollider2D</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q12" value="d"><span class="option-marker">D</span><span class="option-text">EdgeCollider2D</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="13" data-type="short" data-points="4">
+                    <div class="question-header">
+                        <span class="question-number">13</span>
+                        <div class="question-text">Why is it recommended to make the Circle Collider slightly smaller than the bird sprite? What benefit does this provide?</div>
+                        <span class="question-points">4 pts</span>
+                    </div>
+                    <textarea class="text-input" name="q13" placeholder="Explain your answer..." data-save="true"></textarea>
+                </div>
+
+                <div class="question" data-question="14" data-type="mc" data-points="3" data-answer="d">
+                    <div class="question-header">
+                        <span class="question-number">14</span>
+                        <div class="question-text">What are the FOUR main functions of a Circle Collider 2D?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q14" value="a"><span class="option-marker">A</span><span class="option-text">Rendering, Animation, Audio, Lighting</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q14" value="b"><span class="option-marker">B</span><span class="option-text">Movement, Rotation, Scaling, Positioning</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q14" value="c"><span class="option-marker">C</span><span class="option-text">Input, Output, Processing, Storage</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q14" value="d"><span class="option-marker">D</span><span class="option-text">Collision Detection, Physics Interaction, Trigger Functionality, Adjustable Radius</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="15" data-type="short" data-points="3">
+                    <div class="question-header">
+                        <span class="question-number">15</span>
+                        <div class="question-text">What happens when you play a game with a bird GameObject that has NO Rigidbody2D component attached?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <textarea class="text-input short" name="q15" placeholder="Describe what happens..." data-save="true"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 3: C# Scripting Fundamentals -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title"><span class="section-number">3</span>C# Scripting Fundamentals</div>
+                <span class="section-points">26 Points</span>
+            </div>
+            <div class="section-content">
+                <div class="question" data-question="16" data-type="match" data-points="4" data-answers="1,2">
+                    <div class="question-header">
+                        <span class="question-number">16</span>
+                        <div class="question-text">Match each Unity method with its correct behavior:</div>
+                        <span class="question-points">4 pts</span>
+                    </div>
+                    <div class="matching-container">
+                        <div class="matching-column">
+                            <h4>Methods</h4>
+                            <div class="matching-item"><span class="marker">A</span><span>Start()</span></div>
+                            <div class="matching-item"><span class="marker">B</span><span>Update()</span></div>
+                        </div>
+                        <div class="matching-column">
+                            <h4>Behavior</h4>
+                            <div class="matching-item"><select class="matching-select" name="q16_a" data-save="true"><option value="">Select...</option><option value="1">1. Runs once when the script is first enabled</option><option value="2">2. Runs every single frame while enabled</option></select></div>
+                            <div class="matching-item"><select class="matching-select" name="q16_b" data-save="true"><option value="">Select...</option><option value="1">1. Runs once when the script is first enabled</option><option value="2">2. Runs every single frame while enabled</option></select></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question" data-question="17" data-type="mc" data-points="3" data-answer="b">
+                    <div class="question-header">
+                        <span class="question-number">17</span>
+                        <div class="question-text">What is a "reference" in Unity C# scripting?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q17" value="a"><span class="option-marker">A</span><span class="option-text">A comment in your code explaining what something does</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q17" value="b"><span class="option-marker">B</span><span class="option-text">A connection that allows your script to communicate with other components</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q17" value="c"><span class="option-marker">C</span><span class="option-text">A built-in Unity function for debugging</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q17" value="d"><span class="option-marker">D</span><span class="option-text">The Unity documentation website</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="18" data-type="mc" data-points="3" data-answer="c">
+                    <div class="question-header">
+                        <span class="question-number">18</span>
+                        <div class="question-text">Why do we declare a variable as <code>public</code> instead of <code>private</code>?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q18" value="a"><span class="option-marker">A</span><span class="option-text">Public variables use less memory</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q18" value="b"><span class="option-marker">B</span><span class="option-text">Public variables run faster in the game</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q18" value="c"><span class="option-marker">C</span><span class="option-text">Public variables appear in the Inspector, allowing easy modification without changing code</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q18" value="d"><span class="option-marker">D</span><span class="option-text">Unity requires all variables to be public</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="19" data-type="mc" data-points="3" data-answer="b">
+                    <div class="question-header">
+                        <span class="question-number">19</span>
+                        <div class="question-text">In Vector2 coordinates, what does <code>Vector2(0, 1)</code> represent?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q19" value="a"><span class="option-marker">A</span><span class="option-text">Move right</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q19" value="b"><span class="option-marker">B</span><span class="option-text">Move up</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q19" value="c"><span class="option-marker">C</span><span class="option-text">Move down</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q19" value="d"><span class="option-marker">D</span><span class="option-text">Move left</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="20" data-type="mc" data-points="3" data-answer="d">
+                    <div class="question-header">
+                        <span class="question-number">20</span>
+                        <div class="question-text">What is the difference between <code>=</code> and <code>==</code> in C#?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q20" value="a"><span class="option-marker">A</span><span class="option-text">They are exactly the same and can be used interchangeably</span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q20" value="b"><span class="option-marker">B</span><span class="option-text">= checks equality, == assigns a value</span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q20" value="c"><span class="option-marker">C</span><span class="option-text">= is for numbers, == is for strings</span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q20" value="d"><span class="option-marker">D</span><span class="option-text">= assigns a value, == checks if two things are equal</span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="21" data-type="mc" data-points="3" data-answer="a">
+                    <div class="question-header">
+                        <span class="question-number">21</span>
+                        <div class="question-text">Which code correctly detects when the space bar is pressed?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <div class="options-list">
+                        <label class="option-item" data-value="a"><input type="radio" name="q21" value="a"><span class="option-marker">A</span><span class="option-text"><code>Input.GetKeyDown(KeyCode.Space)</code></span></label>
+                        <label class="option-item" data-value="b"><input type="radio" name="q21" value="b"><span class="option-marker">B</span><span class="option-text"><code>Keyboard.SpacePressed()</code></span></label>
+                        <label class="option-item" data-value="c"><input type="radio" name="q21" value="c"><span class="option-marker">C</span><span class="option-text"><code>GetInput("Space")</code></span></label>
+                        <label class="option-item" data-value="d"><input type="radio" name="q21" value="d"><span class="option-marker">D</span><span class="option-text"><code>Unity.Input.Space.Down()</code></span></label>
+                    </div>
+                </div>
+
+                <div class="question" data-question="22" data-type="short" data-points="4">
+                    <div class="question-header">
+                        <span class="question-number">22</span>
+                        <div class="question-text">Using the "gate" analogy from class, explain how an <code>if</code> statement works in programming.</div>
+                        <span class="question-points">4 pts</span>
+                    </div>
+                    <textarea class="text-input" name="q22" placeholder="Explain the gate analogy..." data-save="true"></textarea>
+                </div>
+
+                <div class="question" data-question="23" data-type="short" data-points="3">
+                    <div class="question-header">
+                        <span class="question-number">23</span>
+                        <div class="question-text">Why is it considered "smart" or professional to create a public <code>flapStrength</code> variable instead of hardcoding the value 10 in the script?</div>
+                        <span class="question-points">3 pts</span>
+                    </div>
+                    <textarea class="text-input" name="q23" placeholder="Explain the advantage..." data-save="true"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 4: Code Application -->
+        <section class="section-card">
+            <div class="section-header">
+                <div class="section-title"><span class="section-number">4</span>Code Application</div>
+                <span class="section-points">24 Points</span>
+            </div>
+            <div class="section-content">
+                <div class="question" data-question="24" data-type="code" data-points="8">
+                    <div class="question-header">
+                        <span class="question-number">24</span>
+                        <div class="question-text">Complete the following BirdScript to make the bird flap upward when the space bar is pressed. Fill in ALL the missing parts (marked with <code>_____</code>):</div>
+                        <span class="question-points">8 pts</span>
+                    </div>
+                    <div class="code-block">
+                        <pre><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">BirdScript</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// Reference to physics component</span>
+    <span class="keyword">public</span> _____ myRigidBody;
+    
+    <span class="comment">// Adjustable flap power</span>
+    <span class="keyword">public</span> _____ flapStrength;
+    
+    <span class="keyword">void</span> <span class="method">Update</span>()
+    {
+        <span class="comment">// Check if space bar was pressed</span>
+        <span class="keyword">if</span> (_____.GetKeyDown(_____.Space))
+        {
+            <span class="comment">// Apply upward velocity</span>
+            myRigidBody._____ = Vector2.up * _____;
+        }
+    }
+}</pre>
+                    </div>
+                    <textarea class="code-input" name="q24" placeholder="Write your answers for each blank (6 total):
+1. First blank (type for myRigidBody): 
+2. Second blank (type for flapStrength): 
+3. Third blank (class name for input): 
+4. Fourth blank (enum for key codes): 
+5. Fifth blank (property to set movement): 
+6. Sixth blank (variable name for speed): " data-save="true"></textarea>
+                </div>
+
+                <div class="question" data-question="25" data-type="code" data-points="8">
+                    <div class="question-header">
+                        <span class="question-number">25</span>
+                        <div class="question-text">Write a complete C# script called "GameObjectDemo" that does the following when the game starts:
+                            <ul style="margin-top: 0.5rem; margin-left: 1.5rem; color: var(--text-secondary);">
+                                <li>Changes the GameObject's name to "MyBird"</li>
+                                <li>Includes proper using statement and class declaration</li>
+                            </ul>
+                        </div>
+                        <span class="question-points">8 pts</span>
+                    </div>
+                    <textarea class="code-input" name="q25" placeholder="Write your complete C# script here..." data-save="true" style="min-height: 250px;"></textarea>
+                </div>
+
+                <div class="question" data-question="26" data-type="code" data-points="8">
+                    <div class="question-header">
+                        <span class="question-number">26</span>
+                        <div class="question-text"><strong>CHALLENGE:</strong> Examine this code and identify what will happen when you play the game. Then explain why this might be a problem:</div>
+                        <span class="question-points">8 pts</span>
+                    </div>
+                    <div class="code-block">
+                        <pre><span class="keyword">void</span> <span class="method">Update</span>()
+{
+    myRigidBody.velocity = Vector2.up * <span class="number">10</span>;
+}</pre>
+                    </div>
+                    <textarea class="code-input" name="q26" placeholder="1. What will happen when you play the game?
+
+2. Why is this a problem?
+
+3. How would you fix it?" data-save="true"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-card">
+            <div class="section-content" style="text-align: center; padding: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-family: 'Space Grotesk', sans-serif;">Ready to Submit?</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Make sure you have answered all questions and saved your work before submitting.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-save" onclick="saveLab()">💾 Save Progress</button>
+                    <button class="btn btn-submit" onclick="submitLab()">📤 Submit Lab</button>
+                    <button class="btn btn-clear" onclick="clearLab()">🗑️ Clear All</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>MAC280 Game Programming • Prof. Khalid Kassou • LaGuardia Community College</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Unity Fundamentals Lab Assignment</p>
+    </footer>
+
+    <div class="modal-overlay" id="instructorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🔐 Instructor Grading Panel</h2>
+                <button class="modal-close" onclick="closeInstructorModal()">×</button>
+            </div>
+            <div id="passwordSection">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Enter instructor password to view automated grading:</p>
+                <input type="password" class="password-input" id="instructorPassword" placeholder="Enter password..." onkeypress="if(event.key==='Enter')unlockGrades()">
+                <button class="btn-unlock" onclick="unlockGrades()">🔓 Unlock Grades</button>
+            </div>
+            <div class="grade-display" id="gradeDisplay">
+                <div class="grade-summary">
+                    <div class="grade-score" id="totalScore">0%</div>
+                    <div class="grade-label">Total Score: <span id="pointsEarned">0</span> / <span id="pointsTotal">100</span> points</div>
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">Click on any question to expand details</p>
+                <div class="grade-breakdown" id="gradeBreakdown"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon">✓</span>
+        <span id="toastMessage">Saved successfully!</span>
+    </div>
+
+    <script>
+        const INSTRUCTOR_PASSWORD = 'mac280lab1';
+        const TOTAL_TIME = 150 * 60;
+        const STORAGE_KEY = 'mac280_lab_unity';
+
+        const ANSWER_KEY = {
+            q5: { keywords: ['assets', 'import', 'new asset'], minKeywords: 2, expected: "Assets → Import New Asset" },
+            q7: { keywords: ['scale'], minKeywords: 1, expected: "Scale (in the Transform component)" },
+            q13: { keywords: ['smaller', 'collision', 'accurate', 'better', 'detection', 'fair', 'gameplay', 'effective'], minKeywords: 2, expected: "Making the collider smaller provides more accurate/fair collision detection and better gameplay" },
+            q15: { keywords: ['nothing', 'stay', 'place', 'stationary', 'not fall', 'no gravity', 'no physics', 'won\'t move', 'doesn\'t move'], minKeywords: 1, expected: "Nothing happens - the bird stays in place (no physics/gravity)" },
+            q22: { keywords: ['gate', 'fence', 'condition', 'bracket', 'curly', 'open', 'execute', 'true', 'code', 'run'], minKeywords: 3, expected: "If statement is like a gate - code in curly brackets is fenced and ignored unless condition is true" },
+            q23: { keywords: ['inspector', 'tweak', 'tune', 'change', 'modify', 'without', 'code', 'script', 'easy', 'adjust', 'value'], minKeywords: 2, expected: "Public variables appear in Inspector - change values without modifying script" },
+            q24: { keywords: ['rigidbody2d', 'float', 'input', 'keycode', 'velocity', 'flapstrength'], minKeywords: 5, expected: "Rigidbody2D, float, Input, KeyCode, velocity, flapStrength" },
+            q25: { keywords: ['using', 'unityengine', 'class', 'monobehaviour', 'start', 'gameobject', 'name', 'mybird'], minKeywords: 5, expected: "Complete script with using UnityEngine, class extending MonoBehaviour, Start(), gameObject.name = 'MyBird'" },
+            q26: { keywords: ['fly', 'up', 'continuously', 'forever', 'constant', 'always', 'every frame', 'no control', 'gravity', 'condition', 'if', 'space', 'problem'], minKeywords: 3, expected: "Bird flies up continuously (every frame) with no control - need if statement for input" }
+        };
+
+        const QUESTION_TITLES = {
+            1: "GameObject Description", 2: "Creating Empty GameObject", 3: "Visibility Component", 4: "Transform Visibility (T/F)",
+            5: "Import Asset Path", 6: "Steps Order", 7: "Transform Scale Property", 8: "Physics Component",
+            9: "Rigidbody2D vs Rigidbody", 10: "Rigidbody2D Properties Match", 11: "Play Mode Reset (T/F)", 12: "Collider for Round Shape",
+            13: "Smaller Collider Benefits", 14: "Circle Collider Functions", 15: "No Rigidbody2D Behavior", 16: "Start vs Update Match",
+            17: "Reference Definition", 18: "Public vs Private", 19: "Vector2(0,1) Direction", 20: "= vs == Difference",
+            21: "Space Bar Input Code", 22: "Gate Analogy Explanation", 23: "Public Variable Benefits", 24: "Code Completion",
+            25: "Script Writing", 26: "Code Analysis Challenge"
+        };
+
+        let timeRemaining = TOTAL_TIME;
+        let timerInterval = null;
+        let timerRunning = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('labDate').value = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            loadSavedData();
+            initializeEventListeners();
+            initializeDragDrop();
+            updateProgress();
+            startTimer();
+        });
+
+        function startTimer() {
+            timerRunning = true;
+            document.getElementById('timerBtn').innerHTML = '⏸️ Pause';
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function pauseTimer() {
+            timerRunning = false;
+            document.getElementById('timerBtn').innerHTML = '▶️ Resume';
+            clearInterval(timerInterval);
+        }
+
+        function toggleTimer() { timerRunning ? pauseTimer() : startTimer(); }
+
+        function updateTimer() {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                const timerEl = document.getElementById('timer');
+                timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                if (timeRemaining <= 300) timerEl.className = 'timer-display danger';
+                else if (timeRemaining <= 900) timerEl.className = 'timer-display warning';
+            } else {
+                clearInterval(timerInterval);
+                showToast('Time is up! Please submit your lab.', 'error');
+            }
+        }
+
+        function initializeEventListeners() {
+            document.querySelectorAll('.option-item').forEach(option => {
+                option.addEventListener('click', function() {
+                    this.closest('.options-list').querySelectorAll('.option-item').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input').checked = true;
+                    updateProgress(); autoSave();
+                });
+            });
+            document.querySelectorAll('input[data-save="true"], textarea[data-save="true"], select[data-save="true"]').forEach(el => {
+                el.addEventListener('change', function() { updateProgress(); autoSave(); });
+                el.addEventListener('input', debounce(function() { updateProgress(); autoSave(); }, 1000));
+            });
+        }
+
+        function selectTF(element, questionNum) {
+            element.parentElement.querySelectorAll('.tf-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            document.querySelector(`input[name="q${questionNum}"]`).value = element.dataset.value;
+            updateProgress(); autoSave();
+        }
+
+        function initializeDragDrop() {
+            document.querySelectorAll('.ordering-list').forEach(list => {
+                let draggedItem = null;
+                list.querySelectorAll('.ordering-item').forEach(item => {
+                    item.addEventListener('dragstart', function() { draggedItem = this; this.classList.add('dragging'); });
+                    item.addEventListener('dragend', function() { this.classList.remove('dragging'); updateOrderNumbers(list); autoSave(); });
+                    item.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        if (draggedItem !== this) {
+                            const rect = this.getBoundingClientRect();
+                            if (e.clientY < rect.top + rect.height / 2) list.insertBefore(draggedItem, this);
+                            else list.insertBefore(draggedItem, this.nextSibling);
+                        }
+                    });
+                });
+            });
+            document.querySelectorAll('.ordering-list').forEach(updateOrderNumbers);
+        }
+
+        function updateOrderNumbers(list) {
+            list.querySelectorAll('.ordering-item').forEach((item, index) => item.querySelector('.order-num').textContent = index + 1);
+            const questionId = list.id.replace('orderList', '');
+            const hiddenInput = document.querySelector(`input[name="q${questionId}"]`);
+            if (hiddenInput) hiddenInput.value = Array.from(list.querySelectorAll('.ordering-item')).map(item => item.dataset.orderValue).join(',');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            let answered = 0;
+            document.querySelectorAll('.question').forEach(q => {
+                const type = q.dataset.type, qNum = q.dataset.question;
+                let isAnswered = false;
+                if (type === 'mc') isAnswered = !!document.querySelector(`input[name="q${qNum}"]:checked`);
+                else if (type === 'tf') isAnswered = document.querySelector(`input[name="q${qNum}"]`).value !== '';
+                else if (type === 'short' || type === 'code') { const ta = document.querySelector(`textarea[name="q${qNum}"]`); isAnswered = ta && ta.value.trim().length > 0; }
+                else if (type === 'match') isAnswered = Array.from(document.querySelectorAll(`select[name^="q${qNum}_"]`)).every(sel => sel.value !== '');
+                else if (type === 'order') isAnswered = true;
+                if (isAnswered) answered++;
+            });
+            const total = document.querySelectorAll('.question').length;
+            document.getElementById('progressText').textContent = `${answered} / ${total} questions answered`;
+            document.getElementById('progressFill').style.width = `${Math.round((answered / total) * 100)}%`;
+        }
+
+        function saveLab() { const data = collectFormData(); data.timeRemaining = timeRemaining; data.timestamp = new Date().toISOString(); localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); showToast('Lab progress saved successfully!', 'success'); }
+        function autoSave() { const data = collectFormData(); data.timeRemaining = timeRemaining; data.timestamp = new Date().toISOString(); localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+        function collectFormData() {
+            const data = { studentName: document.getElementById('studentName').value, studentId: document.getElementById('studentId').value, answers: {} };
+            document.querySelectorAll('.question').forEach(q => {
+                const qNum = q.dataset.question, type = q.dataset.type;
+                if (type === 'mc') { const c = document.querySelector(`input[name="q${qNum}"]:checked`); data.answers[`q${qNum}`] = c ? c.value : ''; }
+                else if (type === 'tf') data.answers[`q${qNum}`] = document.querySelector(`input[name="q${qNum}"]`).value;
+                else if (type === 'short' || type === 'code') data.answers[`q${qNum}`] = document.querySelector(`textarea[name="q${qNum}"]`).value;
+                else if (type === 'match') document.querySelectorAll(`select[name^="q${qNum}_"]`).forEach(sel => data.answers[sel.name] = sel.value);
+                else if (type === 'order') { const ol = document.getElementById(`orderList${qNum}`); if (ol) data.answers[`q${qNum}`] = Array.from(ol.querySelectorAll('.ordering-item')).map(i => i.dataset.orderValue).join(','); }
+            });
+            return data;
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
+            try {
+                const data = JSON.parse(saved);
+                if (data.studentName) document.getElementById('studentName').value = data.studentName;
+                if (data.studentId) document.getElementById('studentId').value = data.studentId;
+                if (data.timeRemaining) { timeRemaining = data.timeRemaining; document.getElementById('timer').textContent = `${Math.floor(timeRemaining/60)}:${(timeRemaining%60).toString().padStart(2,'0')}`; }
+                if (data.answers) {
+                    Object.keys(data.answers).forEach(key => {
+                        const value = data.answers[key]; if (!value) return;
+                        if (key.includes('_')) { const sel = document.querySelector(`select[name="${key}"]`); if (sel) sel.value = value; }
+                        else {
+                            const qNum = key.replace('q', ''), question = document.querySelector(`.question[data-question="${qNum}"]`);
+                            if (!question) return;
+                            const type = question.dataset.type;
+                            if (type === 'mc') { const r = document.querySelector(`input[name="${key}"][value="${value}"]`); if (r) { r.checked = true; r.closest('.option-item').classList.add('selected'); } }
+                            else if (type === 'tf') { document.querySelector(`input[name="${key}"]`).value = value; const tf = question.querySelector(`.tf-option[data-value="${value}"]`); if (tf) tf.classList.add('selected'); }
+                            else if (type === 'short' || type === 'code') { const ta = document.querySelector(`textarea[name="${key}"]`); if (ta) ta.value = value; }
+                            else if (type === 'order') { const ol = document.getElementById(`orderList${qNum}`); if (ol && value) { value.split(',').forEach(val => { const item = Array.from(ol.querySelectorAll('.ordering-item')).find(i => i.dataset.orderValue === val); if (item) ol.appendChild(item); }); updateOrderNumbers(ol); } }
+                        }
+                    });
+                }
+                updateProgress();
+                showToast('Previous progress restored!', 'success');
+            } catch (e) { console.error('Error loading saved data:', e); }
+        }
+
+        function clearLab() { if (confirm('Are you sure you want to clear all answers? This cannot be undone.')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+        function submitLab() { const data = collectFormData(); if (!data.studentName || !data.studentId) { showToast('Please enter your name and student ID before submitting.', 'error'); return; } saveLab(); showToast('Lab submitted successfully!', 'success'); }
+        function exportPDF() { showToast('Preparing PDF...', 'success'); setTimeout(() => window.print(), 500); }
+        function openInstructorModal() { document.getElementById('instructorModal').classList.add('active'); document.getElementById('passwordSection').style.display = 'block'; document.getElementById('gradeDisplay').classList.remove('active'); document.getElementById('instructorPassword').value = ''; }
+        function closeInstructorModal() { document.getElementById('instructorModal').classList.remove('active'); }
+
+        function unlockGrades() {
+            if (document.getElementById('instructorPassword').value === INSTRUCTOR_PASSWORD) {
+                document.getElementById('passwordSection').style.display = 'none';
+                document.getElementById('gradeDisplay').classList.add('active');
+                calculateGrades();
+            } else showToast('Incorrect password. Please try again.', 'error');
+        }
+
+        function evaluateTextAnswer(studentAnswer, qNum) {
+            const criteria = ANSWER_KEY[`q${qNum}`];
+            if (!criteria) return { score: 0, matched: [], missing: [] };
+            const answer = studentAnswer.toLowerCase();
+            const matched = [], missing = [];
+            criteria.keywords.forEach(kw => (answer.includes(kw.toLowerCase()) ? matched : missing).push(kw));
+            return { score: Math.min(1, matched.length / criteria.minKeywords), matched, missing, minRequired: criteria.minKeywords };
+        }
+
+        function calculateGrades() {
+            let totalPoints = 0, earnedPoints = 0, breakdown = [];
+            document.querySelectorAll('.question').forEach(q => {
+                const qNum = parseInt(q.dataset.question), type = q.dataset.type, points = parseInt(q.dataset.points), correctAnswer = q.dataset.answer, expectedOrder = q.dataset.order;
+                totalPoints += points;
+                let studentAnswer = '', score = 0, status = 'incorrect', details = {};
+
+                if (type === 'mc') {
+                    const checked = document.querySelector(`input[name="q${qNum}"]:checked`);
+                    studentAnswer = checked ? checked.value : '(No answer)';
+                    if (studentAnswer.toLowerCase() === correctAnswer.toLowerCase()) { score = points; status = 'correct'; }
+                    details = { correctAnswer: correctAnswer.toUpperCase(), studentAnswer: studentAnswer === '(No answer)' ? studentAnswer : studentAnswer.toUpperCase() };
+                } else if (type === 'tf') {
+                    studentAnswer = document.querySelector(`input[name="q${qNum}"]`).value || '(No answer)';
+                    if (studentAnswer.toLowerCase() === correctAnswer.toLowerCase()) { score = points; status = 'correct'; }
+                    details = { correctAnswer: correctAnswer.toUpperCase(), studentAnswer: studentAnswer === '(No answer)' ? studentAnswer : studentAnswer.toUpperCase() };
+                } else if (type === 'match') {
+                    const expectedAnswers = correctAnswer.split(','), selects = document.querySelectorAll(`select[name^="q${qNum}_"]`), matchDetails = [];
+                    let matchCorrect = 0;
+                    selects.forEach((sel, idx) => { const isCorrect = sel.value === expectedAnswers[idx]; if (isCorrect) matchCorrect++; matchDetails.push({ item: String.fromCharCode(65 + idx), student: sel.value || '?', correct: expectedAnswers[idx], isCorrect }); });
+                    score = Math.round((matchCorrect / selects.length) * points);
+                    status = score === points ? 'correct' : (score > 0 ? 'partial' : 'incorrect');
+                    details = { matchDetails, correctAnswer: expectedAnswers.join(', '), studentAnswer: Array.from(selects).map(s => s.value || '?').join(', ') };
+                } else if (type === 'order') {
+                    const orderList = document.getElementById(`orderList${qNum}`);
+                    if (orderList) {
+                        const currentOrder = Array.from(orderList.querySelectorAll('.ordering-item')).map(i => i.dataset.orderValue).join(',');
+                        studentAnswer = currentOrder;
+                        if (currentOrder === expectedOrder) { score = points; status = 'correct'; }
+                        else { const exp = expectedOrder.split(','), cur = currentOrder.split(','); let correct = 0; for (let i = 0; i < exp.length; i++) if (exp[i] === cur[i]) correct++; score = Math.round((correct / exp.length) * points); status = score === points ? 'correct' : (score > 0 ? 'partial' : 'incorrect'); }
+                        details = { correctAnswer: expectedOrder, studentAnswer: currentOrder };
+                    }
+                } else if (type === 'short' || type === 'code') {
+                    const textarea = document.querySelector(`textarea[name="q${qNum}"]`);
+                    studentAnswer = textarea ? textarea.value : '';
+                    if (studentAnswer.trim().length === 0) { details = { matched: [], missing: ANSWER_KEY[`q${qNum}`]?.keywords || [] }; }
+                    else { const eval_ = evaluateTextAnswer(studentAnswer, qNum); score = Math.round(eval_.score * points); status = score === points ? 'correct' : (score > 0 ? 'partial' : 'incorrect'); details = { matched: eval_.matched, missing: eval_.missing, minRequired: eval_.minRequired }; }
+                    details.correctAnswer = ANSWER_KEY[`q${qNum}`]?.expected || 'See rubric';
+                    details.studentAnswer = studentAnswer || '(No answer)';
+                }
+                earnedPoints += score;
+                breakdown.push({ qNum, type, points, score, status, title: QUESTION_TITLES[qNum] || `Question ${qNum}`, details });
+            });
+
+            const percentage = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+            const scoreEl = document.getElementById('totalScore');
+            scoreEl.textContent = `${percentage}%`;
+            scoreEl.className = 'grade-score ' + (percentage >= 90 ? 'excellent' : percentage >= 80 ? 'good' : percentage >= 70 ? 'fair' : 'poor');
+            document.getElementById('pointsEarned').textContent = earnedPoints;
+            document.getElementById('pointsTotal').textContent = totalPoints;
+
+            const breakdownEl = document.getElementById('gradeBreakdown');
+            breakdownEl.innerHTML = '';
+            breakdown.forEach(b => {
+                const div = document.createElement('div');
+                div.className = `grade-item ${b.status}`;
+                div.innerHTML = `<div class="grade-item-header" onclick="toggleDetails(this)"><div class="grade-item-left"><div class="grade-item-status">${b.status === 'correct' ? '✓' : b.status === 'partial' ? '◐' : '✗'}</div><span class="grade-item-title">Q${b.qNum}: ${b.title}</span></div><span class="grade-item-score">${b.score} / ${b.points}</span></div><div class="grade-item-details">${buildDetailsHTML(b)}</div>`;
+                breakdownEl.appendChild(div);
+            });
+        }
+
+        function buildDetailsHTML(b) {
+            let html = `<div class="detail-row"><div class="detail-label">Student Answer</div><div class="detail-value student-answer ${b.status === 'incorrect' ? 'wrong' : ''}">${escapeHTML(b.details.studentAnswer || '(No answer)')}</div></div>`;
+            html += `<div class="detail-row"><div class="detail-label">Correct Answer</div><div class="detail-value correct-answer">${escapeHTML(b.details.correctAnswer || 'N/A')}</div></div>`;
+            if (b.details.matchDetails) html += `<div class="detail-row"><div class="detail-label">Match Breakdown</div><div class="keywords-matched">${b.details.matchDetails.map(m => `<span class="keyword-tag ${m.isCorrect ? 'found' : 'missing'}">${m.item}: ${m.student} ${m.isCorrect ? '✓' : '✗ (→' + m.correct + ')'}</span>`).join('')}</div></div>`;
+            if (b.details.matched !== undefined) html += `<div class="detail-row"><div class="detail-label">Keywords (${b.details.matched.length}/${b.details.minRequired || '?'} required)</div><div class="keywords-matched">${b.details.matched.map(k => `<span class="keyword-tag found">✓ ${k}</span>`).join('')}${b.details.missing.map(k => `<span class="keyword-tag missing">✗ ${k}</span>`).join('')}</div></div>`;
+            return html;
+        }
+
+        function toggleDetails(header) { header.nextElementSibling.classList.toggle('open'); }
+        function escapeHTML(str) { return typeof str !== 'string' ? str : str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;').replace(/\n/g, '<br>'); }
+        function showToast(message, type = 'success') { const toast = document.getElementById('toast'); toast.className = `toast ${type}`; document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '⚠'; document.getElementById('toastMessage').textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+        function debounce(func, wait) { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait); }; }
+        document.getElementById('instructorModal').addEventListener('click', function(e) { if (e.target === this) closeInstructorModal(); });
+    </script>
+</body>
+</html>
