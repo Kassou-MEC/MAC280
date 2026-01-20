@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Tutorial: Game Over System with Embedded Clips</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --code-bg: #2d3748;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        header {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #bbb;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background-color: rgba(30, 30, 46, 0.8);
+            padding: 1.5rem 1rem;
+            border-right: 2px solid rgba(52, 152, 219, 0.3);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .sidebar h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.5);
+        }
+        
+        .slide-nav {
+            list-style: none;
+        }
+        
+        .slide-nav li {
+            margin-bottom: 0.8rem;
+            border-radius: 5px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .slide-nav a {
+            display: block;
+            padding: 0.8rem 1rem;
+            color: #ccc;
+            text-decoration: none;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .slide-nav a:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: white;
+            border-left-color: var(--primary-color);
+        }
+        
+        .slide-nav a.active {
+            background-color: rgba(52, 152, 219, 0.3);
+            color: white;
+            border-left-color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .slide-nav i {
+            margin-right: 0.7rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .slide {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(52, 152, 219, 0.5);
+        }
+        
+        .slide-header h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timestamp {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: var(--light-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .video-container {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: relative;
+            height: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .content-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        
+        .content-card {
+            flex: 1;
+            min-width: 300px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--primary-color);
+        }
+        
+        .content-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+        
+        .content-card ul {
+            padding-left: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        
+        .content-card li {
+            margin-bottom: 0.7rem;
+            line-height: 1.5;
+        }
+        
+        .code-block {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin: 1.2rem 0;
+            overflow-x: auto;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .code-keyword {
+            color: #ff79c6;
+        }
+        
+        .code-class {
+            color: #8be9fd;
+        }
+        
+        .code-string {
+            color: #f1fa8c;
+        }
+        
+        .code-comment {
+            color: #6272a4;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nav-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .nav-button.prev {
+            background-color: var(--secondary-color);
+        }
+        
+        .nav-button.prev:hover {
+            background-color: #34495e;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+        
+        .progress-dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.2);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            margin-top: 2rem;
+            border-top: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .challenge-box {
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .challenge-box h3 {
+            color: var(--success-color);
+            margin-bottom: 0.8rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid rgba(52, 152, 219, 0.3);
+                max-height: 300px;
+            }
+            
+            .content-row {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+            
+            .video-container {
+                height: 250px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .slide-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-gamepad"></i> Unity Game Over System Tutorial</h1>
+        <p class="subtitle">Implementing game over mechanics in Flappy Bird - Step-by-step interactive guide with embedded video clips</p>
+    </header>
+    
+    <div class="container">
+        <nav class="sidebar">
+            <h3><i class="fas fa-list-ol"></i> Tutorial Steps</h3>
+            <ul class="slide-nav" id="slideNav">
+                <!-- Navigation items will be dynamically generated -->
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <!-- Slide 1: Introduction -->
+            <div class="slide active" id="slide1">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> Start: 38:03</span>
+                    <h2>Step 5: Game Over Implementation</h2>
+                    <p>Creating a game over screen and implementing collision detection</p>
+                </div>
+                
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=2xDfThIJkRMP3RCJ&amp;clip=UgkxCdLdfXjYTAU3-mo7gpj9rlj9DwWuX9rP&amp;clipt=EAAYmHU"
+                        title="YouTube clip: Creating Game Over Screen"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                
+                <div class="content-row">
+                    <div class="cosntent-card">
+                        <h3><i class="fas fa-cogs"></i> What You'll Learn</h3>
+                        <ul>
+                            <li>Create a game over screen with UI elements</li>
+                            <li>Implement a restart button with functionality</li>
+                            <li>Detect collisions between the bird and pipes</li>
+                            <li>Manage game state with boolean variables</li>
+                            <li>Control when UI elements are visible</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-tools"></i> Required Components</h3>
+                        <ul>
+                            <li>Canvas GameObject for UI</li>
+                            <li>Text element for "Game Over" message</li>
+                            <li>Button for restart functionality</li>
+                            <li>Logic script for game state management</li>
+                            <li>Bird script with collision detection</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" disabled><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide2">Next: Game Over UI <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Slide 2: Creating Game Over UI -->
+            <div class="slide" id="slide2">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> 38:19 - 38:42</span>
+                    <h2>Creating the Game Over UI</h2>
+                    <p>Setting up the game over screen with text and button</p>
+                </div>
+                
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=LanKJMS_3LQSKllt&amp;clip=Ugkxw1WZUhZNb6zCsDxTdNzSMb2oZCIJa0Oc&amp;clipt=EOmDARjS1gM"
+                        title="YouTube clip: Setting Up Game Over UI"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                
+                <div class="content-row">
+                    <div class="content-card">
+                        <h3><i class="fas fa-layer-group"></i> UI Hierarchy Setup</h3>
+                        <p>Create a proper UI hierarchy in Unity:</p>
+                        <ul>
+                            <li>Create an empty GameObject called "Game Over Screen" under Canvas</li>
+                            <li>Add a Text element as a child for "Game Over" message</li>
+                            <li>Add a Button element (under Legacy) as another child</li>
+                            <li>Resize and position elements appropriately</li>
+                            <li>Find and modify the Text child of the button to change button text</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-code"></i> Key Unity UI Concepts</h3>
+                        <ul>
+                            <li>Canvas is the root container for all UI elements</li>
+                            <li>UI elements use Rect Transform instead of regular Transform</li>
+                            <li>Anchors determine how UI elements position relative to canvas</li>
+                            <li>Buttons have built-in interactivity and visual states</li>
+                            <li>Text elements display information to the player</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" data-prev="slide1"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide3">Next: Restart Function <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Slide 3: Implementing Restart Function -->
+            <div class="slide" id="slide3">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> 38:43 - 39:40</span>
+                    <h2>Implementing the Restart Function</h2>
+                    <p>Creating a function to restart the game and connecting it to the UI button</p>
+                </div>
+                
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=ejKR0KUG9FrrxUZQ&amp;clip=UgkxZrjnrCXG8nzswZk0ozu5w8Wu-XlCiAAc&amp;clipt=ELrMAxj2nwY"
+                        title="YouTube clip: Implementing Restart Function"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <h3>Clip 1</h3>
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=s_fJLlLRU9erjzf1&amp;clip=UgkxagZu4fVgsGoHGS2vVdpTf1q3ua0eplIj&amp;clipt=EPybBhijpwg"
+                        title="YouTube clip: Implementing Restart Function"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <h3>Clip 2</h3>
+                
+                <div class="content-row">
+                    <div class="content-card">
+                        <h3><i class="fas fa-redo-alt"></i> Button Event System</h3>
+                        <p>Unity's button component has an "On Click" event:</p>
+                        <ul>
+                            <li>Allows calling public functions on GameObjects</li>
+                            <li>Can be configured directly in the Inspector</li>
+                            <li>Supports multiple function calls on a single click</li>
+                            <li>Functions must be public to appear in the event list</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-code"></i> RestartGame Function Code</h3>
+                        <div class="code-block">
+                            <code>
+                                <span class="code-keyword">using</span> UnityEngine.SceneManagement;<br><br>
+                                
+                                <span class="code-keyword">public</span> <span class="code-keyword">void</span> <span class="code-class">RestartGame</span>()<br>
+                                {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Reload the current scene</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;SceneManager.LoadScene(SceneManager.GetActiveScene().name);<br>
+                                }
+                            </code>
+                        </div>
+                        <p>Add this to your logic script, then connect it to the button's OnClick event in Unity.</p>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" data-prev="slide2"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide4">Next: Game Over Function <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Slide 4: Creating Game Over Function -->
+            <div class="slide" id="slide4">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> 40:02 - 40:38</span>
+                    <h2>Creating the Game Over Function</h2>
+                    <p>Making the game over screen appear when the bird crashes</p>
+                </div>
+                
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=KsWP74UhRlIXa8Jb&amp;clip=Ugkxc2oI4P3gdyLZasc8n27YbyiF12vapFOg&amp;clipt=ENCQCBjVxwo"
+                        title="YouTube clip: Creating Game Over Function"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                
+                <div class="content-row">
+                    <div class="content-card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> GameOver Function</h3>
+                        <p>Create a public function in the logic script:</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="code-keyword">public</span> GameObject gameOverScreen;<br><br>
+                                
+                                <span class="code-keyword">public</span> <span class="code-keyword">void</span> <span class="code-class">GameOver</span>()<br>
+                                {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Show the game over screen</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;gameOverScreen.SetActive(<span class="code-keyword">true</span>);<br>
+                                }
+                            </code>
+                        </div>
+                        <ul>
+                            <li>Make a reference to the game over screen GameObject</li>
+                            <li>Fill this reference in Unity's Inspector</li>
+                            <li>Call SetActive(true) to show the screen</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-eye-slash"></i> Initial Setup</h3>
+                        <p>Before the game starts:</p>
+                        <ul>
+                            <li>Disable the game over screen GameObject using the checkmark in Unity</li>
+                            <li>This ensures it's hidden at the start of the game</li>
+                            <li>It will only appear when GameOver() is called</li>
+                            <li>This is better than moving it on/off screen</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" data-prev="slide3"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide5">Next: Collision Detection <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Slide 5: Detecting Collisions -->
+            <div class="slide" id="slide5">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> 40:46 - 41:09</span>
+                    <h2>Detecting Bird Collisions</h2>
+                    <p>Using OnCollisionEnter2D to detect when the bird hits pipes</p>
+                </div>
+                
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=OnCMr_0Ezmn-QRNm&amp;clip=UgkxZ1wQwseRxyrQ6ZbMw1j0e56qx4CGsSh1&amp;clipt=EOm3Chjz-As"
+                        title="YouTube clip: Detecting Collisions"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <h3> Clip 1</h3>
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/uhn0CjVGPsk?si=7Kut8hbt8TdBxgvo&amp;clip=UgkxNUf-tQuI9RzZfwPoyaNRZAdnVuI2vf3n&amp;clipt=EO-eDRi04g8"
+                        title="YouTube clip: Detecting Collisions"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <h3> Clip 1</h3>
+                <div class="content-row">
+                    <div class="content-card">
+                        <h3><i class="fas fa-bolt"></i> Collision Detection Code</h3>
+                        <div class="code-block">
+                            <code>
+                                <span class="code-keyword">private</span> LogicScript logic;<br><br>
+                                
+                                <span class="code-keyword">void</span> <span class="code-class">Start</span>()<br>
+                                {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;logic = GameObject.FindGameObjectWithTag(<span class="code-string">"Logic"</span>).GetComponent&lt;LogicScript&gt;();<br>
+                                }<br><br>
+                                
+                                <span class="code-keyword">private</span> <span class="code-keyword">void</span> <span class="code-class">OnCollisionEnter2D</span>(Collision2D collision)<br>
+                                {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;logic.GameOver();<br>
+                                }
+                            </code>
+                        </div>
+                        <p>Add this to your bird script to detect collisions with pipes.</p>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-object-group"></i> Trigger vs Collision</h3>
+                        <ul>
+                            <li><strong>OnTriggerEnter2D</strong>: Used when objects pass through each other (like scoring zones)</li>
+                            <li><strong>OnCollisionEnter2D</strong>: Used when objects are solid and should collide (like pipes)</li>
+                            <li>Pipes should have Colliders (not set as triggers)</li>
+                            <li>Bird needs a Collider to detect collisions</li>
+                            <li>Both need Rigidbody2D components for physics</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" data-prev="slide4"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide6">Next: Game State Management <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Slide 6: Managing Game State -->
+            <div class="slide" id="slide6">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> 41:15 - 42:17</span>
+                    <h2>Managing Game State with Booleans</h2>
+                    <p>Using a boolean variable to track if the bird is alive</p>
+                </div>
+                
+               
+                
+                <div class="content-row">
+                    <div class="content-card">
+                        <h3><i class="fas fa-toggle-on"></i> Boolean Variables</h3>
+                        <p>Boolean (bool) variables are simple true/false values:</p>
+                        <ul>
+                            <li><strong>true</strong> = on, yes, alive</li>
+                            <li><strong>false</strong> = off, no, dead</li>
+                            <li>Perfect for tracking game states</li>
+                            <li>Great for conditional checks in code</li>
+                        </ul>
+                        <div class="code-block">
+                            <code>
+                                <span class="code-keyword">public</span> <span class="code-keyword">bool</span> birdIsAlive = <span class="code-keyword">true</span>;<br><br>
+                                
+                                <span class="code-keyword">public</span> <span class="code-keyword">void</span> <span class="code-class">GameOver</span>()<br>
+                                {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;gameOverScreen.SetActive(<span class="code-keyword">true</span>);<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;birdIsAlive = <span class="code-keyword">false</span>;<br>
+                                }
+                            </code>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-code"></i> Updated Input Check</h3>
+                        <p>Modify the bird's input check to include the boolean:</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="code-keyword">void</span> <span class="code-class">Update</span>()<br>
+                                {<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (Input.GetKeyDown(KeyCode.Space) && birdIsAlive)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Make the bird flap</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myRigidbody.velocity = Vector2.up * flapStrength;<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                                }
+                            </code>
+                        </div>
+                        <p>The bird will only flap if both conditions are true: space is pressed AND birdIsAlive is true.</p>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" data-prev="slide5"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide7">Next: Building & Next Steps <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <!-- Slide 7: Building and Next Steps -->
+            <div class="slide" id="slide7">
+                <div class="slide-header">
+                    <span class="timestamp"><i class="far fa-clock"></i> 42:23 - 46:22</span>
+                    <h2>Building the Game & Next Steps</h2>
+                    <p>Finalizing your game and ideas for expansion</p>
+                </div>
+                
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/P4oOrObBL5c?si=IJM8I5u1Njz3nf1p&amp;clip=UgkxtikiIfoGAu5WjlmTi-9ltav_y3UfVtu0&amp;clipt=EAAYmHU"
+                        title="YouTube clip: Building the Game"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                
+                <div class="content-row">
+                    <div class="content-card">
+                        <h3><i class="fas fa-hammer"></i> Building Your Game</h3>
+                        <p>To create a standalone version of your game:</p>
+                        <ul>
+                            <li>Go to <strong>File > Build Settings</strong></li>
+                            <li>Make sure your scene is in the "Scenes In Build" list</li>
+                            <li>Choose your target platform (Windows, Mac, etc.)</li>
+                            <li>Click <strong>Build</strong> and select a folder</li>
+                            <li>Unity will compile your game into an executable</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3><i class="fas fa-graduation-cap"></i> Modern Unity Alternatives</h3>
+                        <p>The tutorial uses simpler, older systems:</p>
+                        <ul>
+                            <li><strong>New Input System</strong> - Better than Input.GetKeyDown</li>
+                            <li><strong>TextMeshPro</strong> - Replaces legacy UI text</li>
+                            <li><strong>UI Toolkit</strong> - Newer UI system (still evolving)</li>
+                            <li>These are more complex but more powerful</li>
+                            <li>Learn basics first, then upgrade later</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="challenge-box">
+                    <h3><i class="fas fa-puzzle-piece"></i> Challenges to Try Yourself</h3>
+                    <ul>
+                        <li><strong>Screen Boundaries</strong>: Game over when bird goes off screen</li>
+                        <li><strong>Score Bug Fix</strong>: Prevent score from increasing after game over</li>
+                        <li><strong>Sound Effects</strong>: Add Audio Source and play sounds when scoring</li>
+                        <li><strong>Particle Systems</strong>: Create clouds or other visual effects</li>
+                        <li><strong>Bird Animation</strong>: Add flapping wings in Animation window</li>
+                        <li><strong>Title Screen</strong>: Create a separate scene for game start</li>
+                        <li><strong>High Score</strong>: Use PlayerPrefs to save and display best score</li>
+                    </ul>
+                    <p>Try to solve these on your own by Googling, checking Unity documentation, or watching quick tutorials!</p>
+                </div>
+                
+                <div class="step-indicator">
+                    <button class="nav-button prev" data-prev="slide6"><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button class="nav-button next" data-next="slide1">Restart Tutorial <i class="fas fa-redo"></i></button>
+                </div>
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <!-- Progress dots will be dynamically generated -->
+            </div>
+        </main>
+    </div>
+    
+    <footer>
+        <p>Unity Tutorial for Complete Beginners - Game Over Implementation</p>
+        <p>Based on the tutorial by Game Maker's Toolkit | Presentation created for educational purposes</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Slide data
+            const slides = [
+                { id: 'slide1', title: 'Introduction', icon: 'fas fa-play-circle', time: '38:03' },
+                { id: 'slide2', title: 'Game Over UI', icon: 'fas fa-layer-group', time: '38:19' },
+                { id: 'slide3', title: 'Restart Function', icon: 'fas fa-redo-alt', time: '38:43' },
+                { id: 'slide4', title: 'Game Over Function', icon: 'fas fa-exclamation-triangle', time: '40:02' },
+                { id: 'slide5', title: 'Collision Detection', icon: 'fas fa-bolt', time: '40:46' },
+                { id: 'slide6', title: 'Game State Management', icon: 'fas fa-toggle-on', time: '41:15' },
+                { id: 'slide7', title: 'Building & Next Steps', icon: 'fas fa-hammer', time: '42:23' }
+            ];
+            
+            const slideElements = document.querySelectorAll('.slide');
+            const navButtons = document.querySelectorAll('.nav-button');
+            const progressContainer = document.getElementById('progressContainer');
+            const slideNav = document.getElementById('slideNav');
+            
+            let currentSlideIndex = 0;
+            
+            // Initialize navigation sidebar
+            slides.forEach((slide, index) => {
+                const navItem = document.createElement('li');
+                navItem.innerHTML = `
+                    <a href="#" data-slide-index="${index}">
+                        <i class="${slide.icon}"></i>${slide.title} <span class="timestamp">${slide.time}</span>
+                    </a>
+                `;
+                slideNav.appendChild(navItem);
+                
+                // Create progress dots
+                const progressDot = document.createElement('div');
+                progressDot.className = 'progress-dot';
+                progressDot.dataset.slideIndex = index;
+                progressContainer.appendChild(progressDot);
+            });
+            
+            // Set first nav item and progress dot as active
+            document.querySelector('.slide-nav a').classList.add('active');
+            document.querySelector('.progress-dot').classList.add('active');
+            
+            // Function to go to a specific slide
+            function goToSlide(index) {
+                // Validate index
+                if (index < 0 || index >= slideElements.length) return;
+                
+                // Hide current slide
+                slideElements[currentSlideIndex].classList.remove('active');
+                
+                // Update current slide index
+                currentSlideIndex = index;
+                
+                // Show new slide
+                slideElements[currentSlideIndex].classList.add('active');
+                
+                // Update navigation buttons
+                updateNavigationButtons();
+                
+                // Update sidebar navigation
+                updateSidebarNavigation();
+                
+                // Update progress dots
+                updateProgressDots();
+            }
+            
+            // Update navigation buttons state
+            function updateNavigationButtons() {
+                const prevButtons = document.querySelectorAll('.nav-button.prev');
+                const nextButtons = document.querySelectorAll('.nav-button.next');
+                
+                // Update previous buttons
+                prevButtons.forEach(button => {
+                    if (currentSlideIndex === 0) {
+                        button.disabled = true;
+                    } else {
+                        button.disabled = false;
+                    }
+                });
+                
+                // Update next button text on last slide
+                nextButtons.forEach(button => {
+                    if (currentSlideIndex === slideElements.length - 1) {
+                        button.innerHTML = 'Restart Tutorial <i class="fas fa-redo"></i>';
+                    } else {
+                        button.innerHTML = 'Next: ' + slides[currentSlideIndex + 1].title + ' <i class="fas fa-arrow-right"></i>';
+                    }
+                });
+            }
+            
+            // Update sidebar navigation
+            function updateSidebarNavigation() {
+                const navLinks = document.querySelectorAll('.slide-nav a');
+                navLinks.forEach((link, index) => {
+                    if (index === currentSlideIndex) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Update progress dots
+            function updateProgressDots() {
+                const progressDots = document.querySelectorAll('.progress-dot');
+                progressDots.forEach((dot, index) => {
+                    if (index === currentSlideIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Handle navigation button clicks
+            navButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.classList.contains('next')) {
+                        if (currentSlideIndex === slideElements.length - 1) {
+                            // Last slide - restart tutorial
+                            goToSlide(0);
+                        } else {
+                            goToSlide(currentSlideIndex + 1);
+                        }
+                    } else if (this.classList.contains('prev')) {
+                        goToSlide(currentSlideIndex - 1);
+                    }
+                });
+            });
+            
+            // Handle sidebar navigation clicks
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.slide-nav a')) {
+                    e.preventDefault();
+                    const slideIndex = parseInt(e.target.closest('.slide-nav a').dataset.slideIndex);
+                    goToSlide(slideIndex);
+                }
+            });
+            
+            // Handle progress dot clicks
+            progressContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('progress-dot')) {
+                    const slideIndex = parseInt(e.target.dataset.slideIndex);
+                    goToSlide(slideIndex);
+                }
+            });
+            
+            // Initialize navigation buttons
+            updateNavigationButtons();
+            
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    // Next slide
+                    e.preventDefault();
+                    if (currentSlideIndex === slideElements.length - 1) {
+                        goToSlide(0);
+                    } else {
+                        goToSlide(currentSlideIndex + 1);
+                    }
+                } else if (e.key === 'ArrowLeft') {
+                    // Previous slide
+                    e.preventDefault();
+                    if (currentSlideIndex > 0) {
+                        goToSlide(currentSlideIndex - 1);
+                    }
+                } else if (e.key >= '1' && e.key <= '7') {
+                    // Go to specific slide with number keys
+                    e.preventDefault();
+                    const slideNumber = parseInt(e.key) - 1;
+                    if (slideNumber < slideElements.length) {
+                        goToSlide(slideNumber);
+                    }
+                }
+            });
+            
+            // Add hover effect to video containers
+            const videoContainers = document.querySelectorAll('.video-container');
+            videoContainers.forEach(container => {
+                container.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.3)';
+                });
+                
+                container.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'var(--shadow)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
