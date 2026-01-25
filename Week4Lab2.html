@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAC 280 - Unity Game Programming Lab Assignment</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a8b;
+            --secondary: #e74c3c;
+            --accent: #f39c12;
+            --success: #27ae60;
+            --bg-light: #f8f9fa;
+            --bg-dark: #1a1a2e;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #dce4ec;
+            --code-bg: #282c34;
+            --gradient-1: linear-gradient(135deg, #1e3a5f 0%, #2d5a8b 100%);
+            --gradient-2: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                font-size: 12pt;
+            }
+            
+            .no-print, .save-btn, .progress-bar-container, .timer-container {
+                display: none !important;
+            }
+            
+            .container {
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .header {
+                background: white !important;
+                color: black !important;
+                border-bottom: 3px solid var(--primary);
+                padding: 20px !important;
+            }
+            
+            .header h1, .header p {
+                color: black !important;
+            }
+            
+            section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .question-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            
+            .code-block {
+                background: #f5f5f5 !important;
+                color: black !important;
+                border: 1px solid #ccc;
+            }
+            
+            .code-block code {
+                color: black !important;
+            }
+            
+            input[type="text"], textarea {
+                border: 1px solid black !important;
+                background: white !important;
+            }
+            
+            .section-header {
+                background: white !important;
+                color: black !important;
+                border: 2px solid var(--primary);
+            }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .course-code {
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Student Info */
+        .student-info {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: -30px 20px 30px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .student-info h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .student-info h3::before {
+            content: '📋';
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-field label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-field input {
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .info-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.1);
+        }
+
+        /* Timer and Progress */
+        .timer-container {
+            background: var(--bg-dark);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px auto;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .timer-icon {
+            font-size: 1.5rem;
+        }
+
+        .timer-display {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-2);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border-left: 5px solid var(--accent);
+            padding: 25px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 30px;
+        }
+
+        .instructions h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .instructions li {
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .instructions li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Section Headers */
+        .section-header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin: 40px 0 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-number {
+            background: rgba(255,255,255,0.2);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.3rem;
+            margin-bottom: 3px;
+        }
+
+        .section-title span {
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .question-card.answered {
+            border-left: 4px solid var(--success);
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: var(--primary);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .question-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .question-type.mc {
+            background: #e8f4fd;
+            color: #2980b9;
+        }
+
+        .question-type.short {
+            background: #fef3e2;
+            color: #e67e22;
+        }
+
+        .question-type.code {
+            background: #e8f8f5;
+            color: #1abc9c;
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .points {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        /* Multiple Choice */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--bg-light);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-item:hover {
+            background: #e8f4fd;
+            border-color: var(--primary-light);
+        }
+
+        .option-item.selected {
+            background: #e8f4fd;
+            border-color: var(--primary);
+        }
+
+        .option-item input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        .option-letter {
+            width: 28px;
+            height: 28px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+        }
+
+        .option-item.selected .option-letter {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+        }
+
+        /* Short Answer */
+        .short-answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 15px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 500px;
+        }
+
+        .short-answer-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.1);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'C#';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 11px;
+            color: #7f8c8d;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .code-block code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #abb2bf;
+            line-height: 1.8;
+            display: block;
+            white-space: pre-wrap;
+        }
+
+        .code-keyword { color: #c678dd; }
+        .code-type { color: #e5c07b; }
+        .code-string { color: #98c379; }
+        .code-comment { color: #5c6370; font-style: italic; }
+        .code-number { color: #d19a66; }
+        .code-method { color: #61afef; }
+
+        /* Code Fill-in */
+        .code-input {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed #61afef;
+            border-radius: 4px;
+            padding: 4px 12px;
+            color: #98c379;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .code-input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.15);
+            border-style: solid;
+        }
+
+        .code-input::placeholder {
+            color: #5c6370;
+        }
+
+        /* Hint Box */
+        .hint-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #3498db;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .hint-box strong {
+            color: #2980b9;
+        }
+
+        /* Save Button */
+        .save-btn {
+            background: var(--gradient-2);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Matching Questions */
+        .matching-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .matching-column h4 {
+            font-size: 14px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .matching-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .matching-item .item-number {
+            background: var(--primary);
+            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .matching-item .item-letter {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .matching-answer {
+            width: 50px;
+            padding: 8px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .matching-answer:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .matching-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="course-code">MAC 280 • Game Programming</h1>
+            <h1>Unity Lab 2 Assignment</h1>
+            <h1>MAC280 Prof. Khalid Kassou</h1>
+            <p class="subtitle">Physics, Scripting & Moving Obstacles</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Student Information -->
+        <div class="student-info">
+            <h3>Student Information</h3>
+            <div class="info-grid">
+                <div class="info-field">
+                    <label for="studentName">Full Name</label>
+                    <input type="text" id="studentName" placeholder="Enter your full name" oninput="saveProgress()">
+                </div>
+                <div class="info-field">
+                    <label for="studentId">Student ID</label>
+                    <input type="text" id="studentId" placeholder="Enter your student ID" oninput="saveProgress()">
+                </div>
+                <div class="info-field">
+                    <label for="labDate">Date</label>
+                    <input type="text" id="labDate" placeholder="MM/DD/YYYY" oninput="saveProgress()">
+                </div>
+                <div class="info-field">
+                    <label for="section">Section</label>
+                    <input type="text" id="section" placeholder="e.g., 7552" oninput="saveProgress()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer -->
+        <div style="text-align: center;" class="no-print">
+            <div class="timer-container">
+                <span class="timer-icon">⏱️</span>
+                <span class="timer-display" id="timer">02:30:00</span>
+                <span style="opacity: 0.7; font-size: 12px;">Estimated Time</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container no-print">
+            <div class="progress-header">
+                <span>Progress</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📝 Lab Instructions</h3>
+            <ul>
+                <li>This lab assignment covers <strong>Unity Physics, C# Scripting, and Moving Obstacles</strong></li>
+                <li>Complete all <strong>40 questions</strong> across three sections</li>
+                <li>Question types include: Multiple Choice, Short Answer, and Code Completion</li>
+                <li>Estimated completion time: <strong>2 hours 30 minutes</strong></li>
+                <li>Your progress is automatically saved in your browser</li>
+                <li>Click <strong>"Save as PDF"</strong> when finished to print or save your work</li>
+            </ul>
+        </div>
+
+        <!-- ==================== SECTION 1: PHYSICS ==================== -->
+        <div class="section-header">
+            <div class="section-number">1</div>
+            <div class="section-title">
+                <h2>Physics & Components</h2>
+                <span>Rigidbody2D, Colliders, and Physics Properties</span>
+            </div>
+        </div>
+
+        <!-- Question 1 -->
+        <div class="question-card" data-question="1">
+            <div class="question-header">
+                <div class="question-number">1</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">Which component transforms a GameObject into a physics object that is affected by gravity in a 2D game?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q1" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Rigidbody (3D)</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q1" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Rigidbody2D</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q1" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Box Collider 2D</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q1" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Transform</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="question-card" data-question="2">
+            <div class="question-header">
+                <div class="question-number">2</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What does the Gravity Scale property in Rigidbody2D control?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q2" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">The weight of the object</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q2" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">How strongly gravity affects the object</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q2" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">The size of the object</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q2" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">The collision boundaries</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="question-card" data-question="3">
+            <div class="question-header">
+                <div class="question-number">3</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">Why would you use a Circle Collider 2D instead of a Box Collider 2D for a bird character?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q3" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Circle Colliders are faster to compute</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q3" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">The bird sprite has a circular shape</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q3" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Box Colliders don't work in 2D games</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q3" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Circle Colliders allow jumping</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="question-card" data-question="4">
+            <div class="question-header">
+                <div class="question-number">4</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Explain what happens when you remove the Rigidbody2D component from a GameObject and then play the game. Why does this occur?</p>
+            <p class="points">4 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 5 -->
+        <div class="question-card" data-question="5">
+            <div class="question-header">
+                <div class="question-number">5</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What is the purpose of adjusting the radius of a Circle Collider 2D?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q5" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">To change the visual size of the sprite</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q5" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">To fine-tune the collision boundary to match the sprite</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q5" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">To increase the gravity effect</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q5" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">To make the object move faster</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 6 -->
+        <div class="question-card" data-question="6">
+            <div class="question-header">
+                <div class="question-number">6</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Describe the three main roles of a Circle Collider 2D component in Unity.</p>
+            <p class="points">6 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 7 -->
+        <div class="question-card" data-question="7">
+            <div class="question-header">
+                <div class="question-number">7</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">When you stop a game in Unity after testing, what happens to the bird's position?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q7" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">It stays where it fell</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q7" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">It resets to its initial position</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q7" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">It moves to the center of the screen</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q7" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">It is deleted from the scene</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 8 - Matching -->
+        <div class="question-card" data-question="8">
+            <div class="question-header">
+                <div class="question-number">8</div>
+                <span class="question-type code">Matching</span>
+            </div>
+            <p class="question-text">Match each Rigidbody2D property with its correct description.</p>
+            <p class="points">8 points</p>
+            <div class="matching-container">
+                <div class="matching-column">
+                    <h4>Properties</h4>
+                    <div class="matching-item">
+                        <span class="item-number">1</span>
+                        <span>Gravity Scale</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">2</span>
+                        <span>Mass</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">3</span>
+                        <span>Linear Damping</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">4</span>
+                        <span>Angular Damping</span>
+                    </div>
+                </div>
+                <div class="matching-column">
+                    <h4>Descriptions</h4>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">A</span>
+                        <span>Controls how quickly rotation slows down</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">B</span>
+                        <span>The weight of the object</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">C</span>
+                        <span>Controls how strongly gravity affects the object</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">D</span>
+                        <span>Controls how quickly movement slows down</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>1 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>2 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>3 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>4 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SECTION 2: C# SCRIPTING ==================== -->
+        <div class="section-header">
+            <div class="section-number">2</div>
+            <div class="section-title">
+                <h2>C# Scripting Fundamentals</h2>
+                <span>Methods, Variables, Input, and References</span>
+            </div>
+        </div>
+
+        <!-- Question 9 -->
+        <div class="question-card" data-question="9">
+            <div class="question-header">
+                <div class="question-number">9</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What is the difference between the Start() and Update() methods in Unity?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q9" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Start() runs every frame, Update() runs once</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q9" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Start() runs once when enabled, Update() runs every frame</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q9" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Both run at the same time</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q9" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Start() is for physics, Update() is for input</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 10 -->
+        <div class="question-card" data-question="10">
+            <div class="question-header">
+                <div class="question-number">10</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">What is a "reference" in Unity scripting? Explain why we need to create a reference to access components like Rigidbody2D from our script.</p>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 11 -->
+        <div class="question-card" data-question="11">
+            <div class="question-header">
+                <div class="question-number">11</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">Why do we use the "public" modifier when declaring a Rigidbody2D variable?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q11" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">It makes the code run faster</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q11" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">It allows the variable to appear in the Inspector</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q11" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">It prevents other scripts from accessing it</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q11" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">It is required for all variables in Unity</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 12 - Code Completion -->
+        <div class="question-card" data-question="12">
+            <div class="question-header">
+                <div class="question-number">12</div>
+                <span class="question-type code">Code Completion</span>
+            </div>
+            <p class="question-text">Complete the code to declare a public reference to Rigidbody2D and a public float variable for flap strength:</p>
+            <p class="points">6 points</p>
+            <div class="code-block">
+                <code><span class="code-keyword">public class</span> <span class="code-type">BirdScript</span> : <span class="code-type">MonoBehaviour</span>
+{
+    <span class="code-comment">// Declare a public reference to Rigidbody2D</span>
+    <input type="text" class="code-input" placeholder="modifier" oninput="saveProgress(); updateProgress();"> <input type="text" class="code-input" placeholder="type" oninput="saveProgress(); updateProgress();"> myRigidBody;
+    
+    <span class="code-comment">// Declare a public float for flap strength</span>
+    <input type="text" class="code-input" placeholder="modifier" oninput="saveProgress(); updateProgress();"> <input type="text" class="code-input" placeholder="type" oninput="saveProgress(); updateProgress();"> flapStrength;
+}</code>
+            </div>
+        </div>
+
+        <!-- Question 13 -->
+        <div class="question-card" data-question="13">
+            <div class="question-header">
+                <div class="question-number">13</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What does Vector2(0, 1) represent in Unity?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q13" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Movement to the right</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q13" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Movement to the left</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q13" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Movement upward</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q13" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Movement downward</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 14 -->
+        <div class="question-card" data-question="14">
+            <div class="question-header">
+                <div class="question-number">14</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Explain the "gate analogy" for if statements in programming. How does this analogy help understand when code inside curly brackets executes?</p>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 15 -->
+        <div class="question-card" data-question="15">
+            <div class="question-header">
+                <div class="question-number">15</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What is the difference between = and == in C#?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q15" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">= assigns a value, == checks equality</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q15" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">== assigns a value, = checks equality</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q15" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">They are the same thing</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q15" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">= is for numbers, == is for text</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 16 - Code Completion -->
+        <div class="question-card" data-question="16">
+            <div class="question-header">
+                <div class="question-number">16</div>
+                <span class="question-type code">Code Completion</span>
+            </div>
+            <p class="question-text">Complete the code to make the bird flap upward when the space bar is pressed:</p>
+            <p class="points">6 points</p>
+            <div class="code-block">
+                <code><span class="code-keyword">void</span> <span class="code-method">Update</span>()
+{
+    <span class="code-comment">// Check if space bar was pressed this frame</span>
+    <span class="code-keyword">if</span> (<input type="text" class="code-input" placeholder="Input.___" style="width:180px;" oninput="saveProgress(); updateProgress();">(<input type="text" class="code-input" placeholder="KeyCode.___" style="width:140px;" oninput="saveProgress(); updateProgress();">))
+    {
+        <span class="code-comment">// Apply upward velocity</span>
+        myRigidBody.<input type="text" class="code-input" placeholder="property" oninput="saveProgress(); updateProgress();"> = <input type="text" class="code-input" placeholder="Vector2.___" style="width:120px;" oninput="saveProgress(); updateProgress();"> * flapStrength;
+    }
+}</code>
+            </div>
+        </div>
+
+        <!-- Question 17 -->
+        <div class="question-card" data-question="17">
+            <div class="question-header">
+                <div class="question-number">17</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What does Input.GetKeyDown(KeyCode.Space) check for?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q17" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">If the space bar is being held down</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q17" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">If the space bar was pressed on this specific frame</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q17" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">If the space bar was released</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q17" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">If any key was pressed</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 18 -->
+        <div class="question-card" data-question="18">
+            <div class="question-header">
+                <div class="question-number">18</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Why is it better to create a public float variable (like flapStrength) instead of hardcoding a number (like 10) in your script? Explain the benefits.</p>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 19 - Matching -->
+        <div class="question-card" data-question="19">
+            <div class="question-header">
+                <div class="question-number">19</div>
+                <span class="question-type code">Matching</span>
+            </div>
+            <p class="question-text">Match each Vector2 value with its movement direction:</p>
+            <p class="points">8 points</p>
+            <div class="matching-container">
+                <div class="matching-column">
+                    <h4>Vector2 Values</h4>
+                    <div class="matching-item">
+                        <span class="item-number">1</span>
+                        <span>Vector2(1, 0)</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">2</span>
+                        <span>Vector2(-1, 0)</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">3</span>
+                        <span>Vector2(0, 1)</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">4</span>
+                        <span>Vector2(0, -1)</span>
+                    </div>
+                </div>
+                <div class="matching-column">
+                    <h4>Directions</h4>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">A</span>
+                        <span>Move Up</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">B</span>
+                        <span>Move Down</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">C</span>
+                        <span>Move Right</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">D</span>
+                        <span>Move Left</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>1 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>2 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>3 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>4 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 20 -->
+        <div class="question-card" data-question="20">
+            <div class="question-header">
+                <div class="question-number">20</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Describe the step-by-step process of connecting a Rigidbody2D component to a script reference in Unity. What must you do after saving the script?</p>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 21 -->
+        <div class="question-card" data-question="21">
+            <div class="question-header">
+                <div class="question-number">21</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What happens if you put the velocity assignment code in Update() without an if statement?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q21" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">The bird won't move at all</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q21" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">The bird flies up continuously, ignoring gravity</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q21" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">The bird falls down faster</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q21" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">The game will crash</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 22 -->
+        <div class="question-card" data-question="22">
+            <div class="question-header">
+                <div class="question-number">22</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">After saving a script with a public variable, what must you do to see the changes in Unity?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q22" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Restart Unity completely</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q22" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Nothing - Unity automatically compiles and updates</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q22" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Delete and re-add the script component</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q22" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Create a new scene</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ==================== SECTION 3: MOVING OBSTACLES ==================== -->
+        <div class="section-header">
+            <div class="section-number">3</div>
+            <div class="section-title">
+                <h2>Moving Obstacles & Parent-Child</h2>
+                <span>Pipes, Vector3, Transform, and Prefabs</span>
+            </div>
+        </div>
+
+        <!-- Question 23 -->
+        <div class="question-card" data-question="23">
+            <div class="question-header">
+                <div class="question-number">23</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Explain the "secret" of Flappy Bird's movement. Why does the bird appear to be flying through pipes when it's actually staying still?</p>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 24 -->
+        <div class="question-card" data-question="24">
+            <div class="question-header">
+                <div class="question-number">24</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What is the benefit of using a parent-child hierarchy for the pipe objects?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q24" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">It makes the pipes render faster</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q24" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Moving the parent moves all children together</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q24" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Children automatically get colliders</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q24" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">It reduces the file size of the project</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 25 -->
+        <div class="question-card" data-question="25">
+            <div class="question-header">
+                <div class="question-number">25</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">Why do we use Box Collider 2D for pipes instead of Circle Collider 2D?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q25" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Box Colliders are more efficient</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q25" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Pipes have a rectangular shape</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q25" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Circle Colliders don't work with moving objects</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q25" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Box Colliders are required for parent objects</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 26 -->
+        <div class="question-card" data-question="26">
+            <div class="question-header">
+                <div class="question-number">26</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">How do you flip the bottom pipe upside down in Unity?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q26" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Rotate it 180 degrees on the Z axis</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q26" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Set the Y Scale to -1</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q26" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Use a different sprite image</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q26" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Enable "Flip Y" in Sprite Renderer</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 27 -->
+        <div class="question-card" data-question="27">
+            <div class="question-header">
+                <div class="question-number">27</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Why don't pipes need a Rigidbody2D component? Explain how pipes move without physics.</p>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 28 -->
+        <div class="question-card" data-question="28">
+            <div class="question-header">
+                <div class="question-number">28</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">Why do we use Vector3 instead of Vector2 for Transform.position?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q28" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Vector3 is faster to compute</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q28" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">Unity is fundamentally a 3D engine with X, Y, and Z axes</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q28" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Vector2 doesn't exist in Unity</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q28" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">We need 3D movement for the pipes</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 29 - Code Completion -->
+        <div class="question-card" data-question="29">
+            <div class="question-header">
+                <div class="question-number">29</div>
+                <span class="question-type code">Code Completion</span>
+            </div>
+            <p class="question-text">Complete the pipe movement script to make pipes move to the left:</p>
+            <p class="points">6 points</p>
+            <div class="code-block">
+                <code><span class="code-keyword">public class</span> <span class="code-type">PipeMoveScript</span> : <span class="code-type">MonoBehaviour</span>
+{
+    <span class="code-keyword">public</span> <span class="code-type">float</span> moveSpeed = <span class="code-number">10</span>;
+    
+    <span class="code-keyword">void</span> <span class="code-method">Update</span>()
+    {
+        <span class="code-comment">// Move the pipe to the left every frame</span>
+        <input type="text" class="code-input" placeholder="property" style="width:160px;" oninput="saveProgress(); updateProgress();"> = transform.position + (<input type="text" class="code-input" placeholder="Vector3.___" style="width:130px;" oninput="saveProgress(); updateProgress();"> * <input type="text" class="code-input" placeholder="variable" oninput="saveProgress(); updateProgress();">);
+    }
+}</code>
+            </div>
+        </div>
+
+        <!-- Question 30 -->
+        <div class="question-card" data-question="30">
+            <div class="question-header">
+                <div class="question-number">30</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">List and explain the three components needed for a visible pipe that can collide with the bird. Why is each component necessary?</p>
+            <p class="points">6 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 31 -->
+        <div class="question-card" data-question="31">
+            <div class="question-header">
+                <div class="question-number">31</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What happens when you move, scale, or rotate a parent GameObject?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q31" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">Only the parent is affected</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q31" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">All child objects move/scale/rotate with the parent</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q31" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">Only the first child is affected</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q31" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">Children move in the opposite direction</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 32 -->
+        <div class="question-card" data-question="32">
+            <div class="question-header">
+                <div class="question-number">32</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Describe the complete process of creating a pipe pair (top and bottom) using parent-child hierarchy. Include the steps for positioning and flipping.</p>
+            <p class="points">8 points</p>
+            <textarea class="short-answer-input" style="min-height: 500px;" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 33 - Matching -->
+        <div class="question-card" data-question="33">
+            <div class="question-header">
+                <div class="question-number">33</div>
+                <span class="question-type code">Matching</span>
+            </div>
+            <p class="question-text">Match each component with its purpose in the pipe setup:</p>
+            <p class="points">6 points</p>
+            <div class="matching-container">
+                <div class="matching-column">
+                    <h4>Components</h4>
+                    <div class="matching-item">
+                        <span class="item-number">1</span>
+                        <span>Sprite Renderer</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">2</span>
+                        <span>Box Collider 2D</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number">3</span>
+                        <span>PipeMoveScript</span>
+                    </div>
+                </div>
+                <div class="matching-column">
+                    <h4>Purposes</h4>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">A</span>
+                        <span>Makes the pipe move across the screen</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">B</span>
+                        <span>Displays the pipe image</span>
+                    </div>
+                    <div class="matching-item">
+                        <span class="item-number item-letter">C</span>
+                        <span>Enables collision with the bird</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>1 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>2 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label>3 = </label>
+                    <input type="text" class="matching-answer" maxlength="1" oninput="saveProgress(); updateProgress();">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 34 -->
+        <div class="question-card" data-question="34">
+            <div class="question-header">
+                <div class="question-number">34</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">When setting up the pipe hierarchy, why do we keep the X position of child pipes at zero?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q34" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">So both pipes stay horizontally aligned with the parent</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q34" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">It's required by Unity</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q34" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">To make them invisible</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q34" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">It prevents collisions</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 35 -->
+        <div class="question-card" data-question="35">
+            <div class="question-header">
+                <div class="question-number">35</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Explain the difference between using Rigidbody2D.velocity (for the bird) vs Transform.position (for the pipes) for movement. When would you use each approach?</p>
+            <p class="points">6 points</p>
+            <textarea class="short-answer-input" style="min-height: 500px;" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 36 -->
+        <div class="question-card" data-question="36">
+            <div class="question-header">
+                <div class="question-number">36</div>
+                <span class="question-type code">Code Analysis</span>
+            </div>
+            <p class="question-text">Analyze this code and explain what it does line by line:</p>
+            <div class="code-block">
+                <code>transform.position = transform.position + (Vector3.left * moveSpeed);</code>
+            </div>
+            <p class="points">5 points</p>
+            <textarea class="short-answer-input" placeholder="Explain each part of this line of code..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 37 -->
+        <div class="question-card" data-question="37">
+            <div class="question-header">
+                <div class="question-number">37</div>
+                <span class="question-type mc">Multiple Choice</span>
+            </div>
+            <p class="question-text">What is the advantage of assigning a default value to moveSpeed in the script declaration?</p>
+            <p class="points">2 points</p>
+            <div class="options-list">
+                <label class="option-item">
+                    <input type="radio" name="q37" value="a" onchange="selectOption(this)">
+                    <span class="option-letter">A</span>
+                    <span class="option-text">It prevents the variable from being changed</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q37" value="b" onchange="selectOption(this)">
+                    <span class="option-letter">B</span>
+                    <span class="option-text">It provides an initial value in the Inspector that can still be modified</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q37" value="c" onchange="selectOption(this)">
+                    <span class="option-letter">C</span>
+                    <span class="option-text">It makes the script private</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="q37" value="d" onchange="selectOption(this)">
+                    <span class="option-letter">D</span>
+                    <span class="option-text">It hides the variable from the Inspector</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Question 38 -->
+        <div class="question-card" data-question="38">
+            <div class="question-header">
+                <div class="question-number">38</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Why is the "moving level past a stationary player" technique commonly used in 2D games? List at least two advantages of this approach.</p>
+            <p class="points">4 points</p>
+            <textarea class="short-answer-input" placeholder="Type your answer here..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Question 39 -->
+        <div class="question-card" data-question="39">
+            <div class="question-header">
+                <div class="question-number">39</div>
+                <span class="question-type code">Code Completion</span>
+            </div>
+            <p class="question-text">Complete the full BirdScript with proper variable declarations and the flap mechanic:</p>
+            <p class="points">10 points</p>
+            <div class="code-block">
+                <code><span class="code-keyword">using</span> UnityEngine;
+
+<span class="code-keyword">public class</span> <span class="code-type">BirdScript</span> : <span class="code-type">MonoBehaviour</span>
+{
+    <span class="code-comment">// Reference to the physics component</span>
+    <input type="text" class="code-input" placeholder="access modifier" oninput="saveProgress(); updateProgress();"> <input type="text" class="code-input" placeholder="type" oninput="saveProgress(); updateProgress();"> myRigidBody;
+    
+    <span class="code-comment">// Variable to control flap power</span>
+    <input type="text" class="code-input" placeholder="access modifier" oninput="saveProgress(); updateProgress();"> <input type="text" class="code-input" placeholder="type" oninput="saveProgress(); updateProgress();"> flapStrength = <span class="code-number">10</span>;
+    
+    <span class="code-keyword">void</span> <span class="code-method">Update</span>()
+    {
+        <span class="code-keyword">if</span> (Input.<input type="text" class="code-input" placeholder="method" oninput="saveProgress(); updateProgress();">(KeyCode.<input type="text" class="code-input" placeholder="key" oninput="saveProgress(); updateProgress();">))
+        {
+            myRigidBody.<input type="text" class="code-input" placeholder="property" oninput="saveProgress(); updateProgress();"> = Vector2.<input type="text" class="code-input" placeholder="direction" oninput="saveProgress(); updateProgress();"> * flapStrength;
+        }
+    }
+}</code>
+            </div>
+        </div>
+
+        <!-- Question 40 -->
+        <div class="question-card" data-question="40">
+            <div class="question-header">
+                <div class="question-number">40</div>
+                <span class="question-type short">Short Answer</span>
+            </div>
+            <p class="question-text">Design Challenge: You want to add a second player (a cat) that moves by pressing the "C" key and moves downward instead of upward. Describe the modifications needed to the BirdScript to create a CatScript with these behaviors. Include the key differences in the code.</p>
+            <p class="points">8 points</p>
+            <textarea class="short-answer-input" style="min-height: 500px;" placeholder="Describe the changes needed for the CatScript..." oninput="saveProgress(); updateProgress();"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="save-btn" onclick="window.print()">
+                📄 Save as PDF
+            </button>
+            <button class="save-btn" style="background: var(--success);" onclick="clearProgress()">
+                🔄 Clear All Answers
+            </button>
+        </div>
+
+        <footer class="footer">
+            <p><strong>MAC 280 - Game Programming</strong> | LaGuardia Community College</p>
+            <p>Professor Khalid Kassou | Unity Game Development Lab Assignment</p>
+        </footer>
+    </div>
+
+    <script>
+        // Total questions count
+        const TOTAL_QUESTIONS = 40;
+        
+        // Select option for multiple choice
+        function selectOption(input) {
+            const card = input.closest('.question-card');
+            const options = card.querySelectorAll('.option-item');
+            options.forEach(opt => opt.classList.remove('selected'));
+            input.closest('.option-item').classList.add('selected');
+            card.classList.add('answered');
+            saveProgress();
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            let answered = 0;
+            
+            // Count answered multiple choice questions
+            document.querySelectorAll('input[type="radio"]:checked').forEach(() => answered++);
+            
+            // Count filled short answer questions
+            document.querySelectorAll('.short-answer-input').forEach(textarea => {
+                if (textarea.value.trim().length > 10) answered++;
+            });
+            
+            // Count filled code inputs (group by question)
+            const codeQuestions = document.querySelectorAll('.question-card');
+            codeQuestions.forEach(card => {
+                const codeInputs = card.querySelectorAll('.code-input');
+                if (codeInputs.length > 0) {
+                    const filledInputs = Array.from(codeInputs).filter(input => input.value.trim().length > 0);
+                    if (filledInputs.length === codeInputs.length && filledInputs.length > 0) {
+                        // Check if this question wasn't already counted
+                        if (!card.querySelector('input[type="radio"]:checked') && !card.querySelector('.short-answer-input')) {
+                            answered++;
+                        }
+                    }
+                }
+            });
+            
+            // Count filled matching answers
+            const matchingGroups = document.querySelectorAll('.question-card');
+            matchingGroups.forEach(card => {
+                const matchingInputs = card.querySelectorAll('.matching-answer');
+                if (matchingInputs.length > 0) {
+                    const filledMatching = Array.from(matchingInputs).filter(input => input.value.trim().length > 0);
+                    if (filledMatching.length === matchingInputs.length) {
+                        answered++;
+                    }
+                }
+            });
+
+            const percent = Math.min(Math.round((answered / TOTAL_QUESTIONS) * 100), 100);
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = percent + '%';
+        }
+
+        // Save progress to localStorage
+        function saveProgress() {
+            const data = {
+                studentName: document.getElementById('studentName').value,
+                studentId: document.getElementById('studentId').value,
+                labDate: document.getElementById('labDate').value,
+                section: document.getElementById('section').value,
+                answers: {}
+            };
+
+            // Save all inputs
+            document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
+                data.answers[input.name] = input.value;
+            });
+
+            document.querySelectorAll('.short-answer-input').forEach((textarea, index) => {
+                data.answers['textarea_' + index] = textarea.value;
+            });
+
+            document.querySelectorAll('.code-input').forEach((input, index) => {
+                data.answers['code_' + index] = input.value;
+            });
+
+            document.querySelectorAll('.matching-answer').forEach((input, index) => {
+                data.answers['matching_' + index] = input.value;
+            });
+
+            localStorage.setItem('mac280_lab', JSON.stringify(data));
+        }
+
+        // Load progress from localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('mac280_lab');
+            if (saved) {
+                const data = JSON.parse(saved);
+                
+                document.getElementById('studentName').value = data.studentName || '';
+                document.getElementById('studentId').value = data.studentId || '';
+                document.getElementById('labDate').value = data.labDate || '';
+                document.getElementById('section').value = data.section || '';
+
+                // Restore radio buttons
+                Object.keys(data.answers).forEach(key => {
+                    if (key.startsWith('q')) {
+                        const radio = document.querySelector(`input[name="${key}"][value="${data.answers[key]}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                            radio.closest('.option-item').classList.add('selected');
+                            radio.closest('.question-card').classList.add('answered');
+                        }
+                    }
+                });
+
+                // Restore textareas
+                document.querySelectorAll('.short-answer-input').forEach((textarea, index) => {
+                    if (data.answers['textarea_' + index]) {
+                        textarea.value = data.answers['textarea_' + index];
+                    }
+                });
+
+                // Restore code inputs
+                document.querySelectorAll('.code-input').forEach((input, index) => {
+                    if (data.answers['code_' + index]) {
+                        input.value = data.answers['code_' + index];
+                    }
+                });
+
+                // Restore matching inputs
+                document.querySelectorAll('.matching-answer').forEach((input, index) => {
+                    if (data.answers['matching_' + index]) {
+                        input.value = data.answers['matching_' + index];
+                    }
+                });
+
+                updateProgress();
+            }
+        }
+
+        // Clear all progress
+        function clearProgress() {
+            if (confirm('Are you sure you want to clear all your answers? This cannot be undone.')) {
+                localStorage.removeItem('mac280_lab');
+                location.reload();
+            }
+        }
+
+        // Timer functionality
+        let timeRemaining = 150 * 60; // 2 hours 30 minutes in seconds
+        
+        function updateTimer() {
+            const hours = Math.floor(timeRemaining / 3600);
+            const minutes = Math.floor((timeRemaining % 3600) / 60);
+            const seconds = timeRemaining % 60;
+            
+            document.getElementById('timer').textContent = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+            
+            if (timeRemaining > 0) {
+                timeRemaining--;
+            }
+        }
+
+        // Set today's date as default
+        function setDefaultDate() {
+            const today = new Date();
+            const dateStr = (today.getMonth() + 1).toString().padStart(2, '0') + '/' +
+                           today.getDate().toString().padStart(2, '0') + '/' +
+                           today.getFullYear();
+            if (!document.getElementById('labDate').value) {
+                document.getElementById('labDate').value = dateStr;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProgress();
+            setDefaultDate();
+            setInterval(updateTimer, 1000);
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
