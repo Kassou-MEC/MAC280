@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity Endless Runner — Jumping &amp; Gravity Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=General+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #060a0e;
+    --bg-card: #0e1720;
+    --bg-code: #0a0f16;
+    --accent-lime: #84ff57;
+    --accent-emerald: #34d399;
+    --accent-sky: #38bdf8;
+    --accent-orange: #fb923c;
+    --accent-pink: #f472b6;
+    --accent-violet: #a78bfa;
+    --text-primary: #f0f4f8;
+    --text-body: #c1cdd9;
+    --text-muted: #8899aa;
+    --text-dim: #5a6d7e;
+    --border: rgba(255,255,255,0.06);
+    --glow-lime: 0 0 50px rgba(132,255,87,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'General Sans', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ─── ATMOSPHERE ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 25% 10%, rgba(132,255,87,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 90%, rgba(52,211,153,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(132,255,87,0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(132,255,87,0.012) 1px, transparent 1px);
+    background-size: 70px 70px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SLIDES ─── */
+  .slides-wrapper { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 80px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(22px);
+    transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1);
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+  .slide-inner { max-width: 1080px; width: 100%; }
+
+  /* ─── TYPOGRAPHY ─── */
+  .slide-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-lime);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-weight: 800;
+    font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+    line-height: 1.08;
+    letter-spacing: -1.5px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: #f8fafc;
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  p, li {
+    font-size: 1.02rem;
+    line-height: 1.8;
+    color: var(--text-body);
+    font-weight: 300;
+  }
+
+  strong { color: var(--text-primary); font-weight: 600; }
+  code { color: var(--accent-lime); font-family: 'IBM Plex Mono', monospace; font-size: 0.88em; }
+
+  .hl { color: var(--accent-lime); font-weight: 600; }
+  .hl-em { color: var(--accent-emerald); font-weight: 600; }
+  .hl-sky { color: var(--accent-sky); font-weight: 600; }
+  .hl-or { color: var(--accent-orange); font-weight: 600; }
+  .hl-pk { color: var(--accent-pink); font-weight: 600; }
+
+  /* ─── TITLE SLIDE ─── */
+  .title-slide { text-align: center; }
+
+  .title-chip {
+    display: inline-block;
+    padding: 5px 16px;
+    border: 1px solid var(--accent-lime);
+    border-radius: 100px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    color: var(--accent-lime);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    background: rgba(132,255,87,0.05);
+  }
+
+  .title-slide h1 {
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    background: linear-gradient(135deg, var(--accent-lime) 0%, var(--accent-emerald) 50%, var(--accent-sky) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 22px;
+  }
+
+  .title-slide .sub {
+    font-size: 1.15rem;
+    color: var(--text-body);
+    font-weight: 300;
+    max-width: 580px;
+    margin: 0 auto 36px;
+  }
+
+  .tag-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tag-row span {
+    padding: 5px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+
+  .code-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.r { background: #ef4444; }
+  .dot.y { background: #eab308; }
+  .dot.g { background: #22c55e; }
+
+  .code-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  .code-body { padding: 18px 20px; overflow-x: auto; }
+
+  .code-body pre {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #d4dae5;
+    white-space: pre;
+    tab-size: 4;
+  }
+
+  .kw { color: #ff9a8b; }
+  .tp { color: #7dd3fc; }
+  .fn { color: #c4b5fd; }
+  .cm { color: #7c899a; font-style: italic; }
+  .num { color: #a5f3a0; }
+  .str { color: #86efac; }
+
+  /* ─── VIDEO ─── */
+  .video-box {
+    background: var(--bg-card);
+    border: 2px dashed rgba(255,255,255,0.08);
+    border-radius: 16px;
+    aspect-ratio: 16/9;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    margin: 0 auto;
+  }
+
+  .video-box:hover {
+    border-color: rgba(132,255,87,0.3);
+    background: rgba(132,255,87,0.02);
+  }
+
+  .play-circle {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, var(--accent-lime), var(--accent-emerald));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--glow-lime);
+    transition: transform 0.3s ease;
+  }
+
+  .video-box:hover .play-circle { transform: scale(1.1); }
+  .play-circle svg { width: 26px; height: 26px; fill: #000; margin-left: 3px; }
+
+  .video-box .vid-title { font-size: 14px; color: var(--text-primary); font-weight: 400; }
+  .video-box .vid-sub { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim); letter-spacing: 1px; }
+
+  /* ─── CARDS ─── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 18px;
+    margin: 22px 0;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .card:hover { transform: translateY(-3px); border-color: rgba(132,255,87,0.15); }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+
+  .card-icon.lime { background: rgba(132,255,87,0.1); }
+  .card-icon.emerald { background: rgba(52,211,153,0.1); }
+  .card-icon.sky { background: rgba(56,189,248,0.1); }
+  .card-icon.orange { background: rgba(251,146,60,0.1); }
+  .card-icon.pink { background: rgba(244,114,182,0.1); }
+  .card-icon.violet { background: rgba(167,139,250,0.1); }
+
+  .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+  .card p { font-size: 0.92rem; line-height: 1.6; }
+
+  /* ─── STEPS ─── */
+  .steps {
+    list-style: none;
+    counter-reset: s;
+    margin: 18px 0;
+  }
+
+  .steps li {
+    counter-increment: s;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .steps li:last-child { border-bottom: none; }
+
+  .steps li::before {
+    content: counter(s, decimal-leading-zero);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-lime);
+    min-width: 28px;
+    padding-top: 3px;
+  }
+
+  /* ─── NOTES ─── */
+  .note {
+    border-left: 3px solid var(--accent-lime);
+    background: rgba(132,255,87,0.03);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+
+  .note.info { border-left-color: var(--accent-emerald); background: rgba(52,211,153,0.03); }
+  .note.warn { border-left-color: var(--accent-orange); background: rgba(251,146,60,0.03); }
+  .note.danger { border-left-color: var(--accent-pink); background: rgba(244,114,182,0.03); }
+
+  .note-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .note .note-title { color: var(--accent-lime); }
+  .note.info .note-title { color: var(--accent-emerald); }
+  .note.warn .note-title { color: var(--accent-orange); }
+  .note.danger .note-title { color: var(--accent-pink); }
+  .note p { color: var(--text-body); font-size: 0.95rem; }
+
+  /* ─── SPLIT ─── */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  .split-code {
+    display: grid;
+    grid-template-columns: 1.4fr 0.6fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  /* ─── FLOW ─── */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 22px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-box {
+    padding: 12px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .flow-box.lit { border-color: var(--accent-lime); color: var(--accent-lime); background: rgba(132,255,87,0.04); }
+  .flow-box.lit2 { border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(251,146,60,0.04); }
+  .flow-box.lit3 { border-color: var(--accent-pink); color: var(--accent-pink); background: rgba(244,114,182,0.04); }
+  .flow-arrow { color: var(--text-dim); font-size: 18px; }
+
+  /* ─── INTERACTIVE JUMP DEMO ─── */
+  .jump-demo {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 600px;
+    margin: 20px auto;
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+  }
+
+  .ground-line {
+    position: absolute;
+    bottom: 50px;
+    left: 30px;
+    right: 30px;
+    height: 2px;
+    background: var(--accent-emerald);
+    opacity: 0.4;
+  }
+
+  .ground-label {
+    position: absolute;
+    bottom: 30px;
+    right: 34px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-emerald);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .jump-player {
+    position: absolute;
+    bottom: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--accent-lime), var(--accent-emerald));
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(132,255,87,0.3);
+    transition: bottom 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .jump-player.jumping { bottom: 192px; }
+
+  .jump-stats {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .jump-stat {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .jump-stat span { color: var(--accent-lime); }
+  .jump-stat.grav span { color: var(--accent-orange); }
+  .jump-stat.grnd span { color: var(--accent-emerald); }
+
+  .jump-controls {
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  .jump-btn {
+    background: rgba(132,255,87,0.08);
+    border: 1px solid rgba(132,255,87,0.3);
+    color: var(--accent-lime);
+    padding: 10px 28px;
+    border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .jump-btn:hover { background: rgba(132,255,87,0.15); border-color: var(--accent-lime); }
+
+  /* ─── NAV ─── */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: rgba(6,10,14,0.93);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    z-index: 100;
+  }
+
+  .nav-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-lime), var(--accent-emerald));
+    transition: width 0.4s ease;
+  }
+
+  .nav-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-btn:hover { background: rgba(132,255,87,0.06); border-color: var(--accent-lime); color: var(--accent-lime); }
+  .nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  .nav-dots { display: flex; gap: 7px; align-items: center; }
+
+  .nav-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .nav-dot.on {
+    background: var(--accent-lime);
+    box-shadow: 0 0 8px rgba(132,255,87,0.5);
+    width: 22px;
+    border-radius: 4px;
+  }
+
+  .nav-dot:hover:not(.on) { background: var(--text-muted); }
+
+  .nav-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide.active .a { animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) forwards; opacity: 0; }
+  .slide.active .a.d1 { animation-delay: 0.08s; }
+  .slide.active .a.d2 { animation-delay: 0.18s; }
+  .slide.active .a.d3 { animation-delay: 0.28s; }
+  .slide.active .a.d4 { animation-delay: 0.38s; }
+  .slide.active .a.d5 { animation-delay: 0.48s; }
+
+  @media (max-width: 900px) {
+    .slide { padding: 36px 24px 76px; }
+    .split, .split-code { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="slides-wrapper" id="sw">
+
+  <!-- ═══ SLIDE 0: TITLE ═══ -->
+  <div class="slide active" data-slide="0">
+    <div class="slide-inner title-slide">
+      <div class="a d1 title-chip">MAC 280 — Game Programming</div><br>
+      <div class="a d1 title-chip">Prof. Khalid Kassou</div>
+      <h1 class="a d2">Jumping &amp;<br>Gravity</h1>
+      <p class="a d3 sub">Add jump force, gravity simulation, and ground detection to your endless runner player controller.</p>
+      <div class="a d4 tag-row">
+        <span>C#</span>
+        <span>Unity</span>
+        <span>Jump</span>
+        <span>Gravity</span>
+        <span>isGrounded</span>
+        <span>CharacterController</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 1: OVERVIEW ═══ -->
+  <div class="slide" data-slide="1">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Overview</div>
+      <h2 class="a d1">What We're Adding</h2>
+      <p class="a d2" style="max-width:720px; margin-bottom:24px;">We're extending our PlayerController with vertical movement — a jump force that launches the player up, gravity that pulls them back down, and a ground check so they can't fly.</p>
+      <div class="cards a d3">
+        <div class="card">
+          <div class="card-icon lime">🦘</div>
+          <h3>Jump Force</h3>
+          <p>Press <span class="hl">Up Arrow</span> to set <code>direction.y</code> to a jump force value, launching the player upward via <code>controller.Move()</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">🌍</div>
+          <h3>Gravity</h3>
+          <p>Each frame, <span class="hl-or">gravity</span> pulls the player back down by reducing <code>direction.y</code> over time — simulating real-world falling.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon emerald">✅</div>
+          <h3>Ground Check</h3>
+          <p>Use <code>controller.<span class="hl-em">isGrounded</span></code> to only allow jumping when the player is on the ground — no infinite mid-air jumps.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 2: VIDEO ═══ -->
+  <div class="slide" data-slide="2">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Video Tutorial</div>
+      <h2 class="a d1">Watch: Jumping &amp; Gravity</h2>
+      <p class="a d2" style="margin-bottom:26px; max-width:620px;">Follow along as we add jump input, gravity simulation, and ground detection to the player controller step by step.</p>
+      <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/nybbBNiL_p8"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 3: NEW VARIABLES ═══ -->
+  <div class="slide" data-slide="3">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Step 1 — Variables</div>
+      <h2 class="a d1">New Variables We Need</h2>
+      <p class="a d2" style="max-width:720px; margin-bottom:16px;">We add two new public float variables to the PlayerController — one for the upward force and one for gravity pulling the player down.</p>
+      <div class="split-code">
+        <div class="code-block a d3">
+          <div class="code-bar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="code-name">New Variables</span>
+          </div>
+          <div class="code-body"><pre><span class="kw">public</span> <span class="tp">float</span> jumpForce;
+<span class="kw">public</span> <span class="tp">float</span> gravity = <span class="num">-20</span>;</pre></div>
+        </div>
+        <div class="a d4">
+          <div class="note" style="margin-top:0;">
+            <div class="note-title">🦘 jumpForce</div>
+            <p><strong>Public float</strong> — controls how high the player jumps. Set it in the Inspector (try <strong>10–15</strong> to start).</p>
+          </div>
+          <div class="note warn">
+            <div class="note-title">🌍 gravity</div>
+            <p><strong>Default: -20</strong> — a negative value that pulls the player downward each frame. Real gravity ≈ -9.8, but -20 feels better in games.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 4: BASIC JUMP ═══ -->
+  <div class="slide" data-slide="4">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Step 2 — Jump Method</div>
+      <h2 class="a d1">Creating the Jump</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:16px;">We detect the <span class="hl">Up Arrow</span> key in <code>Update()</code> and call a <code>Jump()</code> method that sets the vertical direction.</p>
+      <div class="split">
+        <div class="a d3">
+          <div class="code-block">
+            <div class="code-bar">
+              <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+              <span class="code-name">Input Detection (in Update)</span>
+            </div>
+            <div class="code-body"><pre><span class="kw">if</span> (Input.<span class="fn">GetKeyDown</span>(KeyCode.UpArrow))
+{
+    <span class="fn">Jump</span>();
+}</pre></div>
+          </div>
+          <div class="code-block" style="margin-top:12px;">
+            <div class="code-bar">
+              <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+              <span class="code-name">Jump Method</span>
+            </div>
+            <div class="code-body"><pre><span class="kw">private void</span> <span class="fn">Jump</span>()
+{
+    direction.y = jumpForce;
+}</pre></div>
+          </div>
+        </div>
+        <div class="a d4">
+          <div class="note">
+            <div class="note-title">🎯 How it works</div>
+            <p>Setting <code>direction.y = jumpForce</code> gives the player an upward velocity. On the next <code>FixedUpdate()</code>, <code>controller.Move()</code> moves the player upward.</p>
+          </div>
+          <div class="note danger" style="margin-top:12px;">
+            <div class="note-title">⚠ Problem</div>
+            <p>Without gravity, the player <strong>flies forever</strong> after jumping! We need something to pull them back down.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 5: ADDING GRAVITY ═══ -->
+  <div class="slide" data-slide="5">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Step 3 — Gravity</div>
+      <h2 class="a d1">Pulling the Player Down</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:16px;">We continuously reduce <code>direction.y</code> each frame by adding gravity multiplied by <code>Time.deltaTime</code>. This creates a natural falling arc.</p>
+      <div class="code-block a d3" style="max-width:700px;">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">Gravity (in Update)</span>
+        </div>
+        <div class="code-body"><pre><span class="cm">// Apply gravity every frame</span>
+direction.y += gravity * Time.deltaTime;</pre></div>
+      </div>
+      <div class="cards a d4" style="margin-top:16px;">
+        <div class="card">
+          <div class="card-icon lime">⬆</div>
+          <h3>Frame 1: Jump</h3>
+          <p><code>direction.y = 10</code> (jumpForce). Player shoots upward.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">📉</div>
+          <h3>Frame 2+: Gravity</h3>
+          <p><code>direction.y += -20 * 0.016 = -0.32</code> each frame. The upward velocity shrinks, then goes negative.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon emerald">⬇</div>
+          <h3>Peak → Fall</h3>
+          <p>When <code>direction.y</code> crosses 0, the player starts falling. Gravity keeps accelerating them down — just like real physics.</p>
+        </div>
+      </div>
+      <div class="note warn a d5" style="max-width:700px; margin-top:14px;">
+        <div class="note-title">⚠ New Problem</div>
+        <p>The player can now jump... but they can <strong>spam the up key mid-air</strong> for infinite jumps! We need a ground check.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 6: GROUND CHECK ═══ -->
+  <div class="slide" data-slide="6">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Step 4 — Ground Detection</div>
+      <h2 class="a d1">isGrounded: Only Jump on Ground</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:16px;">The CharacterController has a built-in <code>isGrounded</code> property that returns <code>true</code> when the controller is touching a surface below it.</p>
+      <div class="code-block a d3" style="max-width:750px;">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">Ground Check</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">if</span> (controller.isGrounded)
+{
+    <span class="kw">if</span> (Input.<span class="fn">GetKeyDown</span>(KeyCode.UpArrow))
+    {
+        <span class="fn">Jump</span>();
+    }
+}</pre></div>
+      </div>
+      <div class="split a d4" style="margin-top:16px;">
+        <div class="note info">
+          <div class="note-title">✅ What isGrounded Does</div>
+          <p>Checks if the <strong>bottom</strong> of the CharacterController's capsule collider is touching any surface. Returns <code>true</code> → allow jump. Returns <code>false</code> → block jump.</p>
+        </div>
+        <div class="note">
+          <div class="note-title">🎮 Result</div>
+          <p>Now the player can only jump when standing on the ground. Pressing Up Arrow mid-air does <strong>nothing</strong> — no more infinite flying!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 7: FIXING GRAVITY LOGIC ═══ -->
+  <div class="slide" data-slide="7">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Step 5 — Final Fix</div>
+      <h2 class="a d1">Gravity Only When Airborne</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:16px;">We only want gravity pulling the player down when they're <em>not</em> on the ground. When grounded, we reset <code>direction.y</code> to a small downward force (<code>-1</code>) to keep the controller in contact with the ground.</p>
+      <div class="code-block a d3" style="max-width:800px;">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">Complete Jump + Gravity Logic</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">if</span> (controller.isGrounded)
+{
+    <span class="kw">if</span> (Input.<span class="fn">GetKeyDown</span>(KeyCode.UpArrow))
+    {
+        <span class="fn">Jump</span>();
+    }
+    <span class="kw">else</span>
+    {
+        direction.y = <span class="num">-1</span>;  <span class="cm">// Small downward force to stay grounded</span>
+    }
+}
+<span class="kw">else</span>
+{
+    direction.y += gravity * Time.deltaTime;  <span class="cm">// Falling</span>
+}</pre></div>
+      </div>
+      <div class="cards a d4" style="margin-top:14px;">
+        <div class="card">
+          <div class="card-icon emerald">🟢</div>
+          <h3>Grounded + Up Arrow</h3>
+          <p>Call <code>Jump()</code> → set <code>direction.y = jumpForce</code>. Player launches upward.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon sky">🔵</div>
+          <h3>Grounded + No Input</h3>
+          <p>Set <code>direction.y = -1</code>. This tiny downward push keeps <code>isGrounded</code> returning true reliably.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">🟠</div>
+          <h3>In the Air</h3>
+          <p><code>direction.y += gravity * deltaTime</code>. Gravity accumulates, accelerating the player downward until they land.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 8: WHY -1 ═══ -->
+  <div class="slide" data-slide="8">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Deep Dive</div>
+      <h2 class="a d1">Why <code>direction.y = -1</code>?</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:18px;">This is a subtle but important detail that many tutorials skip. Here's why we use <code>-1</code> instead of <code>0</code> when the player is on the ground.</p>
+      <div class="split a d3">
+        <div class="card" style="border-color: rgba(244,114,182,0.2);">
+          <h3>❌ Using direction.y = 0</h3>
+          <p>If the player walks off a ledge or over a bump, <code>isGrounded</code> may flicker between true/false. With <code>y = 0</code>, the controller can "float" for a frame before gravity kicks in — causing jittery grounding.</p>
+        </div>
+        <div class="card" style="border-color: rgba(132,255,87,0.2);">
+          <h3>✅ Using direction.y = -1</h3>
+          <p>A constant small downward push ensures the CharacterController is always being pressed into the ground surface. This makes <code>isGrounded</code> return <strong>true</strong> consistently and prevents floating.</p>
+        </div>
+      </div>
+      <div class="note info a d4" style="max-width:800px; margin-top:16px;">
+        <div class="note-title">💡 Think of it like this</div>
+        <p>It's like gently pressing your feet into the floor. You're not falling — you're just making sure your shoes stay in contact with the ground so you can push off when you need to jump.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 9: EXECUTION FLOW ═══ -->
+  <div class="slide" data-slide="9">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Logic Flow</div>
+      <h2 class="a d1">How It All Connects</h2>
+      <p class="a d2" style="max-width:700px; margin-bottom:14px;">Here's the decision tree that runs every frame inside <code>Update()</code>:</p>
+      <div class="a d3" style="max-width:800px; margin:0 auto;">
+        <div class="flow" style="margin-bottom:8px;">
+          <div class="flow-box">controller.isGrounded?</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div>
+            <div class="flow" style="margin:8px 0;">
+              <div class="flow-box lit" style="width:100%;">YES — On Ground</div>
+            </div>
+            <div class="flow" style="margin:4px 0;">
+              <div class="flow-box" style="font-size:11px;">Up Arrow pressed?</div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+              <div class="flow-box lit" style="font-size:11px; text-align:center;">YES<br>→ Jump()</div>
+              <div class="flow-box" style="font-size:11px; text-align:center;">NO<br>→ y = -1</div>
+            </div>
+          </div>
+          <div>
+            <div class="flow" style="margin:8px 0;">
+              <div class="flow-box lit2" style="width:100%;">NO — In Air</div>
+            </div>
+            <div class="flow" style="margin:4px 0;">
+              <div class="flow-box lit2" style="font-size:11px;">y += gravity × Δt</div>
+            </div>
+            <div class="note warn" style="margin-top:12px; padding:12px 14px;">
+              <p style="font-size:0.85rem;">Gravity accumulates each frame, making the fall speed increase naturally — just like real physics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 10: INTERACTIVE DEMO ═══ -->
+  <div class="slide" data-slide="10">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Try It</div>
+      <h2 class="a d1">Interactive Jump Demo</h2>
+      <p class="a d2" style="max-width:680px; margin-bottom:10px;">Click the Jump button (or press <strong>Up Arrow</strong> on this slide) to see the jump → gravity → landing cycle in action.</p>
+      <div class="a d3 jump-demo" id="jumpDemo">
+        <div class="jump-stats">
+          <div class="jump-stat">direction.y: <span id="yVal">-1</span></div>
+          <div class="jump-stat grav">gravity: <span>-20</span></div>
+          <div class="jump-stat grnd">isGrounded: <span id="grndVal">true</span></div>
+        </div>
+        <div class="jump-player" id="jumpPlayer">🏃</div>
+        <div class="ground-line"></div>
+        <div class="ground-label">Ground</div>
+      </div>
+      <div class="jump-controls a d4">
+        <button class="jump-btn" id="jumpBtn" onclick="doJump()">⬆ Jump (Up Arrow)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 11: FINAL SCRIPT ═══ -->
+  <div class="slide" data-slide="11">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Complete Script</div>
+      <h2 class="a d1">The Full PlayerController</h2>
+      <div class="code-block a d2">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">PlayerController.cs — With Jump &amp; Gravity</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">using</span> UnityEngine;
+
+<span class="kw">public class</span> <span class="tp">PlayerController</span> : <span class="tp">MonoBehaviour</span>
+{
+    <span class="kw">private</span> <span class="tp">CharacterController</span> controller;
+    <span class="kw">private</span> <span class="tp">Vector3</span> direction;
+    <span class="kw">public</span> <span class="tp">float</span> forwardSpeed;
+
+    <span class="kw">private</span> <span class="tp">int</span> desiredLane = <span class="num">1</span>;   <span class="cm">// 0:LEFT  1:MIDDLE  2:RIGHT</span>
+    <span class="kw">public</span> <span class="tp">float</span> laneDistance = <span class="num">4</span>;
+
+    <span class="kw">public</span> <span class="tp">float</span> jumpForce;
+    <span class="kw">public</span> <span class="tp">float</span> gravity = <span class="num">-20</span>;
+
+    <span class="kw">void</span> <span class="fn">Start</span>()
+    {
+        controller = <span class="fn">GetComponent</span>&lt;<span class="tp">CharacterController</span>&gt;();
+    }
+
+    <span class="kw">void</span> <span class="fn">Update</span>()
+    {
+        direction.z = forwardSpeed;
+
+        <span class="cm">// Lane switching</span>
+        <span class="kw">if</span> (Input.<span class="fn">GetKeyDown</span>(KeyCode.RightArrow))
+        {
+            desiredLane++;
+            <span class="kw">if</span> (desiredLane == <span class="num">3</span>)
+                desiredLane = <span class="num">2</span>;
+        }
+
+        <span class="kw">if</span> (Input.<span class="fn">GetKeyDown</span>(KeyCode.LeftArrow))
+        {
+            desiredLane--;
+            <span class="kw">if</span> (desiredLane == <span class="num">-1</span>)
+                desiredLane = <span class="num">0</span>;
+        }
+
+        <span class="tp">float</span> targetX = (desiredLane - <span class="num">1</span>) * laneDistance;
+        direction.x = (targetX - transform.position.x) * <span class="num">10f</span>;
+
+        <span class="cm">// Jump &amp; gravity</span>
+        <span class="kw">if</span> (controller.isGrounded)
+        {
+            <span class="kw">if</span> (Input.<span class="fn">GetKeyDown</span>(KeyCode.UpArrow))
+            {
+                <span class="fn">Jump</span>();
+            }
+            <span class="kw">else</span>
+            {
+                direction.y = <span class="num">-1</span>;
+            }
+        }
+        <span class="kw">else</span>
+        {
+            direction.y += gravity * Time.deltaTime;
+        }
+    }
+
+    <span class="kw">private void</span> <span class="fn">Jump</span>()
+    {
+        direction.y = jumpForce;
+    }
+
+    <span class="kw">private void</span> <span class="fn">FixedUpdate</span>()
+    {
+        controller.<span class="fn">Move</span>(direction * Time.deltaTime);
+    }
+}</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 12: INSPECTOR SETUP ═══ -->
+  <div class="slide" data-slide="12">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Inspector</div>
+      <h2 class="a d1">Recommended Inspector Values</h2>
+      <p class="a d2" style="max-width:720px; margin-bottom:18px;">After saving the script, go back to Unity. Select the <strong>Player</strong> object and tune these values in the Inspector:</p>
+      <div class="cards a d3">
+        <div class="card">
+          <div class="card-icon lime">🏃</div>
+          <h3>Forward Speed</h3>
+          <p>Start with <code>10</code>–<code>15</code>. This controls how fast the player runs forward. Increase over time for difficulty scaling.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">🦘</div>
+          <h3>Jump Force</h3>
+          <p>Try <code>10</code>–<code>15</code>. Higher values = bigger jumps. The tutorial uses <code>10</code> initially, then <code>12</code> for a bouncier feel.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon sky">🌍</div>
+          <h3>Gravity</h3>
+          <p>Default <code>-20</code>. More negative = faster fall. Real gravity is -9.8, but games feel better with <code>-15</code> to <code>-25</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon emerald">↔</div>
+          <h3>Lane Distance</h3>
+          <p>Default <code>4</code>. Match this to your ground width. The tutorial adjusts to <code>3</code> for tighter lanes.</p>
+        </div>
+      </div>
+      <div class="note a d4" style="max-width:800px;">
+        <div class="note-title">🎛 Tuning Tip</div>
+        <p>You can change public variables in the Inspector <strong>while the game is running</strong> to test values in real time. Just remember — changes made during Play mode reset when you stop!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 13: TAKEAWAYS ═══ -->
+  <div class="slide" data-slide="13">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Summary</div>
+      <h2 class="a d1">Key Takeaways</h2>
+      <div class="cards a d2">
+        <div class="card">
+          <div class="card-icon lime">⬆</div>
+          <h3>Jump = Set direction.y</h3>
+          <p>Jumping is simply setting <code>direction.y = jumpForce</code>. The CharacterController handles the rest via <code>Move()</code>.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">📉</div>
+          <h3>Gravity Accumulates</h3>
+          <p><code>direction.y += gravity * deltaTime</code> creates realistic acceleration — slow at the peak, fast on the way down.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon emerald">🔒</div>
+          <h3>isGrounded Gate</h3>
+          <p>Wrap jump input inside <code>if (controller.isGrounded)</code> to prevent infinite mid-air jumps.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon sky">⬇</div>
+          <h3>direction.y = -1 on Ground</h3>
+          <p>A small downward push when grounded keeps the controller in reliable contact with the surface.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon violet">🎛</div>
+          <h3>Tune in Inspector</h3>
+          <p>Public variables appear in Unity's Inspector. Test different jumpForce and gravity values at runtime to find the perfect feel.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon pink">🧩</div>
+          <h3>Clean Separation</h3>
+          <p>Extract Jump() into its own method. Keeps Update() readable and makes it easy to add features like double-jump later.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 14: WHAT'S NEXT ═══ -->
+  <div class="slide" data-slide="14">
+    <div class="slide-inner title-slide">
+      <div class="a d1 title-chip">Next Steps</div>
+      <h1 class="a d2" style="font-size: clamp(2rem, 4.5vw, 3.8rem);">What's Coming Next?</h1>
+      <p class="a d3 sub">With movement, lane switching, camera follow, and jumping complete, the next tutorials will cover:</p>
+      <div class="cards a d4" style="max-width:800px; text-align:left;">
+        <div class="card">
+          <div class="card-icon pink">📱</div>
+          <h3>Swipe Controls</h3>
+          <p>Replace arrow keys with touch swipe input for mobile gameplay.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">🧱</div>
+          <h3>Obstacles &amp; Collision</h3>
+          <p>Spawn obstacles and detect collisions for game-over logic.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon emerald">🏆</div>
+          <h3>Scoring System</h3>
+          <p>Track distance, display score UI, and save high scores.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon violet">🎨</div>
+          <h3>Polish &amp; Animation</h3>
+          <p>Add player animations, particle effects, and visual feedback.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── NAV ─── -->
+<nav class="nav" id="nav">
+  <div class="nav-progress" id="navProgress"></div>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)"><span>←</span> Prev</button>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="nav-dots" id="dots"></div>
+    <span class="nav-count" id="count"></span>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">Next <span>→</span></button>
+</nav>
+
+<script>
+  // ─── NAV ───
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  (function initDots() {
+    const c = document.getElementById('dots');
+    for (let i = 0; i < total; i++) {
+      const d = document.createElement('button');
+      d.className = 'nav-dot' + (i === 0 ? ' on' : '');
+      d.onclick = () => goTo(i);
+      c.appendChild(d);
+    }
+  })();
+
+  function goTo(i) {
+    if (i < 0 || i >= total) return;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    upNav();
+  }
+
+  function go(d) { goTo(cur + d); }
+
+  function upNav() {
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+    document.getElementById('count').textContent = `${cur + 1} / ${total}`;
+    document.getElementById('prevBtn').disabled = cur === 0;
+    document.getElementById('nextBtn').disabled = cur === total - 1;
+    document.getElementById('navProgress').style.width = (cur / (total - 1) * 100) + '%';
+  }
+
+  document.addEventListener('keydown', e => {
+    // Jump demo on slide 10
+    if (cur === 10 && e.key === 'ArrowUp') {
+      e.preventDefault();
+      doJump();
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+
+  upNav();
+
+  // ─── JUMP DEMO ───
+  let isJumping = false;
+
+  function doJump() {
+    if (isJumping) return;
+    isJumping = true;
+
+    const player = document.getElementById('jumpPlayer');
+    const yVal = document.getElementById('yVal');
+    const grndVal = document.getElementById('grndVal');
+
+    // Launch
+    player.classList.add('jumping');
+    yVal.textContent = '10';
+    yVal.style.color = 'var(--accent-lime)';
+    grndVal.textContent = 'false';
+    grndVal.style.color = 'var(--accent-orange)';
+
+    // Peak — simulate gravity reducing y
+    setTimeout(() => {
+      yVal.textContent = '2.4';
+    }, 200);
+
+    setTimeout(() => {
+      yVal.textContent = '0';
+    }, 350);
+
+    // Falling
+    setTimeout(() => {
+      yVal.textContent = '-4.8';
+      yVal.style.color = 'var(--accent-orange)';
+      player.classList.remove('jumping');
+    }, 450);
+
+    // Landed
+    setTimeout(() => {
+      yVal.textContent = '-1';
+      yVal.style.color = 'var(--accent-lime)';
+      grndVal.textContent = 'true';
+      grndVal.style.color = 'var(--accent-emerald)';
+      isJumping = false;
+    }, 900);
+  }
+</script>
+</body>
+</html>
