@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity Camera Follow System — Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #080b14;
+    --bg-card: #111827;
+    --bg-code: #0c1018;
+    --accent-amber: #f59e0b;
+    --accent-amber-light: #fbbf24;
+    --accent-teal: #2dd4bf;
+    --accent-rose: #fb7185;
+    --accent-sky: #38bdf8;
+    --accent-violet: #a78bfa;
+    --text-primary: #f1f5f9;
+    --text-body: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --border: rgba(255,255,255,0.07);
+    --glow-amber: 0 0 50px rgba(245,158,11,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ─── ATMOSPHERE ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(245,158,11,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(45,212,191,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SLIDES ─── */
+  .slides-wrapper { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 80px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(24px);
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+  .slide-inner { max-width: 1080px; width: 100%; }
+
+  /* ─── TYPOGRAPHY ─── */
+  .slide-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-amber);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-weight: 800;
+    font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+    line-height: 1.08;
+    letter-spacing: -1.5px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: #f8fafc;
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  p, li {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-body);
+    font-weight: 300;
+  }
+
+  strong { color: var(--text-primary); font-weight: 600; }
+  code { color: var(--accent-amber-light); font-family: 'DM Mono', monospace; font-size: 0.88em; }
+  em { color: var(--text-body); font-style: italic; }
+
+  .hl { color: var(--accent-amber-light); font-weight: 600; }
+  .hl-teal { color: var(--accent-teal); font-weight: 600; }
+  .hl-rose { color: var(--accent-rose); font-weight: 600; }
+  .hl-sky { color: var(--accent-sky); font-weight: 600; }
+
+  /* ─── TITLE SLIDE ─── */
+  .title-slide { text-align: center; }
+
+  .title-chip {
+    display: inline-block;
+    padding: 5px 16px;
+    border: 1px solid var(--accent-amber);
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 30px;
+    color: var(--accent-amber);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    background: rgba(245,158,11,0.06);
+  }
+
+  .title-slide h1 {
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    background: linear-gradient(135deg, var(--accent-amber-light) 0%, var(--accent-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 22px;
+  }
+
+  .title-slide .sub {
+    font-size: 1.15rem;
+    color: var(--text-body);
+    font-weight: 300;
+    max-width: 560px;
+    margin: 0 auto 36px;
+  }
+
+  .tag-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tag-row span {
+    padding: 5px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+
+  .code-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    background: rgba(255,255,255,0.025);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.r { background: #ef4444; }
+  .dot.y { background: #eab308; }
+  .dot.g { background: #22c55e; }
+
+  .code-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  .code-body { padding: 18px 20px; overflow-x: auto; }
+
+  .code-body pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #dde4ee;
+    white-space: pre;
+    tab-size: 4;
+  }
+
+  .kw { color: #ff9a8b; }
+  .tp { color: #7dd3fc; }
+  .fn { color: #c4b5fd; }
+  .cm { color: #7c899a; font-style: italic; }
+  .num { color: #fcd34d; }
+  .str { color: #86efac; }
+
+  /* ─── VIDEO PLACEHOLDER ─── */
+  .video-box {
+    background: var(--bg-card);
+    border: 2px dashed rgba(255,255,255,0.08);
+    border-radius: 16px;
+    aspect-ratio: 16/9;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .video-box:hover {
+    border-color: rgba(245,158,11,0.3);
+    background: rgba(245,158,11,0.02);
+  }
+
+  .play-circle {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, var(--accent-amber), var(--accent-teal));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--glow-amber);
+    transition: transform 0.3s ease;
+  }
+
+  .video-box:hover .play-circle { transform: scale(1.1); }
+
+  .play-circle svg { width: 26px; height: 26px; fill: #fff; margin-left: 3px; }
+
+  .video-box .vid-title {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 400;
+  }
+
+  .video-box .vid-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* ─── CARDS ─── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 18px;
+    margin: 22px 0;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .card:hover { transform: translateY(-3px); border-color: rgba(245,158,11,0.18); }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+
+  .card-icon.amber { background: rgba(245,158,11,0.1); }
+  .card-icon.teal { background: rgba(45,212,191,0.1); }
+  .card-icon.rose { background: rgba(251,113,133,0.1); }
+  .card-icon.sky { background: rgba(56,189,248,0.1); }
+  .card-icon.violet { background: rgba(167,139,250,0.1); }
+
+  .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+  .card p { font-size: 0.92rem; line-height: 1.6; }
+
+  /* ─── STEPS ─── */
+  .steps {
+    list-style: none;
+    counter-reset: s;
+    margin: 18px 0;
+  }
+
+  .steps li {
+    counter-increment: s;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .steps li:last-child { border-bottom: none; }
+
+  .steps li::before {
+    content: counter(s, decimal-leading-zero);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent-amber);
+    min-width: 28px;
+    padding-top: 3px;
+  }
+
+  /* ─── CALLOUT ─── */
+  .note {
+    border-left: 3px solid var(--accent-amber);
+    background: rgba(245,158,11,0.04);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+
+  .note.info { border-left-color: var(--accent-teal); background: rgba(45,212,191,0.04); }
+  .note.warn { border-left-color: var(--accent-rose); background: rgba(251,113,133,0.04); }
+
+  .note-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .note .note-title { color: var(--accent-amber); }
+  .note.info .note-title { color: var(--accent-teal); }
+  .note.warn .note-title { color: var(--accent-rose); }
+  .note p { color: var(--text-body); font-size: 0.95rem; }
+
+  /* ─── COMPARISON TABLE ─── */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 0.95rem;
+  }
+
+  .cmp-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-amber);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--accent-amber);
+    background: rgba(245,158,11,0.03);
+  }
+
+  .cmp-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-body);
+  }
+
+  .cmp-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+  /* ─── SPLIT ─── */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  .split-code {
+    display: grid;
+    grid-template-columns: 1.4fr 0.6fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  /* ─── FLOW DIAGRAM ─── */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 22px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-box {
+    padding: 12px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .flow-box.lit {
+    border-color: var(--accent-amber);
+    color: var(--accent-amber-light);
+    background: rgba(245,158,11,0.05);
+  }
+
+  .flow-box.lit2 {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+    background: rgba(45,212,191,0.05);
+  }
+
+  .flow-arrow { color: var(--text-dim); font-size: 18px; }
+
+  /* ─── INTERACTIVE DIAGRAM ─── */
+  .axis-diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 600px;
+    position: relative;
+    min-height: 240px;
+  }
+
+  .axis-diagram .axis-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: absolute;
+  }
+
+  .cam-icon, .player-icon {
+    position: absolute;
+    font-size: 32px;
+    transition: left 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .offset-line {
+    position: absolute;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--accent-amber) 0, var(--accent-amber) 6px, transparent 6px, transparent 12px);
+    top: 50%;
+    transition: left 0.8s cubic-bezier(0.25, 1, 0.5, 1), width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .offset-tag {
+    position: absolute;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-amber);
+    background: var(--bg-card);
+    padding: 2px 8px;
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 4px;
+    transition: left 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    white-space: nowrap;
+  }
+
+  .diagram-controls {
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  .diagram-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 4px;
+  }
+
+  .diagram-btn:hover { border-color: var(--accent-amber); color: var(--accent-amber); background: rgba(245,158,11,0.05); }
+  .diagram-btn.active { border-color: var(--accent-amber); color: var(--accent-amber); background: rgba(245,158,11,0.08); }
+
+  /* ─── NAV BAR ─── */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: rgba(8,11,20,0.93);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    z-index: 100;
+  }
+
+  .nav-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-teal));
+    transition: width 0.4s ease;
+  }
+
+  .nav-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-btn:hover { background: rgba(245,158,11,0.06); border-color: var(--accent-amber); color: var(--accent-amber); }
+  .nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  .nav-dots { display: flex; gap: 7px; align-items: center; }
+
+  .nav-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .nav-dot.on {
+    background: var(--accent-amber);
+    box-shadow: 0 0 8px rgba(245,158,11,0.5);
+    width: 22px;
+    border-radius: 4px;
+  }
+
+  .nav-dot:hover:not(.on) { background: var(--text-muted); }
+
+  .nav-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide.active .a {
+    animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+
+  .slide.active .a.d1 { animation-delay: 0.08s; }
+  .slide.active .a.d2 { animation-delay: 0.18s; }
+  .slide.active .a.d3 { animation-delay: 0.28s; }
+  .slide.active .a.d4 { animation-delay: 0.38s; }
+  .slide.active .a.d5 { animation-delay: 0.48s; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .slide { padding: 36px 24px 76px; }
+    .split, .split-code { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="slides-wrapper" id="sw">
+
+  <!-- ═══ SLIDE 0: TITLE ═══ -->
+  <div class="slide active" data-slide="0">
+    <div class="slide-inner title-slide">
+      <div class="a d1 title-chip">MAC 280 — Game Programming</div><br>
+      <div class="a d1 title-chip">Prof. Khalid Kassou</div>
+      <h1 class="a d2">Camera Follow<br>System</h1>
+      <p class="a d3 sub">Make the camera smoothly follow your player along the Z-axis using offset tracking, LateUpdate, and Vector3.Lerp.</p>
+      <div class="a d4 tag-row">
+        <span>C#</span>
+        <span>Unity</span>
+        <span>Camera</span>
+        <span>LateUpdate</span>
+        <span>Vector3.Lerp</span>
+        <span>Offset</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 1: OVERVIEW ═══ -->
+  <div class="slide" data-slide="1">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Overview</div>
+      <h2 class="a d1">What We're Building</h2>
+      <p class="a d2" style="max-width:720px; margin-bottom:24px;">A camera controller that follows the player forward while maintaining a fixed offset — keeping X and Y steady, only tracking Z movement, with optional smoothness.</p>
+      <div class="cards a d3">
+        <div class="card">
+          <div class="card-icon amber">📷</div>
+          <h3>Follow the Player</h3>
+          <p>The camera tracks the player's <span class="hl">Z position</span> while keeping its X and Y position unchanged.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon teal">📐</div>
+          <h3>Offset Tracking</h3>
+          <p>Calculate the initial <span class="hl-teal">distance between camera and player</span> at startup, then maintain it every frame.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon violet">🧈</div>
+          <h3>Smooth Follow</h3>
+          <p>Use <span class="hl-sky">LateUpdate</span> and <span class="hl-sky">Vector3.Lerp</span> for a polished, cinematic camera that eases into position.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 2: VIDEO ═══ -->
+  <div class="slide" data-slide="2">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Video Tutorial</div>
+      <h2 class="a d1">Watch: Camera Follow System</h2>
+      <p class="a d2" style="margin-bottom:26px; max-width:620px;">Follow along as we create the CameraController script, calculate the offset, and implement smooth following with LateUpdate.</p>
+      <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/ApRqYDL3OMo"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 3: QUICK TIP ═══ -->
+  <div class="slide" data-slide="3">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Quick Tip</div>
+      <h2 class="a d1">Change the Camera Background</h2>
+      <p class="a d2" style="max-width:700px; margin-bottom:20px;">Before we start scripting, here's a useful tip for setting up your scene's visual appearance.</p>
+      <div class="split a d3">
+        <div>
+          <ol class="steps">
+            <li>Select the <span class="hl">Main Camera</span> in the Hierarchy.</li>
+            <li>In the Inspector, find the <span class="hl">Camera</span> component.</li>
+            <li>Change <strong>Clear Flags</strong> from <code>Skybox</code> to <code>Solid Color</code>.</li>
+            <li>Click the <strong>Background</strong> color field and choose any color you want for your scene.</li>
+          </ol>
+        </div>
+        <div>
+          <div class="note">
+            <div class="note-title">💡 Why Solid Color?</div>
+            <p>For endless runner games, a solid background is cleaner and more performant than a Skybox. It also gives your game a distinct visual identity.</p>
+          </div>
+          <div class="note info" style="margin-top:12px;">
+            <div class="note-title">🎨 Color Tip</div>
+            <p>Dark blues (<code>#1a1a2e</code>) or deep purples work great for endless runners, providing contrast for your ground and obstacles.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 4: SCRIPT SETUP ═══ -->
+  <div class="slide" data-slide="4">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Setup</div>
+      <h2 class="a d1">Creating the CameraController Script</h2>
+      <ol class="steps a d2">
+        <li>In the Project window, go to your <span class="hl">Scripts</span> folder.</li>
+        <li>Right-click → <span class="hl">Create → C# Script</span>. Name it <code>CameraController</code>.</li>
+        <li><strong>Drag and drop</strong> the script onto the <span class="hl">Main Camera</span> in the Hierarchy.</li>
+        <li>Double-click the script to open it in Visual Studio.</li>
+      </ol>
+      <div class="note a d3">
+        <div class="note-title">📌 Important</div>
+        <p>This script goes on the <strong>Main Camera</strong>, not the Player. The camera will read the player's position and move itself accordingly.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 5: VARIABLES ═══ -->
+  <div class="slide" data-slide="5">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Variables</div>
+      <h2 class="a d1">Declaring Our Variables</h2>
+      <div class="split-code">
+        <div class="code-block a d2">
+          <div class="code-bar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="code-name">CameraController.cs</span>
+          </div>
+          <div class="code-body"><pre><span class="kw">using</span> UnityEngine;
+
+<span class="kw">public class</span> <span class="tp">CameraController</span> : <span class="tp">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="tp">Transform</span> target;
+    <span class="kw">private</span> <span class="tp">Vector3</span> offset;
+}</pre></div>
+        </div>
+        <div class="a d3">
+          <div class="note" style="margin-top:0;">
+            <div class="note-title">🎯 target</div>
+            <p><strong>Public Transform</strong> — a reference to the player's Transform. We assign this in the Unity Inspector by dragging the Player object into this slot.</p>
+          </div>
+          <div class="note info">
+            <div class="note-title">📏 offset</div>
+            <p><strong>Private Vector3</strong> — stores the initial distance between the camera and the player. Calculated once at startup, reused every frame.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 6: OFFSET CALCULATION ═══ -->
+  <div class="slide" data-slide="6">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Start Method</div>
+      <h2 class="a d1">Calculating the Offset</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:16px;">In the <code>Start()</code> method, we capture the initial distance between the camera and the player. This offset stays constant throughout the game.</p>
+      <div class="code-block a d3" style="max-width:700px;">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">Start()</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">void</span> <span class="fn">Start</span>()
+{
+    offset = transform.position - target.position;
+}</pre></div>
+      </div>
+      <div class="cards a d4" style="margin-top:18px;">
+        <div class="card">
+          <div class="card-icon amber">📷</div>
+          <h3>transform.position</h3>
+          <p>The camera's position in world space (since this script is attached to the Main Camera).</p>
+        </div>
+        <div class="card">
+          <div class="card-icon teal">🏃</div>
+          <h3>target.position</h3>
+          <p>The player's position in world space. We subtract it to get the <strong>relative distance</strong> between camera and player.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon sky">📦</div>
+          <h3>Example</h3>
+          <p>Camera at <code>(0, 8, -10)</code>, Player at <code>(0, 0, 0)</code> → offset = <code>(0, 8, -10)</code>. The camera is 8 units up and 10 units behind.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 7: POSITION LOGIC ═══ -->
+  <div class="slide" data-slide="7">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Camera Logic</div>
+      <h2 class="a d1">Calculating the New Position</h2>
+      <p class="a d2" style="max-width:780px; margin-bottom:16px;">Each frame, we build a new position vector. The X and Y stay locked to the camera's current values, while the Z follows the player plus the original offset.</p>
+      <div class="code-block a d3" style="max-width:800px;">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">Position Calculation</span>
+        </div>
+        <div class="code-body"><pre><span class="tp">Vector3</span> newPosition = <span class="kw">new</span> <span class="tp">Vector3</span>(
+    transform.position.x,   <span class="cm">// X stays the same</span>
+    transform.position.y,   <span class="cm">// Y stays the same</span>
+    offset.z + target.position.z  <span class="cm">// Z follows player</span>
+);
+
+transform.position = newPosition;</pre></div>
+      </div>
+      <div class="split a d4" style="margin-top:18px;">
+        <div class="note">
+          <div class="note-title">🔒 X &amp; Y Locked</div>
+          <p>We use the camera's own <code>transform.position.x</code> and <code>.y</code> so it doesn't drift sideways or vertically when the player moves.</p>
+        </div>
+        <div class="note info">
+          <div class="note-title">🏃 Z Follows</div>
+          <p><code>offset.z + target.position.z</code> means: wherever the player is on Z, place the camera at that position <strong>plus the original gap</strong> (e.g., -10 units behind).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 8: LATEUPDATE ═══ -->
+  <div class="slide" data-slide="8">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Execution Order</div>
+      <h2 class="a d1">Why LateUpdate?</h2>
+      <p class="a d2" style="max-width:720px; margin-bottom:14px;">Camera movement should happen <em>after</em> the player has moved. Unity provides <code>LateUpdate()</code> exactly for this purpose.</p>
+      <div class="flow a d3">
+        <div class="flow-box lit">Update()<br><span style="font-size:10px;">Player moves</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">FixedUpdate()<br><span style="font-size:10px;">Physics</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box lit2">LateUpdate()<br><span style="font-size:10px;">Camera follows</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">Render</div>
+      </div>
+      <div class="a d4" style="max-width:780px; margin:0 auto;">
+        <table class="cmp-table">
+          <tr>
+            <th>Method</th>
+            <th>When It Runs</th>
+            <th>Use For</th>
+          </tr>
+          <tr>
+            <td><code>Update()</code></td>
+            <td>Every frame, before LateUpdate</td>
+            <td>Player input &amp; movement</td>
+          </tr>
+          <tr>
+            <td><code>LateUpdate()</code></td>
+            <td>Every frame, <strong>after</strong> all Update() calls</td>
+            <td>Camera follow, UI follow</td>
+          </tr>
+        </table>
+      </div>
+      <div class="note warn a d5" style="max-width:780px; margin:14px auto 0;">
+        <div class="note-title">⚠ Common Mistake</div>
+        <p>If you put camera follow logic in <code>Update()</code>, the camera might read the player's <em>old</em> position (before it moved this frame), causing jitter.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 9: SMOOTHNESS ═══ -->
+  <div class="slide" data-slide="9">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Smoothness</div>
+      <h2 class="a d1">Adding Smooth Follow with Lerp</h2>
+      <p class="a d2" style="max-width:740px; margin-bottom:16px;">Instead of snapping instantly, we use <code>Vector3.Lerp</code> to smoothly blend between the camera's current position and the target position each frame.</p>
+      <div class="split">
+        <div class="a d3">
+          <div class="code-block">
+            <div class="code-bar">
+              <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+              <span class="code-name">Without Smoothing</span>
+            </div>
+            <div class="code-body"><pre><span class="cm">// Instant snap — no smoothness</span>
+transform.position = newPosition;</pre></div>
+          </div>
+          <div class="code-block" style="margin-top:12px;">
+            <div class="code-bar">
+              <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+              <span class="code-name">With Smoothing ✨</span>
+            </div>
+            <div class="code-body"><pre><span class="cm">// Smooth interpolation</span>
+transform.position = <span class="tp">Vector3</span>.<span class="fn">Lerp</span>(
+    transform.position,
+    newPosition,
+    <span class="num">10</span> * Time.deltaTime
+);</pre></div>
+          </div>
+        </div>
+        <div class="a d4">
+          <div class="note">
+            <div class="note-title">🔄 Vector3.Lerp</div>
+            <p><strong>L</strong>inear int<strong>erp</strong>olation. Blends between two points. The third parameter (0–1) controls how fast the camera catches up.</p>
+          </div>
+          <div class="note info" style="margin-top:12px;">
+            <div class="note-title">⏱ Time.deltaTime</div>
+            <p>Multiplying by <code>Time.deltaTime</code> makes the smoothing frame-rate independent. <code>10 * deltaTime</code> ≈ quick but smooth follow.</p>
+          </div>
+          <div class="note" style="margin-top:12px;">
+            <div class="note-title">🎚 Tuning the Speed</div>
+            <p>Lower values (2–5) = lazy, cinematic feel. Higher values (10–20) = tight, responsive follow. At ~60fps, <code>10 * deltaTime ≈ 0.17</code> per frame.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 10: INTERACTIVE DIAGRAM ═══ -->
+  <div class="slide" data-slide="10">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Visualized</div>
+      <h2 class="a d1">Camera Offset in Action</h2>
+      <p class="a d2" style="max-width:700px; margin-bottom:10px;">Click the buttons to simulate the player moving forward. Watch how the camera maintains its offset on the Z-axis while X and Y stay locked.</p>
+      <div class="a d3 axis-diagram" id="axisDiagram">
+        <div class="axis-label" style="bottom:12px; left:50%; transform:translateX(-50%);">Z-axis (forward) →</div>
+        <div class="cam-icon" id="camIcon" style="top:40%; left:15%;">📷</div>
+        <div class="player-icon" id="playerIcon" style="top:40%; left:55%;">🏃</div>
+        <div class="offset-line" id="offsetLine"></div>
+        <div class="offset-tag" id="offsetTag">offset.z</div>
+      </div>
+      <div class="diagram-controls a d4">
+        <button class="diagram-btn" onclick="movePlayer(-1)">← Move Back</button>
+        <button class="diagram-btn" onclick="movePlayer(0)">Reset</button>
+        <button class="diagram-btn" onclick="movePlayer(1)">Move Forward →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 11: FINAL SCRIPT ═══ -->
+  <div class="slide" data-slide="11">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Complete Script</div>
+      <h2 class="a d1">The Final CameraController</h2>
+      <div class="code-block a d2">
+        <div class="code-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="code-name">CameraController.cs — Final Version</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">using</span> UnityEngine;
+
+<span class="kw">public class</span> <span class="tp">CameraController</span> : <span class="tp">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="tp">Transform</span> target;    <span class="cm">// Drag the Player here in Inspector</span>
+    <span class="kw">private</span> <span class="tp">Vector3</span> offset;     <span class="cm">// Auto-calculated at startup</span>
+
+    <span class="kw">void</span> <span class="fn">Start</span>()
+    {
+        offset = transform.position - target.position;
+    }
+
+    <span class="kw">void</span> <span class="fn">LateUpdate</span>()
+    {
+        <span class="tp">Vector3</span> newPosition = <span class="kw">new</span> <span class="tp">Vector3</span>(
+            transform.position.x,            <span class="cm">// X: keep camera's X</span>
+            transform.position.y,            <span class="cm">// Y: keep camera's Y</span>
+            offset.z + target.position.z     <span class="cm">// Z: follow player + offset</span>
+        );
+
+        transform.position = <span class="tp">Vector3</span>.<span class="fn">Lerp</span>(
+            transform.position,
+            newPosition,
+            <span class="num">10</span> * Time.deltaTime
+        );
+    }
+}</pre></div>
+      </div>
+      <div class="note a d3" style="max-width:800px;">
+        <div class="note-title">🔌 Don't Forget!</div>
+        <p>After saving, go back to Unity, select the <strong>Main Camera</strong>, and drag the <strong>Player</strong> game object into the <code>Target</code> slot in the Inspector. Without this, the script won't know which object to follow.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 12: TAKEAWAYS ═══ -->
+  <div class="slide" data-slide="12">
+    <div class="slide-inner">
+      <div class="a d1 slide-label">Summary</div>
+      <h2 class="a d1">Key Takeaways</h2>
+      <div class="cards a d2">
+        <div class="card">
+          <div class="card-icon amber">📐</div>
+          <h3>Offset = Camera − Player</h3>
+          <p>Capture the initial gap in <code>Start()</code>. This single calculation drives the entire follow system.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon teal">🔒</div>
+          <h3>Lock Axes You Don't Need</h3>
+          <p>Keep X and Y from the camera's own position. Only update Z to follow the player forward.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon sky">⏱</div>
+          <h3>LateUpdate for Cameras</h3>
+          <p>Always put camera logic in <code>LateUpdate()</code> so it runs after the player has finished moving.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon violet">🧈</div>
+          <h3>Lerp for Smoothness</h3>
+          <p><code>Vector3.Lerp</code> with <code>Time.deltaTime</code> creates frame-rate independent smooth following.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon rose">🔌</div>
+          <h3>Wire Up in Inspector</h3>
+          <p>Public <code>Transform target</code> means you must drag the Player into the slot. No assignment = NullReferenceError.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon amber">🎚</div>
+          <h3>Tune the Follow Speed</h3>
+          <p>The Lerp multiplier (currently <code>10</code>) controls tightness. Lower = cinematic lag, higher = snappy tracking.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 13: WHAT'S NEXT ═══ -->
+  <div class="slide" data-slide="13">
+    <div class="slide-inner title-slide">
+      <div class="a d1 title-chip">Next Steps</div>
+      <h1 class="a d2" style="font-size: clamp(2rem, 4.5vw, 3.8rem);">What's Coming Next?</h1>
+      <p class="a d3 sub">With forward movement, lane switching, and camera follow complete, the next tutorials will cover:</p>
+      <div class="cards a d4" style="max-width:800px; text-align:left;">
+        <div class="card">
+          <div class="card-icon teal">🦘</div>
+          <h3>Jumping &amp; Gravity</h3>
+          <p>Add vertical movement with ground detection and gravity simulation for the player.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon rose">📱</div>
+          <h3>Swipe Controls</h3>
+          <p>Replace arrow keys with touch swipe input for mobile gameplay.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon amber">🧱</div>
+          <h3>Obstacles &amp; Collision</h3>
+          <p>Spawn obstacles and detect collisions for game-over logic.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon violet">🏆</div>
+          <h3>Scoring System</h3>
+          <p>Track distance, display score UI, and save high scores.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── NAV BAR ─── -->
+<nav class="nav" id="nav">
+  <div class="nav-progress" id="navProgress"></div>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)"><span>←</span> Prev</button>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="nav-dots" id="dots"></div>
+    <span class="nav-count" id="count"></span>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">Next <span>→</span></button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  // ─── NAV ───
+  (function initDots() {
+    const c = document.getElementById('dots');
+    for (let i = 0; i < total; i++) {
+      const d = document.createElement('button');
+      d.className = 'nav-dot' + (i === 0 ? ' on' : '');
+      d.onclick = () => goTo(i);
+      c.appendChild(d);
+    }
+  })();
+
+  function goTo(i) {
+    if (i < 0 || i >= total) return;
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    upNav();
+    // Update diagram if we land on slide 10
+    if (cur === 10) setTimeout(updateDiagram, 80);
+  }
+
+  function go(d) { goTo(cur + d); }
+
+  function upNav() {
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+    document.getElementById('count').textContent = `${cur + 1} / ${total}`;
+    document.getElementById('prevBtn').disabled = cur === 0;
+    document.getElementById('nextBtn').disabled = cur === total - 1;
+    document.getElementById('navProgress').style.width = (cur / (total - 1) * 100) + '%';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+
+  upNav();
+
+  // ─── INTERACTIVE DIAGRAM ───
+  let playerZ = 0; // 0 = initial, range -2 to 4
+
+  function movePlayer(dir) {
+    if (dir === 0) { playerZ = 0; }
+    else { playerZ = Math.max(-2, Math.min(4, playerZ + dir)); }
+    updateDiagram();
+  }
+
+  function updateDiagram() {
+    const cam = document.getElementById('camIcon');
+    const player = document.getElementById('playerIcon');
+    const line = document.getElementById('offsetLine');
+    const tag = document.getElementById('offsetTag');
+
+    // Player base at 55%, moves 6% per step
+    const playerLeft = 55 + playerZ * 6;
+    // Camera follows with offset (always 40% behind player visually)
+    const camLeft = playerLeft - 40;
+
+    player.style.left = playerLeft + '%';
+    cam.style.left = camLeft + '%';
+
+    // Offset line between cam and player
+    const lineLeft = camLeft + 4;
+    const lineWidth = playerLeft - camLeft - 4;
+    line.style.left = lineLeft + '%';
+    line.style.width = Math.max(0, lineWidth) + '%';
+
+    // Tag in the middle
+    tag.style.left = (lineLeft + lineWidth / 2) + '%';
+    tag.style.top = 'calc(50% + 24px)';
+    tag.style.transform = 'translateX(-50%)';
+  }
+
+  setTimeout(updateDiagram, 150);
+</script>
+</body>
+</html>
