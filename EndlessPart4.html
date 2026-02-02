@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity 3D Models — Endless Runner Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── CSS Variables ── */
+:root {
+  --bg-deep: #0a0b0f;
+  --bg-panel: #12141c;
+  --bg-card: #181b27;
+  --bg-card-hover: #1e2233;
+  --neon-cyan: #00e5ff;
+  --neon-magenta: #ff2d78;
+  --neon-green: #39ff14;
+  --neon-orange: #ff9100;
+  --neon-purple: #b14dff;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8a8fa8;
+  --text-dim: #555b74;
+  --border-subtle: rgba(255,255,255,0.06);
+  --glow-cyan: 0 0 30px rgba(0,229,255,0.3);
+  --glow-magenta: 0 0 30px rgba(255,45,120,0.3);
+  --radius: 12px;
+  --radius-lg: 20px;
+  --slide-transition: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Noise Overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Ambient Grid ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Top Bar ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(10,11,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.topbar-logo {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700; font-size: 14px; color: #fff;
+}
+
+.topbar-title {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 600; font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.topbar-nav {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.topbar-nav button {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.topbar-nav button:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: rgba(0,229,255,0.2);
+}
+
+.topbar-nav button.active {
+  background: rgba(0,229,255,0.1);
+  color: var(--neon-cyan);
+  border-color: rgba(0,229,255,0.3);
+}
+
+/* ── Progress Bar ── */
+.progress-track {
+  position: fixed; top: 56px; left: 0; right: 0;
+  height: 3px;
+  background: var(--bg-panel);
+  z-index: 100;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+  width: 0%;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 12px rgba(0,229,255,0.4);
+}
+
+/* ── Slide Counter ── */
+.slide-counter {
+  position: fixed; bottom: 28px; right: 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-dim);
+  z-index: 100;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.slide-counter .current {
+  color: var(--neon-cyan);
+  font-size: 18px; font-weight: 600;
+}
+
+/* ── Keyboard Hint ── */
+.keyboard-hint {
+  position: fixed; bottom: 28px; left: 32px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--text-dim);
+  z-index: 100;
+}
+
+.key-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ── Slides Container ── */
+.slides-viewport {
+  position: fixed;
+  top: 59px; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 60px;
+  opacity: 0;
+  transform: translateY(40px) scale(0.97);
+  pointer-events: none;
+  transition: opacity var(--slide-transition), transform var(--slide-transition);
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+.slide.exit-up {
+  opacity: 0;
+  transform: translateY(-40px) scale(0.97);
+}
+
+/* ── Slide Layouts ── */
+.slide-inner {
+  width: 100%;
+  max-width: 1100px;
+  position: relative;
+}
+
+/* Title Slide */
+.title-slide .slide-inner {
+  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 24px;
+}
+
+.title-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 25px; font-weight: 500;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.title-badge .dot {
+  width: 6px; height: 6px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.title-main {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: clamp(42px, 5.5vw, 72px);
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.title-main .gradient-text {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.title-meta {
+  display: flex; gap: 24px; margin-top: 8px;
+}
+
+.title-meta-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.title-meta-item svg {
+  width: 16px; height: 16px;
+  stroke: var(--text-dim);
+}
+
+/* Content Slide */
+.content-slide .slide-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.content-slide.full-width .slide-inner {
+  grid-template-columns: 1fr;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.slide-text { display: flex; flex-direction: column; gap: 20px; }
+
+.slide-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.slide-label .label-line {
+  width: 32px; height: 2px;
+  border-radius: 2px;
+}
+
+.label-cyan .label-line { background: var(--neon-cyan); }
+.label-cyan { color: var(--neon-cyan); }
+.label-magenta .label-line { background: var(--neon-magenta); }
+.label-magenta { color: var(--neon-magenta); }
+.label-green .label-line { background: var(--neon-green); }
+.label-green { color: var(--neon-green); }
+.label-orange .label-line { background: var(--neon-orange); }
+.label-orange { color: var(--neon-orange); }
+.label-purple .label-line { background: var(--neon-purple); }
+.label-purple { color: var(--neon-purple); }
+
+.slide-heading {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.slide-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+
+.slide-body strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ── Step Cards ── */
+.step-list {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-top: 4px;
+}
+
+.step-card {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.step-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(0,229,255,0.15);
+  transform: translateX(4px);
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  background: rgba(0,229,255,0.1);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  color: var(--neon-cyan);
+}
+
+.step-num.magenta {
+  background: rgba(255,45,120,0.1);
+  border-color: rgba(255,45,120,0.2);
+  color: var(--neon-magenta);
+}
+
+.step-num.green {
+  background: rgba(57,255,20,0.1);
+  border-color: rgba(57,255,20,0.2);
+  color: var(--neon-green);
+}
+
+.step-num.orange {
+  background: rgba(255,145,0,0.1);
+  border-color: rgba(255,145,0,0.2);
+  color: var(--neon-orange);
+}
+
+.step-num.purple {
+  background: rgba(177,77,255,0.1);
+  border-color: rgba(177,77,255,0.2);
+  color: var(--neon-purple);
+}
+
+.step-content h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.step-content p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  font-weight: 300;
+}
+
+/* ── Code Blocks ── */
+.code-block {
+  background: #0d0f16;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-dots {
+  display: flex; gap: 6px;
+}
+
+.code-dots span {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+
+.code-dots span:nth-child(1) { background: #ff5f57; }
+.code-dots span:nth-child(2) { background: #ffbd2e; }
+.code-dots span:nth-child(3) { background: #28c840; }
+
+.code-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+}
+
+.code-body {
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  overflow-x: auto;
+}
+
+.code-body .kw { color: var(--neon-magenta); }
+.code-body .fn { color: var(--neon-cyan); }
+.code-body .str { color: var(--neon-green); }
+.code-body .num { color: var(--neon-orange); }
+.code-body .cmt { color: var(--text-dim); font-style: italic; }
+.code-body .type { color: var(--neon-purple); }
+
+/* ── Video Placeholder ── */
+.video-placeholder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+.video-placeholder:hover {
+  border-color: rgba(255,45,120,0.3);
+  box-shadow: var(--glow-magenta);
+  transform: scale(1.01);
+}
+
+.video-bg-pattern {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(0,229,255,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(255,45,120,0.06) 0%, transparent 50%);
+}
+
+.video-play-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px; height: 72px;
+  background: rgba(255,45,120,0.9);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 40px rgba(255,45,120,0.3);
+}
+
+.video-placeholder:hover .video-play-btn {
+  background: var(--neon-magenta);
+  box-shadow: 0 0 60px rgba(255,45,120,0.5);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.video-play-btn svg {
+  width: 28px; height: 28px;
+  fill: #fff;
+  margin-left: 3px;
+}
+
+.video-timestamp {
+  position: absolute; bottom: 16px; right: 16px;
+  padding: 5px 12px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-secondary);
+}
+
+.video-label {
+  position: absolute; bottom: 16px; left: 16px;
+  padding: 6px 14px;
+  background: rgba(255,45,120,0.15);
+  border: 1px solid rgba(255,45,120,0.25);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--neon-magenta);
+  letter-spacing: 0.5px;
+}
+
+/* ── Property Table ── */
+.prop-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.prop-table th {
+  text-align: left;
+  padding: 12px 18px;
+  background: rgba(255,255,255,0.02);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.prop-table td {
+  padding: 11px 18px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.prop-table tr:last-child td { border-bottom: none; }
+
+.prop-table td:first-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--neon-cyan);
+  font-size: 12.5px;
+}
+
+.prop-table td .val {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--neon-orange);
+  font-size: 12.5px;
+}
+
+/* ── Tile Cards Grid ── */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.tile-card {
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.tile-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-3px);
+}
+
+.tile-card-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.tile-card h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.tile-card p {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── Diagram / Flow ── */
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 32px 0;
+  flex-wrap: wrap;
+}
+
+.flow-node {
+  padding: 14px 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  font-size: 13px; font-weight: 500;
+  text-align: center;
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.flow-node:hover {
+  background: var(--bg-card-hover);
+  transform: scale(1.04);
+}
+
+.flow-arrow {
+  font-size: 20px;
+  color: var(--text-dim);
+  padding: 0 8px;
+}
+
+.flow-node.highlight {
+  border-color: rgba(0,229,255,0.3);
+  background: rgba(0,229,255,0.05);
+}
+
+/* ── Tip Box ── */
+.tip-box {
+  display: flex; gap: 14px;
+  padding: 18px 20px;
+  background: rgba(57,255,20,0.04);
+  border: 1px solid rgba(57,255,20,0.15);
+  border-radius: var(--radius);
+  margin-top: 12px;
+}
+
+.tip-box .tip-icon {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: rgba(57,255,20,0.12);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 13px;
+}
+
+.tip-box p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.warning-box {
+  display: flex; gap: 14px;
+  padding: 18px 20px;
+  background: rgba(255,145,0,0.04);
+  border: 1px solid rgba(255,145,0,0.15);
+  border-radius: var(--radius);
+  margin-top: 12px;
+}
+
+.warning-box .tip-icon {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: rgba(255,145,0,0.12);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 13px;
+}
+
+.warning-box p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Summary Slide ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.summary-card {
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  text-align: center;
+  transition: all 0.35s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  background: var(--bg-card-hover);
+}
+
+.summary-card .s-icon {
+  width: 52px; height: 52px;
+  margin: 0 auto 16px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  font-size: 24px;
+}
+
+.summary-card h4 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.summary-card p {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* ── Table of Contents Dots ── */
+.toc-dots {
+  position: fixed;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+
+.toc-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.toc-dot:hover {
+  background: var(--text-secondary);
+  transform: scale(1.3);
+}
+
+.toc-dot.active {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0,229,255,0.5);
+}
+
+.toc-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  background: var(--bg-panel);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.toc-dot:hover::after { opacity: 1; }
+
+/* ── Animations ── */
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide.active .animate-in {
+  animation: float-in 0.6s ease forwards;
+  opacity: 0;
+}
+
+.slide.active .d1 { animation-delay: 0.1s; }
+.slide.active .d2 { animation-delay: 0.2s; }
+.slide.active .d3 { animation-delay: 0.3s; }
+.slide.active .d4 { animation-delay: 0.4s; }
+.slide.active .d5 { animation-delay: 0.5s; }
+.slide.active .d6 { animation-delay: 0.6s; }
+.slide.active .d7 { animation-delay: 0.7s; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .content-slide .slide-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .slide { padding: 30px 24px; }
+  .tile-grid, .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .topbar { padding: 0 16px; }
+  .topbar-title { display: none; }
+}
+
+@media (max-width: 600px) {
+  .tile-grid, .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .flow-diagram { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .title-meta { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">U</div>
+    <div class="topbar-title">Unity Endless Runner</div>
+  </div>
+  <div class="topbar-nav">
+    <button id="prevBtn" onclick="changeSlide(-1)">← Prev</button>
+    <button id="nextBtn" onclick="changeSlide(1)">Next →</button>
+  </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-track">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<!-- TOC Dots -->
+<div class="toc-dots" id="tocDots"></div>
+
+<!-- Slide Counter -->
+<div class="slide-counter">
+  <span class="current" id="slideCurrent">01</span>
+  <span>/</span>
+  <span id="slideTotal">10</span>
+</div>
+
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">
+  <span class="key-icon">←</span>
+  <span class="key-icon">→</span>
+  <span>or scroll to navigate</span>
+</div>
+
+<!-- Slides -->
+<div class="slides-viewport">
+
+  <!-- SLIDE 1: Title -->
+  <div class="slide title-slide active" data-label="Intro">
+    <div class="slide-inner">
+      <div class="title-badge animate-in d1">
+        <span class="dot"></span>
+        MAC280 Game Programming
+      </div>
+      <div class="title-badge animate-in d1">
+        <span class="dot"></span>
+       Prof. Khalid Kassou
+      </div>
+      <h1 class="title-main animate-in d2">
+        Using <span class="gradient-text">3D Models</span><br>
+        in Your Game
+      </h1>
+      <p class="title-sub animate-in d3">
+        A step-by-step guide to importing 3D models, creating obstacle tiles, building reusable prefabs, and assembling a dynamic endless runner level in Unity.
+      </p>
+      <div class="title-meta animate-in d4">
+        <div class="title-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          10 slides
+        </div>
+        <div class="title-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ~12 min
+        </div>
+        <div class="title-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Intermediate
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Overview -->
+  <div class="slide content-slide" data-label="Overview">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-cyan animate-in d1">
+          <span class="label-line"></span> Overview
+        </div>
+        <h2 class="slide-heading animate-in d2">What We'll Build</h2>
+        <p class="slide-body animate-in d3">
+          In this tutorial, we'll transform a basic Unity project into a polished endless runner by integrating <strong>3D models</strong> for the road, player, and obstacles. You'll learn how to create a <strong>modular tile system</strong> where each tile is a reusable prefab with unique obstacle configurations — including traffic cones, high barriers, and low barriers.
+        </p>
+        <div class="flow-diagram animate-in d4">
+          <div class="flow-node highlight">Import<br>Models</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">Build<br>Tiles</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">Add<br>Colliders</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">Create<br>Prefabs</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node highlight">Test<br>Level</div>
+        </div>
+      </div>
+      <div>
+        <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/krhHfZDYyqI"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Importing Models -->
+  <div class="slide content-slide" data-label="Import">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-magenta animate-in d1">
+          <span class="label-line"></span> Step 1
+        </div>
+        <h2 class="slide-heading animate-in d2">Importing the 3D Models</h2>
+        <p class="slide-body animate-in d3">
+          Before building anything, we need to bring our 3D model assets into the Unity project. These models include the <strong>road segments</strong>, <strong>traffic cones</strong>, <strong>roadwork barriers</strong>, and the <strong>player character</strong>.
+        </p>
+        <div class="step-list animate-in d4">
+          <div class="step-card">
+            <div class="step-num magenta">1</div>
+            <div class="step-content">
+              <h4>Download the Model Pack</h4>
+              <p>Go to the provided link (in Brightspace) and download the 3D model pack as a <strong>.zip</strong> file.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num magenta">2</div>
+            <div class="step-content">
+              <h4>Extract the Archive</h4>
+              <p>Unzip the file on your computer to reveal the <strong>Models</strong> folder containing all assets.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num magenta">3</div>
+            <div class="step-content">
+              <h4>Drag into Unity</h4>
+              <p>Drag and drop the entire folder into the <strong>Unity Project panel</strong>. It appears under a "Models" folder with all road, obstacle, and player meshes.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num magenta">4</div>
+            <div class="step-content">
+              <h4>Clean Up the Scene</h4>
+              <p>Delete the old placeholder ground object from the hierarchy — we'll replace everything with our new 3D tiles.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/fUwxTY2x5hk" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+        <div class="tip-box" style="margin-top: 16px;">
+          <div class="tip-icon">💡</div>
+          <p>You'll see models named <strong>Road</strong>, <strong>TrafficCone</strong>, <strong>RoadworksBarrierHigh</strong>, <strong>RoadworksBarrierLow</strong>, and the <strong>Player</strong> character.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Creating Tile 1 (Basic Road) -->
+  <div class="slide content-slide" data-label="Tile 1">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-cyan animate-in d1">
+          <span class="label-line"></span> Step 2
+        </div>
+        <h2 class="slide-heading animate-in d2">Creating the Base Tile</h2>
+        <p class="slide-body animate-in d3">
+          The first tile is a <strong>clean road segment with no obstacles</strong>. This serves as the foundation — every other tile variant is built on top of this base pattern.
+        </p>
+        <div class="step-list animate-in d4">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>Create an Empty Game Object</h4>
+              <p>In the Hierarchy panel, right-click → <strong>Create Empty</strong>. Rename it to <strong>"Tile1"</strong> and reset its Transform to origin (0, 0, 0).</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>Add the Road Model</h4>
+              <p>From the Models folder, drag the <strong>Road</strong> model into Tile1 as a child object. This is the visual road surface.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>Add a Box Collider</h4>
+              <p>Select the Road child → <strong>Add Component → Box Collider</strong>. This prevents the player from falling through the road.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <h4>Create the Prefab</h4>
+              <p>Create an <strong>Assets → Prefabs</strong> folder. Drag Tile1 from the Hierarchy into this folder to save it as a reusable prefab.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="code-block animate-in d3">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">Unity Hierarchy</span>
+          </div>
+          <div class="code-body">
+<span class="cmt">// Scene hierarchy structure</span>
+📦 <span class="type">Tile1</span>  <span class="cmt">← Empty GameObject</span>
+  └─ 🏗️ <span class="fn">Road</span>  <span class="cmt">← 3D Model</span>
+       └─ <span class="str">Box Collider</span>  <span class="cmt">← Physics</span>
+
+<span class="cmt">// Project folder structure</span>
+📁 Assets
+  📁 Models
+    ├─ <span class="fn">Road</span>
+    ├─ <span class="fn">TrafficCone</span>
+    ├─ <span class="fn">RoadworksBarrierHigh</span>
+    └─ <span class="fn">RoadworksBarrierLow</span>
+  📁 <span class="type">Prefabs</span>
+    └─ <span class="str">Tile1.prefab</span>  <span class="cmt">← New!</span>
+          </div>
+        </div>
+        <div class="warning-box animate-in d4">
+          <div class="tip-icon">⚠️</div>
+          <p><strong>Critical:</strong> Without the Box Collider on the road, your player will fall straight through the surface. Always add physics colliders to walkable geometry!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Traffic Cone Tiles -->
+  <div class="slide content-slide" data-label="Cones">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-orange animate-in d1">
+          <span class="label-line"></span> Step 3
+        </div>
+        <h2 class="slide-heading animate-in d2">Traffic Cone Obstacles</h2>
+        <p class="slide-body animate-in d3">
+          Now we create tile variants that force the player to <strong>dodge left or right</strong>. Traffic cones are placed on specific lanes, and the player must switch lanes to avoid them.
+        </p>
+        <div class="step-list animate-in d4">
+          <div class="step-card">
+            <div class="step-num orange">1</div>
+            <div class="step-content">
+              <h4>Unpack & Duplicate Tile1</h4>
+              <p>Right-click the Tile1 prefab instance → <strong>Unpack Prefab</strong>. Rename it to <strong>"Tile2"</strong>. This breaks the prefab link so you can modify freely.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num orange">2</div>
+            <div class="step-content">
+              <h4>Add Traffic Cones</h4>
+              <p>Drag the <strong>TrafficCone</strong> model into Tile2. Set position X to <strong>2.5</strong> (right lane), Y to <strong>0.443</strong> (above the road), and scale to <strong>0.7</strong> on all axes.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num orange">3</div>
+            <div class="step-content">
+              <h4>Add Box Collider to Cone</h4>
+              <p>Each cone needs its own <strong>Box Collider</strong> for collision detection. This is how the game knows the player hit an obstacle.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num orange">4</div>
+            <div class="step-content">
+              <h4>Duplicate & Mirror</h4>
+              <p>Press <strong>Ctrl+D</strong> to duplicate the cone. Move the copy to X = <strong>-2.5</strong> (left lane). Now Tile2 has cones on both sides — the player goes through the center.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/fUwxTY2x5hk"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+        <table class="prop-table animate-in d4" style="margin-top: 16px;">
+          <tr><th>Property</th><th>Value</th><th>Purpose</th></tr>
+          <tr><td>Position X</td><td><span class="val">±2.5</span></td><td>Left / Right lane offset</td></tr>
+          <tr><td>Position Y</td><td><span class="val">0.443</span></td><td>Sits flush on road surface</td></tr>
+          <tr><td>Scale</td><td><span class="val">0.7, 0.7, 0.7</span></td><td>Proportional size for gameplay</td></tr>
+          <tr><td>Box Collider</td><td><span class="val">Default</span></td><td>Collision detection trigger</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Tile Variations -->
+  <div class="slide content-slide full-width" data-label="Variations">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-purple animate-in d1">
+          <span class="label-line"></span> Step 4
+        </div>
+        <h2 class="slide-heading animate-in d2">Building All Tile Variations</h2>
+        <p class="slide-body animate-in d3">
+          With the same unpack → modify → save-as-prefab workflow, create multiple tile configurations. Each tile forces a different player action — <strong>dodge left, dodge right, or pass through the center</strong>. The more variations you create, the more dynamic your level becomes.
+        </p>
+      </div>
+      <div class="tile-grid animate-in d4">
+        <div class="tile-card" style="border-left: 3px solid var(--neon-cyan);">
+          <div class="tile-card-icon" style="background: rgba(0,229,255,0.1);">🛣️</div>
+          <h4>Tile 1 — Clean Road</h4>
+          <p>No obstacles. Gives the player breathing room. Perfect for start segments or between intense sections.</p>
+        </div>
+        <div class="tile-card" style="border-left: 3px solid var(--neon-orange);">
+          <div class="tile-card-icon" style="background: rgba(255,145,0,0.1);">🔶🔶</div>
+          <h4>Tile 2 — Both Cones</h4>
+          <p>Traffic cones on left (X=-2.5) and right (X=2.5). Player must stay in the center lane to survive.</p>
+        </div>
+        <div class="tile-card" style="border-left: 3px solid var(--neon-magenta);">
+          <div class="tile-card-icon" style="background: rgba(255,45,120,0.1);">◻️🔶</div>
+          <h4>Tile 3 — Right Cone</h4>
+          <p>Single traffic cone on the right side. Player dodges left or stays center.</p>
+        </div>
+        <div class="tile-card" style="border-left: 3px solid var(--neon-green);">
+          <div class="tile-card-icon" style="background: rgba(57,255,20,0.1);">🔶◻️</div>
+          <h4>Tile 4 — Left Cone</h4>
+          <p>Single traffic cone on the left side. Player dodges right or stays center.</p>
+        </div>
+        <div class="tile-card" style="border-left: 3px solid var(--neon-purple);">
+          <div class="tile-card-icon" style="background: rgba(177,77,255,0.1);">🚧</div>
+          <h4>Tile 5 — High Barrier</h4>
+          <p>Roadworks barrier placed overhead. Player must <strong>slide</strong> under it to pass. Scale ≈ 0.7.</p>
+        </div>
+        <div class="tile-card" style="border-left: 3px solid #ff4757;">
+          <div class="tile-card-icon" style="background: rgba(255,71,87,0.1);">⬛</div>
+          <h4>Tile 6 — Low Barrier</h4>
+          <p>Roadworks barrier at ground level. Player must <strong>jump</strong> over it or lose. Collider set at leg height.</p>
+        </div>
+      </div>
+      <div class="tip-box animate-in d5">
+        <div class="tip-icon">💡</div>
+        <p><strong>Pro tip:</strong> You can create as many tile variations as you want! Try combining obstacles — for example, a cone on the left AND a low barrier on the right — to increase difficulty over time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: High Barrier Detail -->
+  <div class="slide content-slide" data-label="High Bar">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-purple animate-in d1">
+          <span class="label-line"></span> Step 5
+        </div>
+        <h2 class="slide-heading animate-in d2">The Slide Obstacle</h2>
+        <p class="slide-body animate-in d3">
+          The high barrier introduces the <strong>slide mechanic</strong>. It's positioned above the player's normal running height, so they must duck underneath it. This adds vertical variety to the gameplay beyond just lane-switching.
+        </p>
+        <div class="step-list animate-in d4">
+          <div class="step-card">
+            <div class="step-num purple">1</div>
+            <div class="step-content">
+              <h4>Import RoadworksBarrierHigh</h4>
+              <p>Drag the high barrier model from the Models folder. Adjust the <strong>scale factor to 0.7</strong> via the model importer, then click <strong>Apply</strong>.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num purple">2</div>
+            <div class="step-content">
+              <h4>Position the Barrier</h4>
+              <p>Move it slightly toward the bottom of the tile so it sits at a height the player must <strong>slide under</strong>. The exact position depends on your player height.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num purple">3</div>
+            <div class="step-content">
+              <h4>Configure the Box Collider</h4>
+              <p>Add a Box Collider and use the <strong>Edit Collider</strong> button (the icon in the Inspector) to manually adjust the collider bounds. If the player hits this collider, they lose.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num purple">4</div>
+            <div class="step-content">
+              <h4>Save as Prefab (Tile 5)</h4>
+              <p>Drag into the Prefabs folder. The slide obstacle is ready for level generation!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/QHHGS7dvK20"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+        <div class="code-block animate-in d4" style="margin-top: 16px;">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">Hierarchy — Tile 5</span>
+          </div>
+          <div class="code-body">
+📦 <span class="type">Tile5</span>
+  ├─ 🏗️ <span class="fn">Road</span>
+  │    └─ <span class="str">Box Collider</span>  <span class="cmt">← floor</span>
+  └─ 🚧 <span class="fn">RoadworksBarrierHigh</span>
+       ├─ Scale: <span class="num">0.7</span>
+       └─ <span class="str">Box Collider</span>  <span class="cmt">← death zone</span>
+            <span class="cmt">↑ edited to cover slide zone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Low Barrier / Jump -->
+  <div class="slide content-slide" data-label="Low Bar">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-green animate-in d1">
+          <span class="label-line"></span> Step 6
+        </div>
+        <h2 class="slide-heading animate-in d2">The Jump Obstacle</h2>
+        <p class="slide-body animate-in d3">
+          The low barrier is the counterpart to the slide obstacle — here, the player must <strong>jump</strong> over a ground-level barrier. The Box Collider is positioned low so the player clears it with a jump action.
+        </p>
+        <div class="step-list animate-in d4">
+          <div class="step-card">
+            <div class="step-num green">1</div>
+            <div class="step-content">
+              <h4>Swap the Barrier Model</h4>
+              <p>Unpack a tile prefab, delete the high barrier, and drag in the <strong>RoadworksBarrierLow</strong> model from the Models folder.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num green">2</div>
+            <div class="step-content">
+              <h4>Position & Scale</h4>
+              <p>Place it near ground level. Use the <strong>Scale Tool (R key)</strong> to resize visually, or type precise values in the Inspector.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num green">3</div>
+            <div class="step-content">
+              <h4>Fine-Tune the Box Collider</h4>
+              <p>Add a Box Collider and use the <strong>Edit Collider</strong> icon to shape it precisely. The player must jump over this — if their feet touch the collider, they lose.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num green">4</div>
+            <div class="step-content">
+              <h4>Test the Jump</h4>
+              <p>Press <strong>Play</strong> and hit the <strong>Up Arrow</strong> key. Verify the player can clear the barrier. Adjust collider or jump force if needed.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="anim d3" style="max-width:700px; margin:0 auto; aspect-ratio:16/9; border-radius:16px; overflow:hidden;">
+    <iframe 
+        width="100%" 
+        height="100%" 
+        src="https://www.youtube.com/embed/QHHGS7dvK20"
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+        <div class="warning-box animate-in d4" style="margin-top: 16px;">
+          <div class="tip-icon">⚠️</div>
+          <p><strong>Collider positioning is critical!</strong> If the collider is too tall, even jumping won't save the player. If too small, they can walk right through. Use the Edit Collider tool to get it just right.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Testing & Assembly -->
+  <div class="slide content-slide" data-label="Testing">
+    <div class="slide-inner">
+      <div class="slide-text">
+        <div class="slide-label label-magenta animate-in d1">
+          <span class="label-line"></span> Step 7
+        </div>
+        <h2 class="slide-heading animate-in d2">Assembling & Testing the Level</h2>
+        <p class="slide-body animate-in d3">
+          Now comes the fun part — snapping tiles together and playtesting! Each tile is <strong>30 units long</strong> along the Z-axis, so you simply place them end-to-end with a Z-offset of 30 per tile.
+        </p>
+        <div class="step-list animate-in d4">
+          <div class="step-card">
+            <div class="step-num magenta">1</div>
+            <div class="step-content">
+              <h4>Place Tiles End-to-End</h4>
+              <p>Drag prefabs into the scene. Set Z positions to <strong>0, 30, 60, 90…</strong> etc. Each tile length is 30 units, so they align seamlessly.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num magenta">2</div>
+            <div class="step-content">
+              <h4>Mix Tile Variants</h4>
+              <p>Alternate between clean road, cone tiles, slide barriers, and jump barriers to create interesting gameplay sequences.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num magenta">3</div>
+            <div class="step-content">
+              <h4>Hit Play & Test</h4>
+              <p>Press <strong>Play</strong> and run through the level. Test all obstacle types: dodge cones, slide under barriers, jump over barriers.</p>
+            </div>
+          </div>
+        </div>
+        <div class="tip-box animate-in d5">
+          <div class="tip-icon">💡</div>
+          <p><strong>Remember:</strong> In the next tutorial, these tiles will be <strong>spawned procedurally at runtime</strong> — so you won't need to manually place them. This is just for visual testing.</p>
+        </div>
+      </div>
+      <div>
+        <div class="code-block animate-in d3">
+          <div class="code-header">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-filename">Level Layout Example</span>
+          </div>
+          <div class="code-body">
+<span class="cmt">// Tile placement formula:</span>
+<span class="cmt">// Z = tileIndex × tileLength</span>
+<span class="cmt">// Where tileLength = 30</span>
+
+<span class="type">Tile1</span> → Z = <span class="num">0</span>   <span class="cmt">// clean road</span>
+<span class="type">Tile2</span> → Z = <span class="num">30</span>  <span class="cmt">// both cones</span>
+<span class="type">Tile5</span> → Z = <span class="num">60</span>  <span class="cmt">// slide barrier</span>
+<span class="type">Tile3</span> → Z = <span class="num">90</span>  <span class="cmt">// right cone</span>
+<span class="type">Tile6</span> → Z = <span class="num">120</span> <span class="cmt">// jump barrier</span>
+          </div>
+        </div>
+        <table class="prop-table animate-in d4" style="margin-top: 16px;">
+          <tr><th>Setting</th><th>Default</th><th>Adjustable?</th></tr>
+          <tr><td>Tile Length</td><td><span class="val">30</span> units</td><td>Yes — must match model</td></tr>
+          <tr><td>Forward Speed</td><td><span class="val">Configurable</span></td><td>Inspector slider</td></tr>
+          <tr><td>Lane Distance</td><td><span class="val">Configurable</span></td><td>Inspector slider</td></tr>
+          <tr><td>Jump Force</td><td><span class="val">10.5</span></td><td>Inspector slider</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: Summary & What's Next -->
+  <div class="slide content-slide full-width" data-label="Summary">
+    <div class="slide-inner">
+      <div class="slide-text" style="text-align: center; align-items: center;">
+        <div class="slide-label label-cyan animate-in d1" style="justify-content: center;">
+          <span class="label-line"></span> Recap & Next Steps
+        </div>
+        <h2 class="slide-heading animate-in d2">What We Accomplished</h2>
+        <p class="slide-body animate-in d3" style="max-width: 640px; margin: 0 auto;">
+          We transformed a flat prototype into a polished, modular tile-based level system. Each tile is a reusable prefab with unique obstacle configurations that test different player skills.
+        </p>
+      </div>
+      <div class="summary-grid animate-in d4">
+        <div class="summary-card">
+          <div class="s-icon" style="background: rgba(0,229,255,0.1);">📦</div>
+          <h4>Models Imported</h4>
+          <p>Road segments, traffic cones, barriers (high & low), and the player character — all imported from a shared model pack.</p>
+        </div>
+        <div class="summary-card">
+          <div class="s-icon" style="background: rgba(255,45,120,0.1);">🧩</div>
+          <h4>6 Tile Prefabs</h4>
+          <p>Reusable tiles covering: clean road, double cones, single cones (left/right), high barrier (slide), and low barrier (jump).</p>
+        </div>
+        <div class="summary-card">
+          <div class="s-icon" style="background: rgba(57,255,20,0.1);">🎮</div>
+          <h4>3 Player Actions</h4>
+          <p>Lane-switching to dodge cones, sliding under high barriers, and jumping over low barriers — each tested in Play mode.</p>
+        </div>
+        <div class="summary-card">
+          <div class="s-icon" style="background: rgba(255,145,0,0.1);">📐</div>
+          <h4>Box Colliders</h4>
+          <p>Every obstacle and road surface has a carefully positioned Box Collider for accurate physics and collision detection.</p>
+        </div>
+        <div class="summary-card">
+          <div class="s-icon" style="background: rgba(177,77,255,0.1);">🔧</div>
+          <h4>Tweakable Settings</h4>
+          <p>Forward speed, lane distance, and jump force are all exposed in the Inspector for real-time gameplay tuning.</p>
+        </div>
+        <div class="summary-card">
+          <div class="s-icon" style="background: rgba(255,71,87,0.1);">🚀</div>
+          <h4>Next: Procedural Spawning</h4>
+          <p>In the next video, we'll write the spawner script to generate tiles at runtime for an infinite, dynamic road.</p>
+        </div>
+      </div>
+      <div class="flow-diagram animate-in d5" style="margin-top: 20px;">
+        <div class="flow-node" style="border-color: rgba(57,255,20,0.3); background: rgba(57,255,20,0.05);">✅ This Tutorial</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node highlight">⏭ Runtime Tile Spawner</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node">Score & UI</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node">Polish & Release</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Slide Engine ──
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+let currentSlide = 0;
+let isTransitioning = false;
+
+document.getElementById('slideTotal').textContent = String(totalSlides).padStart(2, '0');
+
+// Build TOC dots
+const tocContainer = document.getElementById('tocDots');
+slides.forEach((slide, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'toc-dot' + (i === 0 ? ' active' : '');
+  dot.dataset.label = slide.dataset.label || `Slide ${i + 1}`;
+  dot.addEventListener('click', () => goToSlide(i));
+  tocContainer.appendChild(dot);
+});
+
+function updateUI() {
+  const progress = ((currentSlide + 1) / totalSlides) * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+  document.getElementById('slideCurrent').textContent = String(currentSlide + 1).padStart(2, '0');
+
+  // TOC dots
+  document.querySelectorAll('.toc-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentSlide);
+  });
+
+  // Nav buttons
+  document.getElementById('prevBtn').style.opacity = currentSlide === 0 ? 0.3 : 1;
+  document.getElementById('nextBtn').style.opacity = currentSlide === totalSlides - 1 ? 0.3 : 1;
+}
+
+function goToSlide(index) {
+  if (index === currentSlide || isTransitioning || index < 0 || index >= totalSlides) return;
+  isTransitioning = true;
+
+  const direction = index > currentSlide ? 1 : -1;
+  const currentEl = slides[currentSlide];
+  const nextEl = slides[index];
+
+  // Exit current
+  currentEl.classList.remove('active');
+  if (direction > 0) {
+    currentEl.classList.add('exit-up');
+  }
+  currentEl.style.transform = direction > 0
+    ? 'translateY(-40px) scale(0.97)'
+    : 'translateY(40px) scale(0.97)';
+  currentEl.style.opacity = '0';
+
+  // Prepare next off-screen with no transition
+  nextEl.style.transition = 'none';
+  nextEl.style.transform = direction > 0
+    ? 'translateY(40px) scale(0.97)'
+    : 'translateY(-40px) scale(0.97)';
+  nextEl.style.opacity = '0';
+
+  // Double rAF to ensure the browser registers the initial position
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      nextEl.style.transition = '';
+      nextEl.classList.add('active');
+      nextEl.style.transform = '';
+      nextEl.style.opacity = '';
+    });
+  });
+
+  currentSlide = index;
+  updateUI();
+
+  setTimeout(() => {
+    currentEl.classList.remove('exit-up');
+    currentEl.style.transform = '';
+    currentEl.style.opacity = '';
+    isTransitioning = false;
+  }, 650);
+}
+
+function changeSlide(dir) {
+  goToSlide(currentSlide + dir);
+}
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    changeSlide(1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    changeSlide(-1);
+  }
+});
+
+// Scroll / touch nav
+let touchStartY = 0;
+let lastWheelTime = 0;
+
+document.addEventListener('wheel', (e) => {
+  const now = Date.now();
+  if (now - lastWheelTime < 800) return;
+  lastWheelTime = now;
+
+  if (e.deltaY > 30) changeSlide(1);
+  else if (e.deltaY < -30) changeSlide(-1);
+}, { passive: true });
+
+document.addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  const diff = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(diff) > 50) {
+    changeSlide(diff > 0 ? 1 : -1);
+  }
+}, { passive: true });
+
+// Video placeholder click
+function openVideo(section) {
+  const timestamps = {
+    'overview': 0,
+    'import': 21,
+    'cones': 74,
+    'high-barrier': 329,
+    'low-barrier': 466,
+  };
+  const t = timestamps[section] || 0;
+  // In a real implementation, this would embed a YouTube player.
+  // For now, show an alert with the timestamp info.
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+    display: grid; place-items: center;
+    animation: fadeIn 0.3s ease;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background: var(--bg-panel); border: 1px solid var(--border-subtle);
+      border-radius: 20px; padding: 48px; text-align: center; max-width: 480px;
+    ">
+      <div style="
+        width: 80px; height: 80px; margin: 0 auto 24px;
+        background: rgba(255,45,120,0.1); border-radius: 20px;
+        display: grid; place-items: center; font-size: 36px;
+      ">▶</div>
+      <h3 style="font-family: 'Chakra Petch', sans-serif; font-size: 20px; margin-bottom: 12px;">
+        Video Player Placeholder
+      </h3>
+      <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 8px;">
+        In production, this would embed the YouTube video starting at timestamp <strong style="color: var(--neon-orange); font-family: 'JetBrains Mono', monospace;">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</strong>.
+      </p>
+      <p style="color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace;">
+        Section: ${section}
+      </p>
+      <button onclick="this.closest('div').parentElement.remove()" style="
+        margin-top: 24px; padding: 10px 28px;
+        background: var(--neon-magenta); color: #fff; border: none;
+        border-radius: 8px; font-family: 'Outfit', sans-serif;
+        font-size: 14px; font-weight: 500; cursor: pointer;
+      ">Close</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+// Initialize
+updateUI();
+</script>
+</body>
+</html>
