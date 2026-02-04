@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Tile Manager - Infinite Runner Tutorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ff88;
+            --secondary: #ff0055;
+            --accent: #00d4ff;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --card-bg: rgba(15, 15, 25, 0.9);
+            --text: #e0e0e0;
+            --text-muted: #8888aa;
+            --glow-primary: 0 0 30px rgba(0, 255, 136, 0.3);
+            --glow-secondary: 0 0 30px rgba(255, 0, 85, 0.3);
+            --glow-accent: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center top;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, var(--darker) 0%, transparent 100%);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: var(--glow-primary);
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.1s ease;
+            box-shadow: var(--glow-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 30px;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease 0.2s forwards;
+            opacity: 0;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease 0.4s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 0.8s ease 0.6s forwards;
+            opacity: 0;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--dark);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--glow-primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--primary);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Table of Contents */
+        .toc {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 2rem;
+        }
+
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .toc-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toc-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .toc-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 136, 0.3);
+            box-shadow: var(--glow-primary);
+        }
+
+        .toc-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .toc-card-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: rgba(0, 255, 136, 0.1);
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+        }
+
+        .toc-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .toc-card p {
+            font-size: 1.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Content Sections */
+        .content-section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, var(--primary));
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .step-title h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-title span {
+            color: var(--text-muted);
+            font-size: 1.5rem;
+        }
+
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-card h3 {
+            color: var(--accent);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .content-card h3::before {
+            content: '▸';
+            color: var(--primary);
+        }
+
+        .content-card p {
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            font-size: 1.8rem;
+        }
+
+        .content-card ul, .content-card ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .content-card li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--darker);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-header span {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-muted);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .code-content .keyword { color: var(--secondary); }
+        .code-content .type { color: var(--accent); }
+        .code-content .string { color: #ffd700; }
+        .code-content .comment { color: var(--text-muted); font-style: italic; }
+        .code-content .number { color: var(--primary); }
+        .code-content .method { color: #ff8c00; }
+
+        /* Video Placeholder */
+        .video-placeholder {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 30, 0.9));
+            border: 2px dashed rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            aspect-ratio: 16/9;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-placeholder:hover {
+            border-color: var(--primary);
+            box-shadow: var(--glow-primary);
+        }
+
+        .video-placeholder::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff88' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        .video-aspect {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;  /* This creates 16:9 aspect ratio */
+    margin: 2rem 0;
+}
+
+.video-aspect iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+}
+
+        .play-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .video-placeholder:hover .play-icon {
+            transform: scale(1.1);
+            box-shadow: var(--glow-primary);
+        }
+
+        .play-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: var(--dark);
+            margin-left: 5px;
+        }
+
+        .video-placeholder h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .video-placeholder p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tip Boxes */
+        .tip-box {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+
+        .tip-box.warning {
+            background: rgba(255, 0, 85, 0.1);
+            border-left-color: var(--secondary);
+        }
+
+        .tip-box.success {
+            background: rgba(0, 255, 136, 0.1);
+            border-left-color: var(--primary);
+        }
+
+        .tip-box h4 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .tip-box.warning h4 { color: var(--secondary); }
+        .tip-box.success h4 { color: var(--primary); }
+
+        .tip-box p {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--darker);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-header h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .demo-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            background: var(--primary);
+            color: var(--dark);
+        }
+
+        .tile-visualizer {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+            min-height: 100px;
+            align-items: center;
+        }
+
+        .tile {
+            min-width: 80px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 212, 255, 0.2));
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--primary);
+            animation: tileAppear 0.3s ease forwards;
+            position: relative;
+        }
+
+        .tile.obstacle {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 136, 0, 0.2));
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .tile.player-marker::after {
+            content: '▲';
+            position: absolute;
+            bottom: -20px;
+            font-size: 1rem;
+            color: var(--accent);
+            animation: playerBounce 1s infinite;
+        }
+
+        @keyframes tileAppear {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes playerBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Diagram */
+        .diagram {
+            background: var(--darker);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .diagram svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 212, 255, 0.05));
+            padding: 4rem 2rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .summary-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1rem;
+        }
+
+        .summary-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--primary);
+        }
+
+        .summary-item h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-item p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Slide Navigation */
+        .slide-nav {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 100;
+        }
+
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .slide-dot:hover {
+            border-color: var(--primary);
+        }
+
+        .slide-dot.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            box-shadow: var(--glow-primary);
+        }
+
+        .slide-dot::after {
+            content: attr(data-label);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .slide-dot:hover::after {
+            opacity: 1;
+        }
+
+        /* Animations for sections */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .slide-nav { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .step-header { flex-direction: column; text-align: center; }
+            .step-number { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="grid-overlay"></div>
+        <div class="floating-particles" id="particles"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="logo">TILE MANAGER</div>
+        <ul class="nav-links">
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#step1">Setup</a></li>
+            <li><a href="#step2">Spawning</a></li>
+            <li><a href="#step3">Loop</a></li>
+            <li><a href="#step4">Infinite</a></li>
+            <li><a href="#step5">Cleanup</a></li>
+        </ul>
+    </nav>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Slide Navigation Dots -->
+    <div class="slide-nav">
+        <div class="slide-dot active" data-label="Home" onclick="scrollToSection('hero')"></div>
+        <div class="slide-dot" data-label="Overview" onclick="scrollToSection('overview')"></div>
+        <div class="slide-dot" data-label="Step 1" onclick="scrollToSection('step1')"></div>
+        <div class="slide-dot" data-label="Step 2" onclick="scrollToSection('step2')"></div>
+        <div class="slide-dot" data-label="Step 3" onclick="scrollToSection('step3')"></div>
+        <div class="slide-dot" data-label="Step 4" onclick="scrollToSection('step4')"></div>
+        <div class="slide-dot" data-label="Step 5" onclick="scrollToSection('step5')"></div>
+        <div class="slide-dot" data-label="Summary" onclick="scrollToSection('summary')"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <span class="hero-badge">Unity Endelss Runner Game • MAC280</span>
+        <span class="hero-badge">Prof. Khalid Kassou</span>
+        <h1>Building an <span class="highlight">Infinite Tile Manager</span></h1>
+        <p class="hero-subtitle">Learn how to create procedurally generated endless runner levels in Unity with dynamic tile spawning and memory-efficient cleanup systems.</p>
+        <div class="hero-cta">
+            <a href="#step1" class="btn btn-primary">Start Learning</a>
+            <a href="#overview" class="btn btn-secondary">View Overview</a>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Table of Contents -->
+    <section class="toc" id="overview">
+        <div class="section-header">
+            <h2>Game OVERVIEW</h2>
+            <p>Master the complete tile management system in 5 comprehensive steps</p>
+        </div>
+        <div class="toc-grid">
+            <div class="toc-card" onclick="scrollToSection('step1')">
+                <span class="toc-card-number">01</span>
+                <h3>Project Setup</h3>
+                <p>Create the TileManager GameObject and script, configure prefab references and essential variables.</p>
+            </div>
+            <div class="toc-card" onclick="scrollToSection('step2')">
+                <span class="toc-card-number">02</span>
+                <h3>Spawn Tile Method</h3>
+                <p>Build the core instantiation logic using transform positioning and Z-axis spawning.</p>
+            </div>
+            <div class="toc-card" onclick="scrollToSection('step3')">
+                <span class="toc-card-number">03</span>
+                <h3>For Loop Spawning</h3>
+                <p>Implement random tile generation with initial safe zone handling.</p>
+            </div>
+            <div class="toc-card" onclick="scrollToSection('step4')">
+                <span class="toc-card-number">04</span>
+                <h3>Infinite Generation</h3>
+                <p>Track player position to dynamically spawn tiles as movement progresses.</p>
+            </div>
+            <div class="toc-card" onclick="scrollToSection('step5')">
+                <span class="toc-card-number">05</span>
+                <h3>Memory Cleanup</h3>
+                <p>Implement tile destruction system using Lists to prevent memory overflow.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 1: Project Setup -->
+    <section class="content-section" id="step1">
+        <div class="step-header animate-on-scroll">
+            <span class="step-number">01</span>
+            <div class="step-title">
+                <h2>Project Setup</h2>
+                <span>Creating the foundation for tile management</span>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Understanding the Goal</h3>
+            <p>Before diving into code, let's understand what we're building. In an endless runner game, we need a system that continuously generates level segments (tiles) as the player moves forward. This creates the illusion of an infinite world while only keeping a manageable number of tiles in memory at any time.</p>
+            <p>Our TileManager will be responsible for spawning tiles at runtime, positioning them correctly in sequence, tracking which tiles are active, and destroying old tiles to maintain performance.</p>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Create the TileManager GameObject</h3>
+            <p>First, we need to set up our scene structure. In Unity, we'll create an empty GameObject that will hold our management script. This keeps our hierarchy organized and gives us a central point of control for all tile operations.</p>
+            <ol>
+                <li>Delete any existing manually-placed tiles from your scene</li>
+                <li>Create a new empty GameObject (Right-click in Hierarchy → Create Empty)</li>
+                <li>Rename it to <strong>"TileManager"</strong></li>
+                <li>Reset its transform to position (0, 0, 0)</li>
+            </ol>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Create the C# Script</h3>
+            <p>Now we'll create the script that will contain all our tile management logic. Navigate to your Scripts folder (or create one if it doesn't exist), create a new C# script, and name it "TileManager" to match our GameObject.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Initial Setup</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">using</span> UnityEngine;
+
+<span class="keyword">public class</span> <span class="type">TileManager</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// Array to hold references to our tile prefabs</span>
+    <span class="keyword">public</span> <span class="type">GameObject</span>[] tilePrefabs;
+    
+    <span class="comment">// Z position where the next tile will spawn</span>
+    <span class="keyword">public</span> <span class="type">float</span> zSpawn = <span class="number">0f</span>;
+    
+    <span class="comment">// Length of each tile segment (must match your prefab size)</span>
+    <span class="keyword">public</span> <span class="type">float</span> tileLength = <span class="number">30f</span>;
+
+    <span class="keyword">void</span> <span class="method">Start</span>()
+    {
+        
+    }
+
+    <span class="keyword">void</span> <span class="method">Update</span>()
+    {
+        
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Configure the Prefab Array</h3>
+            <p>After attaching the script to the TileManager GameObject, you'll see the <code>tilePrefabs</code> array appear in the Inspector. This is where we'll assign all our tile variants.</p>
+            <ol>
+                <li>Select the TileManager in the Hierarchy</li>
+                <li>In the Inspector, find "Tile Prefabs"</li>
+                <li>Set the array size to match your number of prefabs (e.g., 6)</li>
+                <li>Drag and drop each tile prefab into the array slots</li>
+            </ol>
+            
+            <div class="tip-box success">
+                <h4>💡 Pro Tip</h4>
+                <p>Make sure your first prefab (index 0) is an empty tile with no obstacles. This will be important later when we ensure the player has a safe starting area.</p>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/saUpDRGTULE" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+ </section>
+
+    <!-- Step 2: Spawn Tile Method -->
+    <section class="content-section" id="step2">
+        <div class="step-header animate-on-scroll">
+            <span class="step-number">02</span>
+            <div class="step-title">
+                <h2>Spawn Tile Method</h2>
+                <span>Building the core instantiation logic</span>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Understanding Tile Positioning</h3>
+            <p>In our endless runner, tiles are placed along the Z-axis. The player moves forward (positive Z direction), and we spawn new tiles ahead of them. The X and Y positions remain constant—only Z changes as we add more tiles to the world.</p>
+            
+            <div class="diagram">
+                <svg width="500" height="150" viewBox="0 0 500 150">
+                    <!-- Axis -->
+                    <line x1="50" y1="100" x2="450" y2="100" stroke="#00ff88" stroke-width="2"/>
+                    <polygon points="450,100 440,95 440,105" fill="#00ff88"/>
+                    <text x="460" y="105" fill="#00ff88" font-family="Orbitron" font-size="12">Z</text>
+                    
+                    <!-- Tiles -->
+                    <rect x="80" y="60" width="80" height="40" fill="rgba(0,255,136,0.2)" stroke="#00ff88" stroke-width="2" rx="4"/>
+                    <text x="120" y="85" fill="#00ff88" font-family="Rajdhani" font-size="12" text-anchor="middle">Tile 0</text>
+                    <text x="120" y="125" fill="#8888aa" font-family="Rajdhani" font-size="10" text-anchor="middle">z=0</text>
+                    
+                    <rect x="180" y="60" width="80" height="40" fill="rgba(0,212,255,0.2)" stroke="#00d4ff" stroke-width="2" rx="4"/>
+                    <text x="220" y="85" fill="#00d4ff" font-family="Rajdhani" font-size="12" text-anchor="middle">Tile 1</text>
+                    <text x="220" y="125" fill="#8888aa" font-family="Rajdhani" font-size="10" text-anchor="middle">z=30</text>
+                    
+                    <rect x="280" y="60" width="80" height="40" fill="rgba(255,0,85,0.2)" stroke="#ff0055" stroke-width="2" rx="4"/>
+                    <text x="320" y="85" fill="#ff0055" font-family="Rajdhani" font-size="12" text-anchor="middle">Tile 2</text>
+                    <text x="320" y="125" fill="#8888aa" font-family="Rajdhani" font-size="10" text-anchor="middle">z=60</text>
+                    
+                    <!-- Player -->
+                    <polygon points="100,50 95,40 105,40" fill="#00d4ff"/>
+                    <text x="100" y="35" fill="#00d4ff" font-family="Rajdhani" font-size="10" text-anchor="middle">Player</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>The SpawnTile Method</h3>
+            <p>This method is the heart of our tile system. It takes an index parameter that specifies which prefab to spawn, then uses Unity's <code>Instantiate()</code> function to create a new tile at the correct position.</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - SpawnTile Method</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">public void</span> <span class="method">SpawnTile</span>(<span class="type">int</span> tileIndex)
+{
+    <span class="comment">// Instantiate the tile at the current spawn position</span>
+    <span class="type">Instantiate</span>(
+        tilePrefabs[tileIndex],                    <span class="comment">// Which prefab to spawn</span>
+        transform.forward * zSpawn,                <span class="comment">// Position along Z-axis</span>
+        transform.rotation                         <span class="comment">// Keep default rotation</span>
+    );
+    
+    <span class="comment">// Move spawn position forward for the next tile</span>
+    zSpawn += tileLength;
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Breaking Down the Code</h3>
+            <p>Let's examine each part of the SpawnTile method in detail:</p>
+            
+            <p><strong>tilePrefabs[tileIndex]</strong> — This accesses our prefab array using the provided index. Index 0 gets the first prefab, index 1 gets the second, and so on.</p>
+            
+            <p><strong>transform.forward * zSpawn</strong> — This calculates the spawn position. <code>transform.forward</code> gives us a unit vector pointing in the Z direction, and multiplying by <code>zSpawn</code> gives us the exact world position.</p>
+            
+            <p><strong>transform.rotation</strong> — We use the TileManager's rotation so tiles inherit any rotation we might apply to the parent object.</p>
+            
+            <p><strong>zSpawn += tileLength</strong> — After spawning, we increment zSpawn by the tile length (30 units in our case) so the next tile spawns right after this one.</p>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Testing the Method</h3>
+            <p>Before implementing the full system, let's test our SpawnTile method by manually calling it in Start():</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Testing in Start()</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">void</span> <span class="method">Start</span>()
+{
+    <span class="comment">// Test spawning three tiles</span>
+    <span class="method">SpawnTile</span>(<span class="number">0</span>);  <span class="comment">// Spawn first prefab (empty/safe)</span>
+    <span class="method">SpawnTile</span>(<span class="number">1</span>);  <span class="comment">// Spawn second prefab</span>
+    <span class="method">SpawnTile</span>(<span class="number">3</span>);  <span class="comment">// Spawn fourth prefab</span>
+}</pre>
+                </div>
+            </div>
+            
+            <div class="tip-box">
+                <h4>📝 Expected Result</h4>
+                <p>When you press Play, you should see three tiles appear in sequence along the Z-axis. Check the Scene view to verify they're positioned correctly at z=0, z=30, and z=60.</p>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/HeQvMx_EEDA"
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 3: For Loop Spawning -->
+    <section class="content-section" id="step3">
+        <div class="step-header animate-on-scroll">
+            <span class="step-number">03</span>
+            <div class="step-title">
+                <h2>For Loop Spawning</h2>
+                <span>Generating multiple random tiles at startup</span>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Why Use a Loop?</h3>
+            <p>Manually calling SpawnTile() for each tile isn't practical. We need an automated way to generate multiple tiles when the game starts. A for loop lets us spawn any number of tiles with a single block of code, and we can easily adjust how many tiles appear initially.</p>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Adding the numberOfTiles Variable</h3>
+            <p>First, let's add a public variable to control how many tiles spawn at the start:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - New Variable</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="comment">// Number of tiles to keep active in the scene</span>
+<span class="keyword">public</span> <span class="type">int</span> numberOfTiles = <span class="number">5</span>;</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Implementing Random Tile Selection</h3>
+            <p>Now we'll replace our manual test code with a loop that spawns random tiles. We use <code>Random.Range()</code> to pick a random prefab index:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Loop Implementation</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">void</span> <span class="method">Start</span>()
+{
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i < numberOfTiles; i++)
+    {
+        <span class="comment">// Generate random index between 0 and array length</span>
+        <span class="type">int</span> randomIndex = <span class="type">Random</span>.<span class="method">Range</span>(<span class="number">0</span>, tilePrefabs.Length);
+        <span class="method">SpawnTile</span>(randomIndex);
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>The Safe Zone Problem</h3>
+            <p>If you test this code, you might notice a problem: sometimes the player immediately collides with an obstacle! This happens when a tile with obstacles spawns at position 0 where the player starts.</p>
+            
+            <div class="tip-box warning">
+                <h4>⚠️ Common Issue</h4>
+                <p>Random tile selection can place obstacles directly in the player's starting position, causing immediate collision and a frustrating player experience.</p>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Ensuring a Safe Start</h3>
+            <p>The solution is simple: always spawn the empty tile (index 0) first, then randomize the rest:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Safe Zone Implementation</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">void</span> <span class="method">Start</span>()
+{
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i < numberOfTiles; i++)
+    {
+        <span class="keyword">if</span> (i == <span class="number">0</span>)
+        {
+            <span class="comment">// First tile is always the safe/empty tile</span>
+            <span class="method">SpawnTile</span>(<span class="number">0</span>);
+        }
+        <span class="keyword">else</span>
+        {
+            <span class="comment">// Random tile for all other positions</span>
+            <span class="type">int</span> randomIndex = <span class="type">Random</span>.<span class="method">Range</span>(<span class="number">0</span>, tilePrefabs.Length);
+            <span class="method">SpawnTile</span>(randomIndex);
+        }
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="demo-container animate-on-scroll">
+            <div class="demo-header">
+                <h4>🎮 Interactive Demo: Tile Spawning</h4>
+                <div class="demo-controls">
+                    <button class="demo-btn" onclick="resetDemo()">Reset</button>
+                    <button class="demo-btn" onclick="spawnTile()">Spawn Tile</button>
+                </div>
+            </div>
+            <div class="tile-visualizer" id="tileVisualizer">
+                <div class="tile player-marker">Safe</div>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">Click "Spawn Tile" to see how tiles are added. Notice the first tile is always safe!</p>
+        </div>
+
+        <!-- Video Placeholder -->
+         <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/kd0SW8CrxgI" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 4: Infinite Generation -->
+    <section class="content-section" id="step4">
+        <div class="step-header animate-on-scroll">
+            <span class="step-number">04</span>
+            <div class="step-title">
+                <h2>Infinite Generation</h2>
+                <span>Spawning tiles dynamically as the player moves</span>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>The Core Concept</h3>
+            <p>To create the illusion of an endless world, we need to spawn new tiles as the player moves forward. The key insight is: <strong>spawn a new tile when the player gets close enough to need one</strong>. We do this by comparing the player's position to our spawning threshold.</p>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Adding Player Reference</h3>
+            <p>First, we need a reference to the player's transform so we can track their position:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Player Transform Variable</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="comment">// Reference to the player for position tracking</span>
+<span class="keyword">public</span> <span class="type">Transform</span> playerTransform;</pre>
+                </div>
+            </div>
+            
+            <div class="tip-box">
+                <h4>📝 Setup Step</h4>
+                <p>After adding this variable, go back to Unity and drag your Player GameObject into the "Player Transform" field in the TileManager's Inspector.</p>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>The Spawn Condition</h3>
+            <p>In Update(), we check if the player has moved far enough to trigger a new tile spawn. The condition compares the player's Z position against our spawn threshold:</p>
+            
+            <div class="diagram">
+                <svg width="500" height="180" viewBox="0 0 500 180">
+                    <!-- Legend -->
+                    <text x="250" y="20" fill="#e0e0e0" font-family="Rajdhani" font-size="14" text-anchor="middle">Spawn Trigger Visualization</text>
+                    
+                    <!-- Tiles -->
+                    <rect x="60" y="80" width="70" height="40" fill="rgba(0,255,136,0.2)" stroke="#00ff88" stroke-width="2" rx="4"/>
+                    <rect x="140" y="80" width="70" height="40" fill="rgba(0,212,255,0.2)" stroke="#00d4ff" stroke-width="2" rx="4"/>
+                    <rect x="220" y="80" width="70" height="40" fill="rgba(255,0,85,0.2)" stroke="#ff0055" stroke-width="2" rx="4"/>
+                    <rect x="300" y="80" width="70" height="40" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="2" stroke-dasharray="5,5" rx="4"/>
+                    <text x="335" y="105" fill="#00ff88" font-family="Rajdhani" font-size="10" text-anchor="middle">Next?</text>
+                    
+                    <!-- Player -->
+                    <polygon points="180,70 175,55 185,55" fill="#00d4ff"/>
+                    <text x="180" y="50" fill="#00d4ff" font-family="Rajdhani" font-size="11" text-anchor="middle">Player Z</text>
+                    
+                    <!-- zSpawn marker -->
+                    <line x1="300" y1="130" x2="300" y2="145" stroke="#00ff88" stroke-width="2"/>
+                    <text x="300" y="160" fill="#00ff88" font-family="Rajdhani" font-size="11" text-anchor="middle">zSpawn</text>
+                    
+                    <!-- Threshold -->
+                    <line x1="160" y1="130" x2="160" y2="145" stroke="#ff8c00" stroke-width="2"/>
+                    <text x="160" y="160" fill="#ff8c00" font-family="Rajdhani" font-size="10" text-anchor="middle">Threshold</text>
+                    
+                    <!-- Formula -->
+                    <text x="250" y="175" fill="#8888aa" font-family="JetBrains Mono" font-size="9" text-anchor="middle">threshold = zSpawn - (numberOfTiles × tileLength)</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Update Method Implementation</h3>
+            <p>Here's the complete Update() method that handles infinite tile generation:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Update Method</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">void</span> <span class="method">Update</span>()
+{
+    <span class="comment">// Calculate the threshold position</span>
+    <span class="type">float</span> threshold = zSpawn - (numberOfTiles * tileLength);
+    
+    <span class="comment">// Check if player has passed the threshold</span>
+    <span class="keyword">if</span> (playerTransform.position.z > threshold)
+    {
+        <span class="comment">// Spawn a new random tile</span>
+        <span class="type">int</span> randomIndex = <span class="type">Random</span>.<span class="method">Range</span>(<span class="number">0</span>, tilePrefabs.Length);
+        <span class="method">SpawnTile</span>(randomIndex);
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Understanding the Threshold Calculation</h3>
+            <p>The formula <code>zSpawn - (numberOfTiles * tileLength)</code> calculates how far back from our spawn point we want to trigger new tiles. For example, if <code>zSpawn = 150</code>, <code>numberOfTiles = 5</code>, and <code>tileLength = 30</code>, then the threshold is <code>150 - (5 × 30) = 0</code>. This means when the player passes z=0, we spawn a new tile at z=150.</p>
+            
+            <p>As the player moves forward and we spawn more tiles, both values increase together, maintaining a consistent distance between the player and the spawn point.</p>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Testing Infinite Generation</h3>
+            <p>Now when you play the game and move forward, you should see new tiles appearing ahead of you. Watch the Scene view to observe tiles being generated in real-time as the player progresses.</p>
+            
+            <div class="tip-box success">
+                <h4>✅ Verification Steps</h4>
+                <p>Open the Scene view alongside the Game view. As you move the player forward, watch the Hierarchy—new tile instances should appear. You can also increase the player speed temporarily to see generation happen faster.</p>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/eTnEcoQ5UtI"
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 5: Memory Cleanup -->
+    <section class="content-section" id="step5">
+        <div class="step-header animate-on-scroll">
+            <span class="step-number">05</span>
+            <div class="step-title">
+                <h2>Memory Cleanup</h2>
+                <span>Destroying old tiles to maintain performance</span>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>The Memory Problem</h3>
+            <p>Our current implementation has a critical flaw: we keep spawning new tiles but never remove old ones! Over time, this causes the number of GameObjects to grow infinitely, which leads to:</p>
+            <ul>
+                <li>Increased memory usage</li>
+                <li>Performance degradation</li>
+                <li>Eventually, game crashes</li>
+            </ul>
+            
+            <div class="tip-box warning">
+                <h4>⚠️ Performance Impact</h4>
+                <p>In a long play session, you could have hundreds or thousands of tiles in memory. Each tile with colliders, renderers, and scripts consumes resources even when off-screen.</p>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Solution: Track Active Tiles with a List</h3>
+            <p>We'll use a List to keep track of all spawned tiles. This lets us access and destroy the oldest tile whenever we spawn a new one. First, add the System.Collections.Generic namespace and create the list:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Adding the List</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">using</span> UnityEngine;
+<span class="keyword">using</span> System.Collections.Generic;  <span class="comment">// Add this!</span>
+
+<span class="keyword">public class</span> <span class="type">TileManager</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="comment">// ... other variables ...</span>
+    
+    <span class="comment">// List to track all active tiles in the scene</span>
+    <span class="keyword">private</span> <span class="type">List</span><<span class="type">GameObject</span>> activeTiles = <span class="keyword">new</span> <span class="type">List</span><<span class="type">GameObject</span>>();</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Modify SpawnTile to Track Tiles</h3>
+            <p>Update the SpawnTile method to save a reference to each spawned tile and add it to our tracking list:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Updated SpawnTile</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">public void</span> <span class="method">SpawnTile</span>(<span class="type">int</span> tileIndex)
+{
+    <span class="comment">// Instantiate and store reference to the new tile</span>
+    <span class="type">GameObject</span> go = <span class="type">Instantiate</span>(
+        tilePrefabs[tileIndex],
+        transform.forward * zSpawn,
+        transform.rotation
+    );
+    
+    <span class="comment">// Add to our tracking list</span>
+    activeTiles.<span class="method">Add</span>(go);
+    
+    <span class="comment">// Update spawn position for next tile</span>
+    zSpawn += tileLength;
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Create the DeleteTile Method</h3>
+            <p>This method removes the oldest tile (first in the list) from both the scene and our tracking list:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - DeleteTile Method</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">private void</span> <span class="method">DeleteTile</span>()
+{
+    <span class="comment">// Destroy the oldest tile (first in list)</span>
+    <span class="type">Destroy</span>(activeTiles[<span class="number">0</span>]);
+    
+    <span class="comment">// Remove it from our tracking list</span>
+    activeTiles.<span class="method">RemoveAt</span>(<span class="number">0</span>);
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Update with Safe Zone Buffer</h3>
+            <p>We need to modify our Update() to both spawn new tiles AND delete old ones. We also add a safe zone buffer to prevent the player from falling through when tiles are deleted too early:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Final Update Method</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">void</span> <span class="method">Update</span>()
+{
+    <span class="comment">// Safe zone buffer (35 units behind player)</span>
+    <span class="type">float</span> safeZone = <span class="number">35f</span>;
+    
+    <span class="comment">// Calculate threshold with safe zone</span>
+    <span class="type">float</span> threshold = zSpawn - (numberOfTiles * tileLength);
+    
+    <span class="comment">// Check if player (minus safe zone) has passed threshold</span>
+    <span class="keyword">if</span> (playerTransform.position.z - safeZone > threshold)
+    {
+        <span class="comment">// Spawn new tile</span>
+        <span class="type">int</span> randomIndex = <span class="type">Random</span>.<span class="method">Range</span>(<span class="number">0</span>, tilePrefabs.Length);
+        <span class="method">SpawnTile</span>(randomIndex);
+        
+        <span class="comment">// Delete the oldest tile</span>
+        <span class="method">DeleteTile</span>();
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card animate-on-scroll">
+            <h3>Why the Safe Zone?</h3>
+            <p>The safe zone of 35 units ensures we don't delete a tile the player is still standing on. Without this buffer, the player could fall through the world if they're near the back edge of a tile when it gets deleted.</p>
+            
+            <div class="diagram">
+                <svg width="500" height="150" viewBox="0 0 500 150">
+                    <text x="250" y="20" fill="#e0e0e0" font-family="Rajdhani" font-size="14" text-anchor="middle">Safe Zone Buffer</text>
+                    
+                    <!-- Delete zone -->
+                    <rect x="50" y="60" width="100" height="50" fill="rgba(255,0,85,0.2)" stroke="#ff0055" stroke-width="2" rx="4"/>
+                    <text x="100" y="90" fill="#ff0055" font-family="Rajdhani" font-size="10" text-anchor="middle">DELETE</text>
+                    
+                    <!-- Safe zone -->
+                    <rect x="150" y="60" width="70" height="50" fill="rgba(255,200,0,0.2)" stroke="#ffd700" stroke-width="2" rx="4"/>
+                    <text x="185" y="90" fill="#ffd700" font-family="Rajdhani" font-size="10" text-anchor="middle">SAFE</text>
+                    
+                    <!-- Active tiles -->
+                    <rect x="220" y="60" width="70" height="50" fill="rgba(0,255,136,0.2)" stroke="#00ff88" stroke-width="2" rx="4"/>
+                    <rect x="290" y="60" width="70" height="50" fill="rgba(0,255,136,0.2)" stroke="#00ff88" stroke-width="2" rx="4"/>
+                    <rect x="360" y="60" width="70" height="50" fill="rgba(0,255,136,0.2)" stroke="#00ff88" stroke-width="2" rx="4"/>
+                    
+                    <!-- Player -->
+                    <polygon points="260,50 255,35 265,35" fill="#00d4ff"/>
+                    <text x="260" y="28" fill="#00d4ff" font-family="Rajdhani" font-size="10" text-anchor="middle">Player</text>
+                    
+                    <!-- 35 unit marker -->
+                    <line x1="150" y1="125" x2="220" y2="125" stroke="#ffd700" stroke-width="2"/>
+                    <text x="185" y="140" fill="#ffd700" font-family="JetBrains Mono" font-size="9" text-anchor="middle">35 units</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+         <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/iscYlIG0bJY" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+
+        <div class="content-card animate-on-scroll">
+            <h3>Complete TileManager Script</h3>
+            <p>Here's the final, complete script with all components integrated:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span>TileManager.cs - Complete Script</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-content">
+<pre><span class="keyword">using</span> UnityEngine;
+<span class="keyword">using</span> System.Collections.Generic;
+
+<span class="keyword">public class</span> <span class="type">TileManager</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="keyword">public</span> <span class="type">GameObject</span>[] tilePrefabs;
+    <span class="keyword">public</span> <span class="type">float</span> zSpawn = <span class="number">0f</span>;
+    <span class="keyword">public</span> <span class="type">float</span> tileLength = <span class="number">30f</span>;
+    <span class="keyword">public</span> <span class="type">int</span> numberOfTiles = <span class="number">5</span>;
+    <span class="keyword">public</span> <span class="type">Transform</span> playerTransform;
+    
+    <span class="keyword">private</span> <span class="type">List</span><<span class="type">GameObject</span>> activeTiles = <span class="keyword">new</span> <span class="type">List</span><<span class="type">GameObject</span>>();
+
+    <span class="keyword">void</span> <span class="method">Start</span>()
+    {
+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i < numberOfTiles; i++)
+        {
+            <span class="keyword">if</span> (i == <span class="number">0</span>)
+                <span class="method">SpawnTile</span>(<span class="number">0</span>);
+            <span class="keyword">else</span>
+                <span class="method">SpawnTile</span>(<span class="type">Random</span>.<span class="method">Range</span>(<span class="number">0</span>, tilePrefabs.Length));
+        }
+    }
+
+    <span class="keyword">void</span> <span class="method">Update</span>()
+    {
+        <span class="type">float</span> safeZone = <span class="number">35f</span>;
+        <span class="type">float</span> threshold = zSpawn - (numberOfTiles * tileLength);
+        
+        <span class="keyword">if</span> (playerTransform.position.z - safeZone > threshold)
+        {
+            <span class="method">SpawnTile</span>(<span class="type">Random</span>.<span class="method">Range</span>(<span class="number">0</span>, tilePrefabs.Length));
+            <span class="method">DeleteTile</span>();
+        }
+    }
+
+    <span class="keyword">public void</span> <span class="method">SpawnTile</span>(<span class="type">int</span> tileIndex)
+    {
+        <span class="type">GameObject</span> go = <span class="type">Instantiate</span>(
+            tilePrefabs[tileIndex],
+            transform.forward * zSpawn,
+            transform.rotation
+        );
+        activeTiles.<span class="method">Add</span>(go);
+        zSpawn += tileLength;
+    }
+
+    <span class="keyword">private void</span> <span class="method">DeleteTile</span>()
+    {
+        <span class="type">Destroy</span>(activeTiles[<span class="number">0</span>]);
+        activeTiles.<span class="method">RemoveAt</span>(<span class="number">0</span>);
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Summary Section -->
+    <section class="summary-section" id="summary">
+        <div class="section-header">
+            <h2>TUTORIAL COMPLETE</h2>
+            <p>You've built a complete infinite tile management system!</p>
+        </div>
+        
+        <div class="summary-grid">
+            <div class="summary-item animate-on-scroll">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </div>
+                <h3>Prefab Array</h3>
+                <p>Store multiple tile variants for variety</p>
+            </div>
+            
+            <div class="summary-item animate-on-scroll">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <h3>Dynamic Spawning</h3>
+                <p>Generate tiles based on player position</p>
+            </div>
+            
+            <div class="summary-item animate-on-scroll">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <h3>Safe Zones</h3>
+                <p>Protect player from spawn collisions</p>
+            </div>
+            
+            <div class="summary-item animate-on-scroll">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 6 6"/>
+                        <path d="M6 6h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+                        <line x1="10" y1="11" x2="14" y2="11"/>
+                    </svg>
+                </div>
+                <h3>Memory Management</h3>
+                <p>Clean up old tiles automatically</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>MAC280 Game Programming • <a href="#">LaGuardia Community College</a></p>
+        <p style="margin-top: 0.5rem; opacity: 0.7;">Next: Collision Detection & Game Over Systems</p>
+    </footer>
+
+    <script>
+        // Generate floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Progress bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Slide navigation dots
+        const sections = ['hero', 'overview', 'step1', 'step2', 'step3', 'step4', 'step5', 'summary'];
+        const dots = document.querySelectorAll('.slide-dot');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= window.innerHeight / 2) {
+                        current = sectionId;
+                    }
+                }
+            });
+
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active');
+                if (sections[index] === current) {
+                    dot.classList.add('active');
+                }
+            });
+        });
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('pre').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        // Interactive demo
+        let tileCount = 1;
+        const tileTypes = ['Safe', 'Obs A', 'Obs B', 'Obs C', 'Ramp', 'Gap'];
+
+        function spawnTile() {
+            const visualizer = document.getElementById('tileVisualizer');
+            if (tileCount >= 8) {
+                // Remove first tile (not the player marker)
+                const firstTile = visualizer.querySelector('.tile:not(.player-marker)') || visualizer.querySelector('.tile');
+                if (firstTile && visualizer.children.length > 1) {
+                    firstTile.style.opacity = '0';
+                    firstTile.style.transform = 'scale(0.8)';
+                    setTimeout(() => firstTile.remove(), 300);
+                }
+            }
+
+            const tile = document.createElement('div');
+            const isObstacle = Math.random() > 0.4;
+            tile.className = 'tile' + (isObstacle ? ' obstacle' : '');
+            tile.textContent = tileTypes[Math.floor(Math.random() * tileTypes.length)];
+            visualizer.appendChild(tile);
+            tileCount++;
+
+            // Move player marker
+            const tiles = visualizer.querySelectorAll('.tile');
+            tiles.forEach(t => t.classList.remove('player-marker'));
+            if (tiles.length >= 2) {
+                tiles[1].classList.add('player-marker');
+            }
+        }
+
+        function resetDemo() {
+            const visualizer = document.getElementById('tileVisualizer');
+            visualizer.innerHTML = '<div class="tile player-marker">Safe</div>';
+            tileCount = 1;
+        }
+    </script>
+</body>
+</html>
