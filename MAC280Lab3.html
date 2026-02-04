@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAC280 Lab Assignment - Unity Endless Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --code-bg: #0d1117;
+            --code-border: #21262d;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --code-border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-card), var(--bg));
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-toggle label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--bg-card-hover);
+            border-radius: 15px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .toggle-switch::before {
+            content: '🌙';
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            border-radius: 50%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        [data-theme="light"] .toggle-switch::before {
+            content: '☀️';
+            left: calc(100% - 26px);
+            background: #f59e0b;
+        }
+
+        .student-info {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .student-info h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .info-field label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .info-field input {
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .info-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+
+        .question-card.correct { border-color: var(--success); }
+        .question-card.incorrect { border-color: var(--danger); }
+        .question-card.partial { border-color: var(--warning); }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .question-number {
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .question-type {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg);
+            border-radius: 1rem;
+            color: var(--text-muted);
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .question-points {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary);
+        }
+
+        .option.selected {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+        }
+
+        .option.correct-answer {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+
+        .option.wrong-answer {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+        }
+
+        .option input[type="radio"],
+        .option input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .option-text { flex: 1; }
+
+        .code-block {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 0.75rem 0;
+            border: 1px solid var(--code-border);
+        }
+
+        .code-block code { color: var(--text); }
+        [data-theme="dark"] .code-block code { color: #c9d1d9; }
+
+        .keyword { color: #ff7b72; }
+        .type { color: #79c0ff; }
+        .number { color: #79c0ff; }
+
+        [data-theme="light"] .keyword { color: #d73a49; }
+        [data-theme="light"] .type { color: #005cc5; }
+        [data-theme="light"] .number { color: #005cc5; }
+
+        .short-answer textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .short-answer textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .code-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        [data-theme="dark"] .code-input { color: #c9d1d9; }
+
+        .code-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .fill-blank-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .fill-blank-input {
+            padding: 0.5rem 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            color: var(--text);
+            font-family: 'Consolas', monospace;
+            min-width: 120px;
+        }
+
+        .fill-blank-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+        }
+
+        [data-theme="light"] .feedback.incorrect { color: var(--danger); }
+
+        .feedback.partial {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            color: #d97706;
+        }
+
+        .grading-panel {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .grading-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .password-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .password-input input {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover { background: #475569; }
+
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #059669; }
+
+        .score-display {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .score-display.show { display: block; }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) var(--percentage), var(--bg) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+
+        .score-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .score-total {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .score-breakdown {
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .hint-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        .hint-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .hint-text {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: none;
+            border-left: 3px solid var(--primary);
+        }
+
+        .hint-text.show { display: block; }
+
+        .order-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: 0.5rem;
+        }
+
+        .order-select {
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            color: var(--text);
+            min-width: 60px;
+        }
+
+        .order-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        @media print {
+            body { background: white !important; color: black !important; }
+            .tabs, .grading-panel, .btn, .hint-btn, .theme-toggle { display: none !important; }
+            .section { display: block !important; }
+            .question-card { break-inside: avoid; border: 1px solid #ccc !important; background: white !important; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            header h1 { font-size: 1.75rem; }
+            .info-grid { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .tab-btn { text-align: center; }
+            .theme-toggle { position: static; justify-content: center; margin-top: 1rem; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <header>
+            <div class="theme-toggle">
+                <label>Display Mode</label>
+                <div class="toggle-switch" onclick="toggleTheme()"></div>
+            </div>
+            <h1>🎮 Unity Endless Runner Lab</h1>
+            <p>MAC 280 — Game Programming | Prof. Khalid Kassou</p>
+        </header>
+
+        <div class="student-info">
+            <h3>📝 Student Information</h3>
+            <div class="info-grid">
+                <div class="info-field">
+                    <label>Full Name</label>
+                    <input type="text" id="studentName" placeholder="Enter your name">
+                </div>
+                <div class="info-field">
+                    <label>Student ID</label>
+                    <input type="text" id="studentId" placeholder="Enter your ID">
+                </div>
+                <div class="info-field">
+                    <label>Date</label>
+                    <input type="date" id="submissionDate">
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-section="part1">Part 1: Player Movement</button>
+            <button class="tab-btn" data-section="part2">Part 2: Camera System</button>
+            <button class="tab-btn" data-section="part3">Part 3: Jump & Gravity</button>
+            <button class="tab-btn" data-section="part4">Part 4: 3D Models & Tiles</button>
+            <button class="tab-btn" data-section="grading">📊 Grading</button>
+        </div>
+
+        <!-- PART 1: Player Movement -->
+        <div id="part1" class="section active">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Part 1: Player Movement & Lane Switching (25 points)</h2>
+
+            <div class="question-card" data-question="q1" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 1</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">Why does this game recommend using CharacterController instead of Rigidbody for player movement in an endless runner?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q1" value="a"><span class="option-text">CharacterController uses less memory than Rigidbody</span></label>
+                    <label class="option"><input type="radio" name="q1" value="b"><span class="option-text">CharacterController gives direct control over movement without physics simulation — perfect for arcade-style runners</span></label>
+                    <label class="option"><input type="radio" name="q1" value="c"><span class="option-text">CharacterController automatically handles jumping</span></label>
+                    <label class="option"><input type="radio" name="q1" value="d"><span class="option-text">CharacterController is required for 3D games in Unity</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q2" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 2</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">In the player controller script, why is input detected in <code>Update()</code> but movement applied in <code>FixedUpdate()</code>?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q2" value="a"><span class="option-text">Update() runs faster than FixedUpdate()</span></label>
+                    <label class="option"><input type="radio" name="q2" value="b"><span class="option-text">FixedUpdate() runs at fixed time intervals for consistent physics behavior</span></label>
+                    <label class="option"><input type="radio" name="q2" value="c"><span class="option-text">Unity requires all movement code to be in FixedUpdate()</span></label>
+                    <label class="option"><input type="radio" name="q2" value="d"><span class="option-text">It's a stylistic preference with no functional difference</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q3" data-type="fill" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 3</span>
+                    <span class="question-type">Fill in the Blank</span>
+                </div>
+                <div class="question-text">Complete the lane calculation formula used in this game:</div>
+                <div class="question-points">4 points</div>
+                <div class="fill-blank-container">
+                    <span>float targetX = (</span>
+                    <input type="text" class="fill-blank-input" id="q3_blank1" placeholder="?">
+                    <span> - 1) *</span>
+                    <input type="text" class="fill-blank-input" id="q3_blank2" placeholder="?">
+                    <span>;</span>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q3')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q3">The formula maps lane 0 → negative X, lane 1 → 0, lane 2 → positive X. Think about which variable stores the current lane (desired____) and which stores the gap between lanes (lane____).</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q4" data-type="short" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 4</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Explain the "vibration problem" that occurs when mixing <code>transform.position = Vector3.Lerp(...)</code> with <code>controller.Move()</code>. Why does this happen?</div>
+                <div class="question-points">5 points</div>
+                <div class="short-answer">
+                    <textarea id="q4_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q4')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q4">Think about what happens when two different systems try to control the same thing. One system uses Lerp to set the position directly, while CharacterController.Move() also wants to control the position. What happens when they "fight" each other every frame?</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q5" data-type="code" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 5</span>
+                    <span class="question-type">Code Analysis</span>
+                </div>
+                <div class="question-text">What does this line of code do? Explain how it creates smooth lane movement:</div>
+                <div class="code-block">
+                    <code><span class="type">direction</span>.<span class="keyword">x</span> = (<span class="type">targetX</span> - <span class="type">transform</span>.<span class="keyword">position</span>.<span class="keyword">x</span>) * <span class="number">10f</span>;</code>
+                </div>
+                <div class="question-points">5 points</div>
+                <div class="short-answer">
+                    <textarea id="q5_answer" placeholder="Explain how this code creates smooth movement..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q5')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q5">Consider what (targetX - transform.position.x) represents — it's the difference between where you want to be and where you are. What happens to this difference as the player gets closer to the target? How does multiplying by 10 affect the speed?</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q6" data-type="mcq" data-points="2">
+                <div class="question-header">
+                    <span class="question-number">Question 6</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">In the 3-lane system, what value does <code>desiredLane</code> have when the player is in the center lane?</div>
+                <div class="question-points">2 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q6" value="a"><span class="option-text">0</span></label>
+                    <label class="option"><input type="radio" name="q6" value="b"><span class="option-text">1</span></label>
+                    <label class="option"><input type="radio" name="q6" value="c"><span class="option-text">2</span></label>
+                    <label class="option"><input type="radio" name="q6" value="d"><span class="option-text">-1</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q7" data-type="short" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 7</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Why is it important to clamp the <code>desiredLane</code> value to prevent it from going below 0 or above 2?</div>
+                <div class="question-points">3 points</div>
+                <div class="short-answer">
+                    <textarea id="q7_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q7')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q7">Think about what would happen if desiredLane became -1 or 3. Using the formula (desiredLane - 1) * laneDistance, calculate where the player would try to move. Would they stay on the playable ground?</div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- PART 2: Camera System -->
+        <div id="part2" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Part 2: Camera Follow System (22 points)</h2>
+
+            <div class="question-card" data-question="q8" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 8</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">Why should camera follow logic be placed in <code>LateUpdate()</code> instead of <code>Update()</code>?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q8" value="a"><span class="option-text">LateUpdate() runs faster than Update()</span></label>
+                    <label class="option"><input type="radio" name="q8" value="b"><span class="option-text">LateUpdate() runs after all Update() calls, ensuring the player has finished moving</span></label>
+                    <label class="option"><input type="radio" name="q8" value="c"><span class="option-text">LateUpdate() uses less CPU resources</span></label>
+                    <label class="option"><input type="radio" name="q8" value="d"><span class="option-text">Unity requires camera scripts to use LateUpdate()</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q9" data-type="code" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 9</span>
+                    <span class="question-type">Code Writing</span>
+                </div>
+                <div class="question-text">Write the line of code that calculates the initial offset between the camera and player in the <code>Start()</code> method:</div>
+                <div class="question-points">4 points</div>
+                <textarea class="code-input" id="q9_answer" placeholder="offset = ..."></textarea>
+                <button class="hint-btn" onclick="toggleHint('q9')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q9">The offset is calculated by subtracting one position from another. Think: "camera position" minus "player position" (target.position). This gives you the distance the camera should maintain from the player.</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q10" data-type="short" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 10</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">In the camera controller, why do we lock the X and Y axes but follow the Z axis? What would happen if we followed all three axes?</div>
+                <div class="question-points">5 points</div>
+                <div class="short-answer">
+                    <textarea id="q10_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q10')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q10">Think about which direction the player moves forward (Z-axis) and which direction they move when changing lanes (X-axis). If the camera followed the X-axis, what would happen when the player switches lanes? Would the camera view feel stable or jerky?</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q11" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 11</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">What does <code>Vector3.Lerp</code> do in the camera system?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q11" value="a"><span class="option-text">Instantly teleports the camera to the target position</span></label>
+                    <label class="option"><input type="radio" name="q11" value="b"><span class="option-text">Smoothly interpolates between the current and target positions</span></label>
+                    <label class="option"><input type="radio" name="q11" value="c"><span class="option-text">Rotates the camera to look at the player</span></label>
+                    <label class="option"><input type="radio" name="q11" value="d"><span class="option-text">Calculates the distance between two points</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q12" data-type="fill" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 12</span>
+                    <span class="question-type">Fill in the Blank</span>
+                </div>
+                <div class="question-text">Complete the smooth camera follow code:</div>
+                <div class="question-points">4 points</div>
+                <div class="code-block">
+                    <code>transform.position = Vector3.Lerp(<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" class="fill-blank-input" id="q12_blank1" placeholder="?" style="width:180px">,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;newPosition,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" class="fill-blank-input" id="q12_blank2" placeholder="?"> * Time.deltaTime<br>
+                    );</code>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q12')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q12">Lerp needs a starting point (where you ARE now) and an ending point (where you WANT to be). The first blank is the camera's current position. The second blank is the speed multiplier (a number like 10).</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q13" data-type="short" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 13</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">What is the purpose of the <code>public Transform target</code> variable in the CameraController script, and how do you assign it in Unity?</div>
+                <div class="question-points">3 points</div>
+                <div class="short-answer">
+                    <textarea id="q13_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q13')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q13">The "public" keyword makes the variable appear in Unity's Inspector panel. Think about what object the camera needs to follow (the Player), and how you would connect them in the Unity Editor (drag and drop).</div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- PART 3: Jump & Gravity -->
+        <div id="part3" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Part 3: Jumping & Gravity System (25 points)</h2>
+
+            <div class="question-card" data-question="q14" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 14</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">What is the purpose of checking <code>controller.isGrounded</code> before allowing a jump?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q14" value="a"><span class="option-text">To make the player jump higher</span></label>
+                    <label class="option"><input type="radio" name="q14" value="b"><span class="option-text">To prevent infinite mid-air jumps</span></label>
+                    <label class="option"><input type="radio" name="q14" value="c"><span class="option-text">To apply gravity only when jumping</span></label>
+                    <label class="option"><input type="radio" name="q14" value="d"><span class="option-text">To detect collision with obstacles</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q15" data-type="short" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 15</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Why does this game use <code>direction.y = -1</code> instead of <code>direction.y = 0</code> when the player is grounded but not jumping?</div>
+                <div class="question-points">5 points</div>
+                <div class="short-answer">
+                    <textarea id="q15_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q15')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q15">Think about how isGrounded works — it checks if the CharacterController's bottom is touching the ground. If direction.y = 0, the player might "float" slightly above the surface, causing isGrounded to flicker between true and false. A small downward push keeps reliable ground contact.</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q16" data-type="code" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 16</span>
+                    <span class="question-type">Code Writing</span>
+                </div>
+                <div class="question-text">Write the complete <code>Jump()</code> method as shown in this game:</div>
+                <div class="question-points">5 points</div>
+                <textarea class="code-input" id="q16_answer" placeholder="private void Jump()&#10;{&#10;    // Write your code here&#10;}"></textarea>
+                <button class="hint-btn" onclick="toggleHint('q16')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q16">The Jump() method is very simple — it only needs one line inside. You're setting direction.y to the jumpForce value, which will make the player move upward when controller.Move() is called.</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q17" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 17</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">What is the recommended default value for gravity in this game?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q17" value="a"><span class="option-text">-9.8 (real-world gravity)</span></label>
+                    <label class="option"><input type="radio" name="q17" value="b"><span class="option-text">-20 (game feel)</span></label>
+                    <label class="option"><input type="radio" name="q17" value="c"><span class="option-text">0 (no gravity)</span></label>
+                    <label class="option"><input type="radio" name="q17" value="d"><span class="option-text">-100 (fast falling)</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q18" data-type="fill" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 18</span>
+                    <span class="question-type">Fill in the Blank</span>
+                </div>
+                <div class="question-text">Complete the gravity application code that runs when the player is in the air:</div>
+                <div class="question-points">4 points</div>
+                <div class="fill-blank-container">
+                    <span>direction.y += </span>
+                    <input type="text" class="fill-blank-input" id="q18_blank1" placeholder="?">
+                    <span> * </span>
+                    <input type="text" class="fill-blank-input" id="q18_blank2" placeholder="?">
+                    <span>;</span>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q18')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q18">Gravity needs to be multiplied by time to work correctly across different frame rates. The first blank is the gravity variable, and the second blank is Unity's time since last frame (Time.______).</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q19" data-type="multi" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 19</span>
+                    <span class="question-type">Multiple Select</span>
+                </div>
+                <div class="question-text">Which of the following are recommended Inspector values mentioned in this game? (Select all that apply)</div>
+                <div class="question-points">4 points</div>
+                <div class="options">
+                    <label class="option"><input type="checkbox" name="q19" value="a"><span class="option-text">Forward Speed: 10-15</span></label>
+                    <label class="option"><input type="checkbox" name="q19" value="b"><span class="option-text">Jump Force: 10-15</span></label>
+                    <label class="option"><input type="checkbox" name="q19" value="c"><span class="option-text">Gravity: -50</span></label>
+                    <label class="option"><input type="checkbox" name="q19" value="d"><span class="option-text">Lane Distance: 4 (default)</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q20" data-type="short" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 20</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Explain the complete jump cycle: what happens to <code>direction.y</code> from the moment the player presses the jump key until they land back on the ground?</div>
+                <div class="question-points">5 points</div>
+                <div class="short-answer">
+                    <textarea id="q20_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q20')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q20">Break it into phases: 1) Jump pressed → direction.y = jumpForce (positive, going up). 2) In the air → gravity keeps subtracting from direction.y each frame. 3) At peak → direction.y crosses zero. 4) Falling → direction.y becomes negative. 5) Landing → isGrounded becomes true, direction.y resets to -1.</div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- PART 4: 3D Models & Tiles -->
+        <div id="part4" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Part 4: 3D Models & Tile System (28 points)</h2>
+
+            <div class="question-card" data-question="q21" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 21</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">What is the length of each tile segment in the Unity project (used for Z-axis spacing)?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q21" value="a"><span class="option-text">10 units</span></label>
+                    <label class="option"><input type="radio" name="q21" value="b"><span class="option-text">20 units</span></label>
+                    <label class="option"><input type="radio" name="q21" value="c"><span class="option-text">30 units</span></label>
+                    <label class="option"><input type="radio" name="q21" value="d"><span class="option-text">50 units</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q22" data-type="short" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 22</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Why is it critical to add a Box Collider to the road surface? What would happen without it?</div>
+                <div class="question-points">4 points</div>
+                <div class="short-answer">
+                    <textarea id="q22_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q22')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q22">Remember that 3D models are just visual meshes — they don't have physics by default. The CharacterController needs something solid to stand on. Without a collider, what would happen to the player when they try to walk on the road?</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q23" data-type="mcq" data-points="3">
+                <div class="question-header">
+                    <span class="question-number">Question 23</span>
+                    <span class="question-type">Multiple Choice</span>
+                </div>
+                <div class="question-text">What is the X position value for traffic cones placed in the right lane?</div>
+                <div class="question-points">3 points</div>
+                <div class="options">
+                    <label class="option"><input type="radio" name="q23" value="a"><span class="option-text">-2.5</span></label>
+                    <label class="option"><input type="radio" name="q23" value="b"><span class="option-text">0</span></label>
+                    <label class="option"><input type="radio" name="q23" value="c"><span class="option-text">2.5</span></label>
+                    <label class="option"><input type="radio" name="q23" value="d"><span class="option-text">4</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q24" data-type="multi" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 24</span>
+                    <span class="question-type">Multiple Select</span>
+                </div>
+                <div class="question-text">Which tile variations are created in this game? (Select all that apply)</div>
+                <div class="question-points">4 points</div>
+                <div class="options">
+                    <label class="option"><input type="checkbox" name="q24" value="a"><span class="option-text">Clean road (no obstacles)</span></label>
+                    <label class="option"><input type="checkbox" name="q24" value="b"><span class="option-text">Traffic cones on both sides</span></label>
+                    <label class="option"><input type="checkbox" name="q24" value="c"><span class="option-text">High barrier (slide under)</span></label>
+                    <label class="option"><input type="checkbox" name="q24" value="d"><span class="option-text">Moving platforms</span></label>
+                    <label class="option"><input type="checkbox" name="q24" value="e"><span class="option-text">Low barrier (jump over)</span></label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q25" data-type="short" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 25</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Explain the difference between the high barrier (slide obstacle) and low barrier (jump obstacle). What player action does each require?</div>
+                <div class="question-points">4 points</div>
+                <div class="short-answer">
+                    <textarea id="q25_answer" placeholder="Type your answer here..."></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q25')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q25">Think about where each barrier is positioned vertically. A high barrier is above the player's normal running height (so they must duck/slide under it). A low barrier is at ground level (so they must jump over it). Different positions require different player actions.</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q26" data-type="order" data-points="4">
+                <div class="question-header">
+                    <span class="question-number">Question 26</span>
+                    <span class="question-type">Ordering</span>
+                </div>
+                <div class="question-text">Put these steps for creating a tile prefab in the correct order (1-4):</div>
+                <div class="question-points">4 points</div>
+                <div class="order-items">
+                    <div class="order-item">
+                        <select class="order-select" id="q26_a"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+                        <span>Add a Box Collider to the Road</span>
+                    </div>
+                    <div class="order-item">
+                        <select class="order-select" id="q26_b"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+                        <span>Create an empty GameObject named "Tile1"</span>
+                    </div>
+                    <div class="order-item">
+                        <select class="order-select" id="q26_c"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+                        <span>Drag Tile1 into the Prefabs folder</span>
+                    </div>
+                    <div class="order-item">
+                        <select class="order-select" id="q26_d"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+                        <span>Add the Road model as a child object</span>
+                    </div>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q26')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q26">Think about the logical order: First you need a container (empty GameObject), then you add content to it (Road model), then you make it functional (Box Collider), and finally you save it for reuse (Prefab).</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q27" data-type="practical" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 27</span>
+                    <span class="question-type">Practical</span>
+                </div>
+                <div class="question-text">If you want to place 5 tiles end-to-end starting at Z = 0, what would be the Z position of each tile? Write the Z values for Tile 1 through Tile 5:</div>
+                <div class="question-points">5 points</div>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1rem;">
+                    <div class="info-field"><label>Tile 1</label><input type="number" id="q27_t1" placeholder="Z = ?"></div>
+                    <div class="info-field"><label>Tile 2</label><input type="number" id="q27_t2" placeholder="Z = ?"></div>
+                    <div class="info-field"><label>Tile 3</label><input type="number" id="q27_t3" placeholder="Z = ?"></div>
+                    <div class="info-field"><label>Tile 4</label><input type="number" id="q27_t4" placeholder="Z = ?"></div>
+                    <div class="info-field"><label>Tile 5</label><input type="number" id="q27_t5" placeholder="Z = ?"></div>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q27')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q27">Each tile is 30 units long. Use the formula: Z = tileIndex × 30. So Tile 1 (index 0) = 0 × 30, Tile 2 (index 1) = 1 × 30, and so on...</div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" data-question="q28" data-type="short" data-points="5">
+                <div class="question-header">
+                    <span class="question-number">Question 28</span>
+                    <span class="question-type">Short Answer</span>
+                </div>
+                <div class="question-text">Describe the complete workflow for creating a new tile variant with obstacles. Include all the necessary steps from unpacking the prefab to saving the new variant.</div>
+                <div class="question-points">5 points</div>
+                <div class="short-answer">
+                    <textarea id="q28_answer" placeholder="Type your answer here..." style="min-height: 150px;"></textarea>
+                </div>
+                <button class="hint-btn" onclick="toggleHint('q28')">💡 Show Hint</button>
+                <div class="hint-text" id="hint_q28">The workflow has these key steps: 1) Unpack the base prefab to break the link. 2) Rename it (e.g., Tile2). 3) Add obstacle models as children. 4) Position the obstacles correctly. 5) Add Box Colliders to each obstacle. 6) Drag the new tile into the Prefabs folder to save it.</div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- GRADING SECTION -->
+        <div id="grading" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">📊 Grading & Results</h2>
+
+            <div class="grading-panel">
+                <div class="grading-header"><h3>Instructor Grading Access</h3></div>
+                <div class="password-input">
+                    <input type="password" id="gradingPassword" placeholder="Enter grading password">
+                    <button class="btn" onclick="unlockGrading()">Unlock Grading</button>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Enter the instructor password to reveal answers and enable automatic grading.</p>
+            </div>
+
+            <div class="score-display" id="scoreDisplay">
+                <div class="score-circle" style="--percentage: 0%;">
+                    <div class="score-inner">
+                        <span class="score-value" id="scoreValue">0</span>
+                        <span class="score-total">/ 100 points</span>
+                    </div>
+                </div>
+                <h3 id="gradeLabel">Grade: —</h3>
+                
+                <div class="score-breakdown">
+                    <div class="score-row"><span>Part 1: Player Movement</span><span id="part1Score">0 / 25</span></div>
+                    <div class="score-row"><span>Part 2: Camera System</span><span id="part2Score">0 / 22</span></div>
+                    <div class="score-row"><span>Part 3: Jump & Gravity</span><span id="part3Score">0 / 25</span></div>
+                    <div class="score-row"><span>Part 4: 3D Models & Tiles</span><span id="part4Score">0 / 28</span></div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="gradeAssignment()" id="gradeBtn" style="display: none;">✓ Grade Assignment</button>
+                <button class="btn btn-secondary" onclick="savePDF()">📄 Save as PDF</button>
+                <button class="btn btn-secondary" onclick="resetAssignment()">🔄 Reset All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const answerKey = {
+            q1: { answer: 'b', type: 'mcq' },
+            q2: { answer: 'b', type: 'mcq' },
+            q3: { answer: ['desiredLane', 'laneDistance'], type: 'fill', keywords: [['desiredlane', 'desired_lane', 'desiredLane'], ['lanedistance', 'lane_distance', 'laneDistance']] },
+            q4: { type: 'short', keywords: ['two', 'movement', 'systems', 'fight', 'conflict', 'correct', 'vibrat', 'CharacterController', 'position', 'Lerp', 'teleport'] },
+            q5: { type: 'short', keywords: ['difference', 'target', 'current', 'smooth', 'velocity', 'approaches', 'decelerat', 'shrinks', 'converge', 'closer', 'smaller'] },
+            q6: { answer: 'b', type: 'mcq' },
+            q7: { type: 'short', keywords: ['off', 'screen', 'ground', 'boundary', 'bounds', 'outside', 'fall', 'leave', 'prevent', 'limit'] },
+            q8: { answer: 'b', type: 'mcq' },
+            q9: { type: 'code', keywords: ['offset', 'transform.position', 'target.position', '-', 'minus', 'subtract'] },
+            q10: { type: 'short', keywords: ['forward', 'z', 'lane', 'x', 'sideways', 'drift', 'follow', 'jerk', 'jitter', 'stable', 'switch'] },
+            q11: { answer: 'b', type: 'mcq' },
+            q12: { answer: ['transform.position', '10'], type: 'fill', keywords: [['transform.position'], ['10', '10f']] },
+            q13: { type: 'short', keywords: ['reference', 'player', 'follow', 'inspector', 'drag', 'drop', 'assign', 'public'] },
+            q14: { answer: 'b', type: 'mcq' },
+            q15: { type: 'short', keywords: ['ground', 'contact', 'push', 'isGrounded', 'reliable', 'consistent', 'float', 'flicker', 'press', 'down'] },
+            q16: { type: 'code', keywords: ['direction.y', 'jumpForce', 'private', 'void', 'Jump'] },
+            q17: { answer: 'b', type: 'mcq' },
+            q18: { answer: ['gravity', 'Time.deltaTime'], type: 'fill', keywords: [['gravity'], ['time.deltatime', 'deltaTime', 'deltatime']] },
+            q19: { answer: ['a', 'b', 'd'], type: 'multi' },
+            q20: { type: 'short', keywords: ['jump', 'positive', 'up', 'gravity', 'subtract', 'reduce', 'peak', 'zero', 'negative', 'fall', 'land', 'ground'] },
+            q21: { answer: 'c', type: 'mcq' },
+            q22: { type: 'short', keywords: ['fall', 'through', 'collision', 'physics', 'prevent', 'collider', 'solid', 'stand'] },
+            q23: { answer: 'c', type: 'mcq' },
+            q24: { answer: ['a', 'b', 'c', 'e'], type: 'multi' },
+            q25: { type: 'short', keywords: ['slide', 'duck', 'under', 'jump', 'over', 'high', 'low', 'above', 'ground'] },
+            q26: { answer: { a: '3', b: '1', c: '4', d: '2' }, type: 'order' },
+            q27: { answer: [0, 30, 60, 90, 120], type: 'practical' },
+            q28: { type: 'short', keywords: ['unpack', 'prefab', 'add', 'obstacle', 'collider', 'save', 'drag', 'folder', 'rename', 'position'] }
+        };
+
+        const GRADING_PASSWORD = 'MAC280';
+        let isGradingUnlocked = false;
+
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('submissionDate').valueAsDate = new Date();
+            initTabs();
+            initOptions();
+        });
+
+        function initTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sectionId = this.dataset.section;
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById(sectionId).classList.add('active');
+                });
+            });
+        }
+
+        function initOptions() {
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const input = this.querySelector('input');
+                    if (input.type === 'radio') {
+                        this.closest('.options').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+                    }
+                    if (input.type === 'checkbox') {
+                        this.classList.toggle('selected');
+                        input.checked = this.classList.contains('selected');
+                    } else {
+                        input.checked = true;
+                        this.classList.add('selected');
+                    }
+                });
+            });
+        }
+
+        function toggleHint(questionId) {
+            const hint = document.getElementById('hint_' + questionId);
+            hint.classList.toggle('show');
+        }
+
+        function unlockGrading() {
+            const password = document.getElementById('gradingPassword').value;
+            if (password === GRADING_PASSWORD) {
+                isGradingUnlocked = true;
+                document.getElementById('gradeBtn').style.display = 'inline-block';
+                document.getElementById('scoreDisplay').classList.add('show');
+                alert('Grading unlocked! You can now grade the assignment.');
+            } else {
+                alert('Incorrect password. Please try again.');
+            }
+        }
+
+        function gradeAssignment() {
+            if (!isGradingUnlocked) { alert('Please unlock grading first with the instructor password.'); return; }
+
+            let totalScore = 0;
+            let partScores = { part1: 0, part2: 0, part3: 0, part4: 0 };
+            const partQuestions = {
+                part1: ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7'],
+                part2: ['q8', 'q9', 'q10', 'q11', 'q12', 'q13'],
+                part3: ['q14', 'q15', 'q16', 'q17', 'q18', 'q19', 'q20'],
+                part4: ['q21', 'q22', 'q23', 'q24', 'q25', 'q26', 'q27', 'q28']
+            };
+
+            Object.keys(answerKey).forEach(qId => {
+                const questionCard = document.querySelector('[data-question="' + qId + '"]');
+                const points = parseInt(questionCard.dataset.points);
+                const key = answerKey[qId];
+                let score = 0;
+                let feedback = '';
+
+                if (key.type === 'mcq') {
+                    const selected = document.querySelector('input[name="' + qId + '"]:checked');
+                    if (selected && selected.value === key.answer) {
+                        score = points;
+                        feedback = '✓ Correct!';
+                        questionCard.classList.add('correct');
+                    } else {
+                        feedback = '✗ Incorrect. The correct answer is: ' + key.answer.toUpperCase();
+                        questionCard.classList.add('incorrect');
+                        document.querySelectorAll('input[name="' + qId + '"]').forEach(input => {
+                            if (input.value === key.answer) input.closest('.option').classList.add('correct-answer');
+                            else if (input.checked) input.closest('.option').classList.add('wrong-answer');
+                        });
+                    }
+                } else if (key.type === 'multi') {
+                    const selected = Array.from(document.querySelectorAll('input[name="' + qId + '"]:checked')).map(i => i.value);
+                    const correct = key.answer;
+                    const correctCount = selected.filter(s => correct.includes(s)).length;
+                    const wrongCount = selected.filter(s => !correct.includes(s)).length;
+                    const partialScore = Math.max(0, (correctCount / correct.length) - (wrongCount * 0.25));
+                    score = Math.round(points * partialScore);
+                    if (score === points) { feedback = '✓ All correct!'; questionCard.classList.add('correct'); }
+                    else if (score > 0) { feedback = 'Partially correct. You got ' + correctCount + '/' + correct.length + ' correct answers.'; questionCard.classList.add('partial'); }
+                    else { feedback = '✗ Incorrect. The correct answers are: ' + correct.join(', ').toUpperCase(); questionCard.classList.add('incorrect'); }
+                } else if (key.type === 'fill') {
+                    let correctBlanks = 0;
+                    for (let i = 0; i < key.answer.length; i++) {
+                        const input = document.getElementById(qId + '_blank' + (i + 1));
+                        const userAnswer = input.value.trim().toLowerCase().replace(/\s/g, '');
+                        const acceptableAnswers = key.keywords[i].map(k => k.toLowerCase().replace(/\s/g, ''));
+                        if (acceptableAnswers.some(a => userAnswer.includes(a) || a.includes(userAnswer))) {
+                            correctBlanks++;
+                            input.style.borderColor = 'var(--success)';
+                        } else { input.style.borderColor = 'var(--danger)'; }
+                    }
+                    score = Math.round(points * (correctBlanks / key.answer.length));
+                    if (correctBlanks === key.answer.length) { feedback = '✓ All blanks correct!'; questionCard.classList.add('correct'); }
+                    else { feedback = correctBlanks + '/' + key.answer.length + ' blanks correct. Expected: ' + key.answer.join(', '); questionCard.classList.add(correctBlanks > 0 ? 'partial' : 'incorrect'); }
+                } else if (key.type === 'short' || key.type === 'code') {
+                    const answer = document.getElementById(qId + '_answer').value.toLowerCase();
+                    const matchedKeywords = key.keywords.filter(kw => answer.includes(kw.toLowerCase()));
+                    const keywordScore = matchedKeywords.length / key.keywords.length;
+                    if (answer.length < 15) { score = 0; feedback = '✗ Answer too short. Please provide a more detailed response.'; questionCard.classList.add('incorrect'); }
+                    else if (keywordScore >= 0.5) { score = points; feedback = '✓ Excellent answer! Key concepts covered.'; questionCard.classList.add('correct'); }
+                    else if (keywordScore >= 0.25) { score = Math.round(points * 0.7); feedback = 'Good attempt. Consider also mentioning: ' + key.keywords.filter(k => !matchedKeywords.includes(k)).slice(0, 3).join(', '); questionCard.classList.add('partial'); }
+                    else { score = Math.round(points * 0.3); feedback = 'Needs improvement. Key concepts to include: ' + key.keywords.slice(0, 4).join(', '); questionCard.classList.add('partial'); }
+                } else if (key.type === 'order') {
+                    let correctOrder = 0;
+                    Object.keys(key.answer).forEach(letter => {
+                        const select = document.getElementById(qId + '_' + letter);
+                        if (select.value === key.answer[letter]) { correctOrder++; select.style.borderColor = 'var(--success)'; }
+                        else { select.style.borderColor = 'var(--danger)'; }
+                    });
+                    score = Math.round(points * (correctOrder / 4));
+                    feedback = correctOrder === 4 ? '✓ Correct order!' : correctOrder + '/4 in correct position. Correct order: 1-Create Empty, 2-Add Road, 3-Add Collider, 4-Save Prefab';
+                    questionCard.classList.add(correctOrder === 4 ? 'correct' : (correctOrder > 0 ? 'partial' : 'incorrect'));
+                } else if (key.type === 'practical') {
+                    let correctValues = 0;
+                    for (let i = 0; i < 5; i++) {
+                        const input = document.getElementById(qId + '_t' + (i + 1));
+                        if (parseInt(input.value) === key.answer[i]) { correctValues++; input.style.borderColor = 'var(--success)'; }
+                        else { input.style.borderColor = 'var(--danger)'; }
+                    }
+                    score = Math.round(points * (correctValues / 5));
+                    feedback = correctValues === 5 ? '✓ All positions correct!' : correctValues + '/5 correct. Formula: Z = index × 30';
+                    questionCard.classList.add(correctValues === 5 ? 'correct' : (correctValues > 0 ? 'partial' : 'incorrect'));
+                }
+
+                const feedbackEl = questionCard.querySelector('.feedback');
+                feedbackEl.textContent = feedback + ' (' + score + '/' + points + ' points)';
+                feedbackEl.classList.add('show');
+                feedbackEl.classList.remove('correct', 'incorrect', 'partial');
+                if (score === points) feedbackEl.classList.add('correct');
+                else if (score > 0) feedbackEl.classList.add('partial');
+                else feedbackEl.classList.add('incorrect');
+
+                totalScore += score;
+                Object.keys(partQuestions).forEach(part => { if (partQuestions[part].includes(qId)) partScores[part] += score; });
+            });
+
+            document.getElementById('scoreValue').textContent = totalScore;
+            document.getElementById('progressFill').style.width = totalScore + '%';
+            document.querySelector('.score-circle').style.setProperty('--percentage', totalScore + '%');
+            document.getElementById('part1Score').textContent = partScores.part1 + ' / 25';
+            document.getElementById('part2Score').textContent = partScores.part2 + ' / 22';
+            document.getElementById('part3Score').textContent = partScores.part3 + ' / 25';
+            document.getElementById('part4Score').textContent = partScores.part4 + ' / 28';
+
+            let grade;
+            if (totalScore >= 90) grade = 'A';
+            else if (totalScore >= 80) grade = 'B';
+            else if (totalScore >= 70) grade = 'C';
+            else if (totalScore >= 60) grade = 'D';
+            else grade = 'F';
+            document.getElementById('gradeLabel').textContent = 'Grade: ' + grade + ' (' + totalScore + '%)';
+        }
+
+        function savePDF() {
+            const studentName = document.getElementById('studentName').value || 'Student';
+            const studentId = document.getElementById('studentId').value || 'N/A';
+            const date = document.getElementById('submissionDate').value;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<!DOCTYPE html><html><head><title>MAC280 Lab - ' + studentName + '</title><style>body{font-family:Arial,sans-serif;padding:20px;line-height:1.6}h1{color:#4f46e5;border-bottom:2px solid #4f46e5;padding-bottom:10px}h2{color:#6366f1;margin-top:30px}.header-info{background:#f1f5f9;padding:15px;border-radius:8px;margin-bottom:20px}.question{margin-bottom:25px;padding:15px;border:1px solid #ddd;border-radius:8px;page-break-inside:avoid}.question-num{color:#4f46e5;font-weight:bold}.answer{margin-top:10px;padding:10px;background:#f8fafc;border-left:3px solid #4f46e5}.code{font-family:monospace;background:#1e293b;color:#f1f5f9;padding:10px;border-radius:4px;white-space:pre-wrap}.points{color:#64748b;font-size:0.9em}@media print{.question{page-break-inside:avoid}}</style></head><body><h1>🎮 MAC280 - Unity Endless Runner Lab</h1><div class="header-info"><strong>Student:</strong> ' + studentName + '<br><strong>ID:</strong> ' + studentId + '<br><strong>Date:</strong> ' + date + '<br><strong>Professor:</strong> Khalid Kassou<br><strong>Total Points:</strong> 100</div>');
+            const sections = [{id:'part1',title:'Part 1: Player Movement & Lane Switching (25 points)'},{id:'part2',title:'Part 2: Camera Follow System (22 points)'},{id:'part3',title:'Part 3: Jumping & Gravity (25 points)'},{id:'part4',title:'Part 4: 3D Models & Tiles (28 points)'}];
+            sections.forEach(section => {
+                printWindow.document.write('<h2>' + section.title + '</h2>');
+                const questions = document.querySelectorAll('#' + section.id + ' .question-card');
+                questions.forEach(q => {
+                    const qNum = q.querySelector('.question-number').textContent;
+                    const qText = q.querySelector('.question-text').textContent;
+                    const points = q.querySelector('.question-points').textContent;
+                    let answer = 'No answer provided';
+                    const textarea = q.querySelector('textarea');
+                    const codeInput = q.querySelector('.code-input');
+                    const selectedRadio = q.querySelector('input[type="radio"]:checked');
+                    const selectedCheckboxes = q.querySelectorAll('input[type="checkbox"]:checked');
+                    const fillBlanks = q.querySelectorAll('.fill-blank-input');
+                    const orderSelects = q.querySelectorAll('.order-select');
+                    const numberInputs = q.querySelectorAll('input[type="number"]');
+                    if (textarea) answer = textarea.value || 'No answer provided';
+                    else if (codeInput) answer = '<div class="code">' + (codeInput.value || 'No code provided') + '</div>';
+                    else if (selectedRadio) answer = selectedRadio.closest('.option').querySelector('.option-text').textContent;
+                    else if (selectedCheckboxes.length > 0) answer = Array.from(selectedCheckboxes).map(cb => cb.closest('.option').querySelector('.option-text').textContent).join(', ');
+                    else if (fillBlanks.length > 0) answer = Array.from(fillBlanks).map(fb => fb.value || '___').join(', ');
+                    else if (orderSelects.length > 0) answer = Array.from(orderSelects).map(sel => (sel.value || '?') + ': ' + sel.nextElementSibling.textContent).join('<br>');
+                    else if (numberInputs.length > 0) answer = Array.from(numberInputs).map(inp => inp.value || '?').join(', ');
+                    printWindow.document.write('<div class="question"><div class="question-num">' + qNum + '</div><p>' + qText + '</p><div class="points">' + points + '</div><div class="answer"><strong>Answer:</strong> ' + answer + '</div></div>');
+                });
+            });
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 500);
+        }
+
+        function resetAssignment() {
+            if (confirm('Are you sure you want to reset all answers? This cannot be undone.')) {
+                document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(i => i.checked = false);
+                document.querySelectorAll('textarea, input[type="text"], input[type="number"]').forEach(i => {
+                    if (i.id !== 'studentName' && i.id !== 'studentId' && i.id !== 'submissionDate' && i.id !== 'gradingPassword') { i.value = ''; i.style.borderColor = ''; }
+                });
+                document.querySelectorAll('select').forEach(s => { s.value = ''; s.style.borderColor = ''; });
+                document.querySelectorAll('.option').forEach(o => o.classList.remove('selected', 'correct-answer', 'wrong-answer'));
+                document.querySelectorAll('.question-card').forEach(q => q.classList.remove('correct', 'incorrect', 'partial'));
+                document.querySelectorAll('.feedback').forEach(f => { f.classList.remove('show'); f.textContent = ''; });
+                document.querySelectorAll('.hint-text').forEach(h => h.classList.remove('show'));
+                document.getElementById('scoreValue').textContent = '0';
+                document.getElementById('progressFill').style.width = '0%';
+                document.querySelector('.score-circle').style.setProperty('--percentage', '0%');
+                document.getElementById('gradeLabel').textContent = 'Grade: —';
+            }
+        }
+    </script>
+</body>
+</html>
