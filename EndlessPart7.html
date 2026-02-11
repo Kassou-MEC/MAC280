@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Tap to Start - Endless Runner Tutorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@300;400;600;700;800&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --warning: #fdcb6e;
+            --success: #00b894;
+            --dark-1: #0c0c1e;
+            --dark-2: #151530;
+            --dark-3: #1e1e42;
+            --dark-4: #2d2d5a;
+            --text-primary: #ffffff;
+            --text-secondary: #b8b8d1;
+            --text-muted: #6c6c8a;
+            --glow-primary: rgba(108, 92, 231, 0.4);
+            --glow-secondary: rgba(0, 206, 201, 0.4);
+            --card-bg: rgba(30, 30, 66, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--dark-1);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.8;
+            font-size: 18px;
+        }
+
+        /* Animated Background */
+        .bg-stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-stars::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 10% 20%, rgba(108, 92, 231, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(0, 206, 201, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(253, 121, 168, 0.1) 0%, transparent 60%);
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, var(--dark-1) 0%, transparent 100%);
+        }
+
+        .logo {
+            font-family: 'Righteous', cursive;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--dark-4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .nav-dot:hover {
+            background: var(--primary-light);
+        }
+
+        .nav-dot.active {
+            background: var(--primary);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 15px var(--glow-primary);
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            z-index: 1000;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 4;
+        }
+
+        .progress-ring .bg {
+            stroke: var(--dark-4);
+        }
+
+        .progress-ring .progress {
+            stroke: url(#progressGradient);
+            stroke-dasharray: 157;
+            stroke-dashoffset: 157;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.1s ease;
+        }
+
+        .progress-percent {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .tap-animation {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .tap-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: tapPulse 2s infinite;
+        }
+
+        .tap-circle:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .tap-circle:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes tapPulse {
+            0% { width: 60px; height: 60px; opacity: 1; border-color: var(--primary); }
+            100% { width: 140px; height: 140px; opacity: 0; border-color: var(--secondary); }
+        }
+
+        .tap-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 30px var(--glow-primary);
+        }
+
+        .tap-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 206, 201, 0.2));
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 30px;
+            font-size: 1rem;
+            color: var(--primary-light);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            animation: slideUp 0.8s ease forwards;
+        }
+
+        .hero h1 {
+            font-family: 'Righteous', cursive;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            animation: slideUp 0.8s ease 0.2s forwards;
+            opacity: 0;
+        }
+
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1.35rem;
+            color: var(--text-secondary);
+            max-width: 580px;
+            margin-bottom: 2.5rem;
+            animation: slideUp 0.8s ease 0.4s forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: slideUp 0.8s ease 0.6s forwards;
+            opacity: 0;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 25px var(--glow-primary);
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px var(--glow-primary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--dark-4);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        .scroll-cue {
+            position: absolute;
+            bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .scroll-arrow {
+            width: 20px;
+            height: 30px;
+            border: 2px solid var(--text-muted);
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .scroll-arrow::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: scrollBounce 2s infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { top: 6px; opacity: 1; }
+            50% { top: 14px; opacity: 0.5; }
+        }
+
+        /* Overview Section */
+        .overview {
+            padding: 6rem 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-heading {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-heading h2 {
+            font-family: 'Righteous', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-heading p {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .steps-timeline {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(108, 92, 231, 0.15);
+        }
+
+        .timeline-num {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Righteous', cursive;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 20px var(--glow-primary);
+        }
+
+        .timeline-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .timeline-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 206, 201, 0.15);
+            color: var(--secondary);
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 5rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-badge {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Righteous', cursive;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 8px 30px var(--glow-primary);
+            flex-shrink: 0;
+        }
+
+        .step-title h2 {
+            font-family: 'Righteous', cursive;
+            font-size: 2rem;
+        }
+
+        .step-title span {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .content-card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--secondary);
+        }
+
+        .content-card h3 .icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 206, 201, 0.15);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content-card h3 .icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--secondary);
+        }
+
+        .content-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .content-card ul, .content-card ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .content-card li {
+            margin-bottom: 0.6rem;
+        }
+
+        .content-card strong {
+            color: var(--text-primary);
+        }
+
+        /* Code Blocks */
+        .code-wrapper {
+            background: var(--dark-1);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .code-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: var(--dark-3);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .code-filename {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .code-filename::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0, 184, 148, 0.5);
+        }
+
+        .copy-btn {
+            background: var(--dark-4);
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .code-area {
+            padding: 1.75rem;
+            overflow-x: visible;
+        }
+
+        .code-area pre {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .code-area .kw { color: var(--accent); }
+        .code-area .type { color: var(--secondary); }
+        .code-area .str { color: var(--warning); }
+        .code-area .cmt { color: var(--text-muted); font-style: italic; }
+        .code-area .num { color: var(--primary-light); }
+        .code-area .fn { color: #74b9ff; }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .info-box-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .info-box-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .info-box-tip {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+
+        .info-box-tip .info-box-icon {
+            background: rgba(108, 92, 231, 0.2);
+        }
+
+        .info-box-tip .info-box-icon svg { fill: var(--primary-light); }
+
+        .info-box-warning {
+            background: rgba(253, 203, 110, 0.1);
+            border: 1px solid rgba(253, 203, 110, 0.3);
+        }
+
+        .info-box-warning .info-box-icon {
+            background: rgba(253, 203, 110, 0.2);
+        }
+
+        .info-box-warning .info-box-icon svg { fill: var(--warning); }
+
+        .info-box-success {
+            background: rgba(0, 184, 148, 0.1);
+            border: 1px solid rgba(0, 184, 148, 0.3);
+        }
+
+        .info-box-success .info-box-icon {
+            background: rgba(0, 184, 148, 0.2);
+        }
+
+        .info-box-success .info-box-icon svg { fill: var(--success); }
+
+        .info-box-content h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-box-content p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Video Section */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            margin: 2rem 0;
+            background: var(--dark-2);
+            border: 2px solid var(--card-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .video-aspect {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;  /* 16:9 aspect ratio */
+    margin: 2rem 0;
+    background: #1a1a2e;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.video-aspect iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 206, 201, 0.2));
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-overlay:hover {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.3), rgba(0, 206, 201, 0.3));
+        }
+
+        .video-play {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 50px var(--glow-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .video-overlay:hover .video-play {
+            transform: scale(1.1);
+        }
+
+        .video-play svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+            margin-left: 4px;
+        }
+
+        .video-overlay h4 {
+            font-family: 'Righteous', cursive;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .video-overlay p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* Animation Preview */
+        .animation-preview {
+            background: var(--dark-2);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .animation-preview h4 {
+            font-family: 'Righteous', cursive;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+            font-size: 1.3rem;
+        }
+
+        .tap-text-demo {
+            font-family: 'Righteous', cursive;
+            font-size: 2.5rem;
+            color: var(--accent);
+            animation: textPulse 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes textPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .preview-controls {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .preview-btn {
+            padding: 0.7rem 1.75rem;
+            background: var(--dark-4);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preview-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .preview-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            background: var(--dark-1);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .flow-diagram svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Summary */
+        .summary-section {
+            padding: 6rem 2rem;
+            background: linear-gradient(to bottom, var(--dark-1), var(--dark-2));
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 40px rgba(108, 92, 231, 0.15);
+        }
+
+        .summary-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 206, 201, 0.2));
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1rem;
+        }
+
+        .summary-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--primary-light);
+        }
+
+        .summary-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--card-border);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        /* Scroll Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-dots { display: none; }
+            .progress-ring { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .timeline-item { grid-template-columns: 1fr; }
+            .timeline-num { margin-bottom: 0.5rem; }
+            .step-header { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-stars" id="starsContainer"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="logo">TAP TO START</div>
+        <div class="nav-dots">
+            <div class="nav-dot active" data-section="hero"></div>
+            <div class="nav-dot" data-section="overview"></div>
+            <div class="nav-dot" data-section="step1"></div>
+            <div class="nav-dot" data-section="step2"></div>
+            <div class="nav-dot" data-section="step3"></div>
+            <div class="nav-dot" data-section="step4"></div>
+        </div>
+    </nav>
+
+    <!-- Progress Ring -->
+    <div class="progress-ring">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+            <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6c5ce7"/>
+                    <stop offset="100%" style="stop-color:#00cec9"/>
+                </linearGradient>
+            </defs>
+            <circle class="bg" cx="30" cy="30" r="25"/>
+            <circle class="progress" id="progressCircle" cx="30" cy="30" r="25"/>
+        </svg>
+        <span class="progress-percent" id="progressPercent">0%</span>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+        <div class="tap-animation">
+            <div class="tap-circle"></div>
+            <div class="tap-circle"></div>
+            <div class="tap-circle"></div>
+            <div class="tap-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.21 0-.59-.34-1.15-.91-1.41z"/></svg>
+            </div>
+        </div>
+        <span class="hero-label">Unity Tutorial • MAC280</span>
+        <h1>Creating the<br><span class="gradient">TAP TO START</span> Screen</h1>
+        <p class="hero-desc">Learn how to add an animated start screen that waits for player input before beginning the game, with smooth text animations and game state control.</p>
+        <div class="hero-actions">
+            <a href="#step1" class="btn btn-gradient">Start Tutorial</a>
+            <a href="#overview" class="btn btn-outline">View Steps</a>
+        </div>
+        <div class="scroll-cue">
+            <div class="scroll-arrow"></div>
+            <span>Scroll Down</span>
+        </div>
+    </section>
+
+    <!-- Overview -->
+    <section class="overview" id="overview">
+        <div class="section-heading">
+            <h2>Tutorial Overview</h2>
+            <p>Complete the tap-to-start system in 4 simple steps</p>
+        </div>
+        <div class="steps-timeline">
+            <div class="timeline-item" onclick="scrollToSection('step1')">
+                <div class="timeline-num">1</div>
+                <div class="timeline-content">
+                    <h3>Create UI Text</h3>
+                    <p>Add a text element with styling for the "Tap to Start" message.</p>
+                    <span class="timeline-tag">UI Setup</span>
+                </div>
+            </div>
+            <div class="timeline-item" onclick="scrollToSection('step2')">
+                <div class="timeline-num">2</div>
+                <div class="timeline-content">
+                    <h3>Create Scale Animation</h3>
+                    <p>Animate the text with a pulsing scale effect using Unity's Animation window.</p>
+                    <span class="timeline-tag">Animation</span>
+                </div>
+            </div>
+            <div class="timeline-item" onclick="scrollToSection('step3')">
+                <div class="timeline-num">3</div>
+                <div class="timeline-content">
+                    <h3>Add Game State Logic</h3>
+                    <p>Create a boolean to track if the game has started and control player movement.</p>
+                    <span class="timeline-tag">C# Script</span>
+                </div>
+            </div>
+            <div class="timeline-item" onclick="scrollToSection('step4')">
+                <div class="timeline-num">4</div>
+                <div class="timeline-content">
+                    <h3>Handle Tap Input & Cleanup</h3>
+                    <p>Detect tap input, start the game, and destroy the start text.</p>
+                    <span class="timeline-tag">Input & Cleanup</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 1: Create UI Text -->
+    <section class="content-section" id="step1">
+        <div class="step-header fade-in">
+            <div class="step-badge">1</div>
+            <div class="step-title">
+                <h2>Create UI Text</h2>
+                <span>Setting up the "Tap to Start" text element</span>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+                Creating the Text Object
+            </h3>
+            <p>First, we need to add a UI Text element to display the "Tap to Start" message. This text will be visible when the game loads and will have an animated effect to catch the player's attention.</p>
+            <ol>
+                <li>In the Hierarchy, right-click → <strong>UI → Text</strong></li>
+                <li>Rename the text object to <strong>"StartingText"</strong></li>
+                <li>Position it in the center of the screen (or wherever you prefer)</li>
+            </ol>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+                Configuring Text Properties
+            </h3>
+            <p>Customize the text appearance to make it stand out and look professional:</p>
+            <ol>
+                <li>Set <strong>Width</strong> to 150 and <strong>Height</strong> to 60</li>
+                <li>Change <strong>Font Size</strong> to 30</li>
+                <li>Set <strong>Font Style</strong> to Bold</li>
+                <li>Change the text content to <strong>"TAP TO START"</strong></li>
+                <li>Set <strong>Alignment</strong> to center (both horizontal and vertical)</li>
+                <li>Choose a <strong>Color</strong> that stands out (the tutorial uses a bright color)</li>
+            </ol>
+
+            <div class="info-box info-box-tip fade-in">
+                <div class="info-box-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <div class="info-box-content">
+                    <h4>Design Tip</h4>
+                    <p>Choose a color that contrasts well with your game background. Bright colors like yellow, cyan, or white work great for visibility!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/WJW_j0GKY78" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 2: Create Animation -->
+    <section class="content-section" id="step2">
+        <div class="step-header fade-in">
+            <div class="step-badge">2</div>
+            <div class="step-title">
+                <h2>Create Scale Animation</h2>
+                <span>Adding a pulsing effect to the text</span>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                Why Animate the Text?
+            </h3>
+            <p>A static "Tap to Start" message can be easily overlooked. By adding a subtle pulsing animation, we draw the player's attention and create a more polished, professional feel. The animation we'll create scales the text up and down rhythmically.</p>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg></span>
+                Opening the Animation Window
+            </h3>
+            <ol>
+                <li>Select the <strong>StartingText</strong> object in the Hierarchy</li>
+                <li>Go to <strong>Window → Animation → Animation</strong></li>
+                <li>Dock the Animation window where you can see both it and the text</li>
+                <li>Click the <strong>Create</strong> button in the Animation window</li>
+                <li>Create a new folder called <strong>"Animations"</strong></li>
+                <li>Save the animation as <strong>"TextAnim"</strong></li>
+            </ol>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                Creating Keyframes
+            </h3>
+            <p>Now we'll set up the scale animation using keyframes. The text will start at normal size, grow larger, then return to normal size in a loop:</p>
+            <ol>
+                <li>Click the <strong>Record</strong> button (red circle) to start recording</li>
+                <li>At <strong>Frame 0</strong>: Set Scale to (1, 1, 1) - normal size</li>
+                <li>Move to <strong>Frame 30</strong>: Set Scale to (1.5, 1.5, 1) - enlarged</li>
+                <li>Move to <strong>Frame 60</strong>: Set Scale back to (1, 1, 1) - normal size</li>
+                <li>Click the Record button again to stop recording</li>
+            </ol>
+
+            <div class="info-box info-box-tip fade-in">
+                <div class="info-box-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <div class="info-box-content">
+                    <h4>Note About Z Scale</h4>
+                    <p>We don't need to change the Z scale because our text is 2D. Only X and Y scaling matter for UI elements.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Animation Demo -->
+        <div class="animation-preview fade-in">
+            <h4>🎬 LIVE ANIMATION PREVIEW</h4>
+            <div class="tap-text-demo" id="demoText">TAP TO START</div>
+            <div class="preview-controls">
+                <button class="preview-btn active" onclick="toggleAnimation(true)">Play</button>
+                <button class="preview-btn" onclick="toggleAnimation(false)">Pause</button>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/13F5Ce1uAqw" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 3: Game State Logic -->
+    <section class="content-section" id="step3">
+        <div class="step-header fade-in">
+            <div class="step-badge">3</div>
+            <div class="step-title">
+                <h2>Add Game State Logic</h2>
+                <span>Preventing movement until tap</span>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+                The Problem
+            </h3>
+            <p>Right now, the player starts moving as soon as the game loads. We need a way to pause the game until the player taps the screen. This requires a <strong>state variable</strong> that tracks whether the game has started.</p>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+                Modify PlayerManager Script
+            </h3>
+            <p>Open your <strong>PlayerManager.cs</strong> script and add a new static boolean variable:</p>
+
+            <div class="code-wrapper">
+                <div class="code-top">
+                    <span class="code-filename">PlayerManager.cs</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-area">
+<pre><span class="kw">public class</span> <span class="type">PlayerManager</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="cmt">// Existing game over variable</span>
+    <span class="kw">public static</span> <span class="type">bool</span> gameOver = <span class="kw">false</span>;
+    
+    <span class="cmt">// NEW: Track if the game has started</span>
+    <span class="kw">public static</span> <span class="type">bool</span> isGameStarted = <span class="kw">false</span>;
+    
+    <span class="cmt">// Reference to the UI panel</span>
+    <span class="kw">public</span> <span class="type">GameObject</span> gameOverPanel;
+    
+    <span class="cmt">// ... rest of your code</span>
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+                Block Player Movement
+            </h3>
+            <p>Now we need to modify the <strong>PlayerController.cs</strong> to check this variable before allowing movement:</p>
+
+            <div class="code-wrapper">
+                <div class="code-top">
+                    <span class="code-filename">PlayerController.cs - Update Method</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-area">
+<pre><span class="kw">void</span> <span class="fn">Update</span>()
+{
+    <span class="cmt">// If game hasn't started, don't process any movement</span>
+    <span class="kw">if</span> (!<span class="type">PlayerManager</span>.isGameStarted)
+    {
+        <span class="kw">return</span>;  <span class="cmt">// Exit the method early</span>
+    }
+    
+    <span class="cmt">// Your existing movement code goes here...</span>
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                Also Block FixedUpdate
+            </h3>
+            <p>If you're using <strong>FixedUpdate()</strong> for physics-based movement, add the same check there:</p>
+
+            <div class="code-wrapper">
+                <div class="code-top">
+                    <span class="code-filename">PlayerController.cs - FixedUpdate Method</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-area">
+<pre><span class="kw">void</span> <span class="fn">FixedUpdate</span>()
+{
+    <span class="cmt">// If game hasn't started, don't move</span>
+    <span class="kw">if</span> (!<span class="type">PlayerManager</span>.isGameStarted)
+    {
+        <span class="kw">return</span>;
+    }
+    
+    <span class="cmt">// Your existing physics movement code...</span>
+}</pre>
+                </div>
+            </div>
+
+            <div class="info-box info-box-success fade-in">
+                <div class="info-box-icon">
+                    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="info-box-content">
+                    <h4>Result</h4>
+                    <p>Now when you play the game, the player will stay still until isGameStarted becomes true!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flow Diagram -->
+        <div class="flow-diagram fade-in">
+            <svg width="500" height="140" viewBox="0 0 500 140">
+                <text x="250" y="25" fill="#fff" font-family="Righteous" font-size="16" text-anchor="middle">Game State Flow</text>
+                
+                <!-- isGameStarted = false -->
+                <rect x="30" y="50" width="120" height="60" fill="rgba(253,121,168,0.2)" stroke="#fd79a8" stroke-width="2" rx="12"/>
+                <text x="90" y="75" fill="#fd79a8" font-family="Source Code Pro" font-size="10" text-anchor="middle">isGameStarted</text>
+                <text x="90" y="95" fill="#fd79a8" font-family="Source Code Pro" font-size="12" text-anchor="middle">= false</text>
+                
+                <!-- Arrow -->
+                <line x1="150" y1="80" x2="190" y2="80" stroke="#6c5ce7" stroke-width="2"/>
+                <polygon points="190,75 205,80 190,85" fill="#6c5ce7"/>
+                
+                <!-- Player Frozen -->
+                <rect x="205" y="50" width="90" height="60" fill="rgba(108,92,231,0.2)" stroke="#6c5ce7" stroke-width="2" rx="12"/>
+                <text x="250" y="75" fill="#a29bfe" font-family="Nunito" font-size="11" text-anchor="middle">Player</text>
+                <text x="250" y="92" fill="#a29bfe" font-family="Nunito" font-size="11" text-anchor="middle">FROZEN</text>
+                
+                <!-- Arrow with TAP -->
+                <line x1="295" y1="80" x2="335" y2="80" stroke="#00cec9" stroke-width="2"/>
+                <polygon points="335,75 350,80 335,85" fill="#00cec9"/>
+                <text x="315" y="70" fill="#00cec9" font-family="Nunito" font-size="9" text-anchor="middle">TAP</text>
+                
+                <!-- isGameStarted = true -->
+                <rect x="350" y="50" width="120" height="60" fill="rgba(0,184,148,0.2)" stroke="#00b894" stroke-width="2" rx="12"/>
+                <text x="410" y="75" fill="#00b894" font-family="Source Code Pro" font-size="10" text-anchor="middle">isGameStarted</text>
+                <text x="410" y="95" fill="#00b894" font-family="Source Code Pro" font-size="12" text-anchor="middle">= true</text>
+            </svg>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/P5B1q65sR28" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 4: Tap Input & Cleanup -->
+    <section class="content-section" id="step4">
+        <div class="step-header fade-in">
+            <div class="step-badge">4</div>
+            <div class="step-title">
+                <h2>Handle Tap Input & Cleanup</h2>
+                <span>Starting the game and removing the text</span>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
+                Detecting the Tap
+            </h3>
+            <p>We need to detect when the player taps the screen and then start the game. Add this logic to your <strong>PlayerManager.cs</strong> Update method:</p>
+
+            <div class="code-wrapper">
+                <div class="code-top">
+                    <span class="code-filename">PlayerManager.cs - Tap Detection</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-area">
+<pre><span class="kw">void</span> <span class="fn">Update</span>()
+{
+    <span class="cmt">// Check for tap input using SwipeManager</span>
+    <span class="kw">if</span> (<span class="type">SwipeManager</span>.tap)
+    {
+        <span class="cmt">// Start the game!</span>
+        isGameStarted = <span class="kw">true</span>;
+    }
+    
+    <span class="cmt">// Existing game over check...</span>
+    <span class="kw">if</span> (gameOver)
+    {
+        <span class="type">Time</span>.timeScale = <span class="num">0</span>;
+        gameOverPanel.<span class="fn">SetActive</span>(<span class="kw">true</span>);
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+                Destroying the Start Text
+            </h3>
+            <p>Once the player taps, we need to remove the "Tap to Start" text from the screen. First, add a reference to the text object, then destroy it when tapped:</p>
+
+            <div class="code-wrapper">
+                <div class="code-top">
+                    <span class="code-filename">PlayerManager.cs - Complete Implementation</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-area">
+<pre><span class="kw">using</span> UnityEngine;
+
+<span class="kw">public class</span> <span class="type">PlayerManager</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="kw">public static</span> <span class="type">bool</span> gameOver = <span class="kw">false</span>;
+    <span class="kw">public static</span> <span class="type">bool</span> isGameStarted = <span class="kw">false</span>;
+    
+    <span class="kw">public</span> <span class="type">GameObject</span> gameOverPanel;
+    
+    <span class="cmt">// Reference to the starting text</span>
+    <span class="kw">public</span> <span class="type">GameObject</span> startingText;
+
+    <span class="kw">void</span> <span class="fn">Update</span>()
+    {
+        <span class="cmt">// Check for tap to start the game</span>
+        <span class="kw">if</span> (<span class="type">SwipeManager</span>.tap)
+        {
+            <span class="cmt">// Start the game</span>
+            isGameStarted = <span class="kw">true</span>;
+            
+            <span class="cmt">// Remove the starting text</span>
+            <span class="fn">Destroy</span>(startingText);
+        }
+        
+        <span class="cmt">// Handle game over state</span>
+        <span class="kw">if</span> (gameOver)
+        {
+            <span class="type">Time</span>.timeScale = <span class="num">0</span>;
+            gameOverPanel.<span class="fn">SetActive</span>(<span class="kw">true</span>);
+        }
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box info-box-warning fade-in">
+            <div class="info-box-icon">
+                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="info-box-content">
+                <h4>Don't Forget!</h4>
+                <p>In Unity, select the PlayerManager GameObject and drag your StartingText into the "Starting Text" field in the Inspector!</p>
+            </div>
+        </div>
+
+        <div class="content-card fade-in">
+            <h3>
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                Test Your Implementation
+            </h3>
+            <ol>
+                <li>Press <strong>Play</strong> in Unity</li>
+                <li>Verify the "Tap to Start" text is visible and animating</li>
+                <li>Verify the player is <strong>NOT</strong> moving</li>
+                <li>Tap/click the screen</li>
+                <li>The text should disappear and the player should start moving</li>
+                <li>Swipe controls should now work as expected</li>
+            </ol>
+
+            <div class="info-box info-box-success fade-in">
+                <div class="info-box-icon">
+                    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="info-box-content">
+                    <h4>Congratulations!</h4>
+                    <p>You've successfully implemented a "Tap to Start" system! The game now waits for player input before beginning, creating a more polished user experience.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/Ju3CXR42UZ0"
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Summary -->
+    <section class="summary-section" id="summary">
+        <div class="section-heading">
+            <h2>Tutorial Complete!</h2>
+            <p>You've built a professional tap-to-start system</p>
+        </div>
+        
+        <div class="summary-cards">
+            <div class="summary-card fade-in">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                </div>
+                <h3>UI Text</h3>
+                <p>Styled text element</p>
+            </div>
+            
+            <div class="summary-card fade-in">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+                <h3>Animation</h3>
+                <p>Pulsing scale effect</p>
+            </div>
+            
+            <div class="summary-card fade-in">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
+                <h3>Game State</h3>
+                <p>isGameStarted control</p>
+            </div>
+            
+            <div class="summary-card fade-in">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                    </svg>
+                </div>
+                <h3>Tap Input</h3>
+                <p>Start & cleanup</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>MAC280 Game Programming • <a href="#">LaGuardia Community College</a></p>
+        <p style="margin-top: 0.5rem; opacity: 0.6;">Next: Score System & Coin Collection</p>
+    </footer>
+
+    <script>
+        // Generate stars
+        function createStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = (Math.random() * 3 + 1) + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // Progress ring
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = winScroll / height;
+            const circle = document.getElementById('progressCircle');
+            const percent = document.getElementById('progressPercent');
+            const offset = 157 - (157 * scrolled);
+            circle.style.strokeDashoffset = offset;
+            percent.textContent = Math.round(scrolled * 100) + '%';
+        });
+
+        // Scroll animations
+        const fadeElements = document.querySelectorAll('.fade-in');
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '-30px' });
+
+        fadeElements.forEach(el => fadeObserver.observe(el));
+
+        // Navigation dots
+        const navDots = document.querySelectorAll('.nav-dot');
+        window.addEventListener('scroll', () => {
+            let current = 'hero';
+            document.querySelectorAll('section[id]').forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 200) {
+                    current = section.id;
+                }
+            });
+            
+            navDots.forEach(dot => {
+                dot.classList.remove('active');
+                if (dot.dataset.section === current) {
+                    dot.classList.add('active');
+                }
+            });
+        });
+
+        navDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const section = document.getElementById(dot.dataset.section);
+                if (section) section.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Scroll to section
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Copy code
+        function copyCode(button) {
+            const wrapper = button.closest('.code-wrapper');
+            const code = wrapper.querySelector('pre').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = '#00b894';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Animation toggle
+        let animationPlaying = true;
+        function toggleAnimation(play) {
+            const text = document.getElementById('demoText');
+            const buttons = document.querySelectorAll('.preview-btn');
+            animationPlaying = play;
+            
+            if (play) {
+                text.style.animationPlayState = 'running';
+            } else {
+                text.style.animationPlayState = 'paused';
+            }
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
