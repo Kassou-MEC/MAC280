@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Game Over System - Endless Runner Tutorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Exo+2:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --danger: #ff2d55;
+            --danger-glow: rgba(255, 45, 85, 0.4);
+            --warning: #ff9500;
+            --success: #30d158;
+            --info: #5ac8fa;
+            --dark-1: #000000;
+            --dark-2: #0d0d0d;
+            --dark-3: #1a1a1a;
+            --dark-4: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent-gradient: linear-gradient(135deg, #ff2d55, #ff9500);
+            --card-border: rgba(255, 255, 255, 0.08);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: var(--dark-1);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* Dramatic Background */
+        .bg-dramatic {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-dramatic::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255, 45, 85, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 149, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 45, 85, 0.05) 0%, transparent 70%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .scanlines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.1) 2px,
+                rgba(0, 0, 0, 0.1) 4px
+            );
+            pointer-events: none;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-pills {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--dark-3);
+            padding: 0.35rem;
+            border-radius: 30px;
+            border: 1px solid var(--card-border);
+        }
+
+        .nav-pill {
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-pill:hover, .nav-pill.active {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Progress */
+        .progress-track {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: var(--dark-4);
+            border-radius: 2px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 20px var(--danger-glow);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .hero-icon {
+            width: 120px;
+            height: 120px;
+            background: var(--dark-3);
+            border: 3px solid var(--danger);
+            border-radius: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: iconFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 60px var(--danger-glow);
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .hero-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--danger);
+        }
+
+        .hero-tag {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 45, 85, 0.15);
+            border: 1px solid rgba(255, 45, 85, 0.3);
+            border-radius: 30px;
+            font-size: 1.2rem;
+            color: var(--danger);
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            animation: fadeSlideUp 0.8s ease forwards;
+        }
+
+        .hero h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 10vw, 7rem);
+            letter-spacing: 6px;
+            line-height: 1;
+            margin-bottom: 1rem;
+            animation: fadeSlideUp 0.8s ease 0.2s forwards;
+            opacity: 0;
+        }
+
+        .hero h1 .accent {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 550px;
+            margin-bottom: 2.5rem;
+            animation: fadeSlideUp 0.8s ease 0.4s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            animation: fadeSlideUp 0.8s ease 0.6s forwards;
+            opacity: 0;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .btn-danger {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 30px var(--danger-glow);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px var(--danger-glow);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--dark-4);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .scroll-hint .mouse {
+            width: 24px;
+            height: 40px;
+            border: 2px solid var(--text-muted);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .scroll-hint .mouse::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 2px;
+            animation: scrollWheel 2s infinite;
+        }
+
+        @keyframes scrollWheel {
+            0%, 100% { opacity: 1; top: 8px; }
+            50% { opacity: 0.3; top: 20px; }
+        }
+
+        /* Chapter Cards */
+        .chapters {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title p {
+            color: var(--text-secondary);
+        }
+
+        .chapter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chapter-card {
+            background: var(--dark-2);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .chapter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .chapter-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 45, 85, 0.3);
+            box-shadow: 0 20px 60px rgba(255, 45, 85, 0.15);
+        }
+
+        .chapter-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .chapter-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0.3;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            line-height: 1;
+        }
+
+        .chapter-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .chapter-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .chapter-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255, 45, 85, 0.1);
+            color: var(--danger);
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 5rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .step-info h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+        }
+
+        .step-info span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .content-block {
+            background: var(--dark-2);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-block h3 {
+            color: var(--warning);
+            font-size: 1.15rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-block h3::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+        }
+
+        .content-block p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .content-block ul, .content-block ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .content-block li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        .content-block strong {
+            color: var(--text-primary);
+        }
+
+        /* Code Blocks */
+        .code-container {
+            background: var(--dark-1);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .code-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: var(--dark-3);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .code-lang {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .code-lang::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .copy-code {
+            background: var(--dark-4);
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Exo 2', sans-serif;
+        }
+
+        .copy-code:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .code-body {
+            padding: 1.5rem;
+            overflow-x: visible;
+        }
+
+        .code-body pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .code-body .kw { color: var(--danger); }
+        .code-body .type { color: var(--info); }
+        .code-body .str { color: var(--success); }
+        .code-body .cmt { color: var(--text-muted); font-style: italic; }
+        .code-body .num { color: var(--warning); }
+        .code-body .fn { color: #bf5af2; }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .alert-danger {
+            background: rgba(255, 45, 85, 0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-danger .alert-icon { fill: var(--danger); }
+
+        .alert-warning {
+            background: rgba(255, 149, 0, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-warning .alert-icon { fill: var(--warning); }
+
+        .alert-success {
+            background: rgba(48, 209, 88, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-success .alert-icon { fill: var(--success); }
+
+        .alert-info {
+            background: rgba(90, 200, 250, 0.1);
+            border-left: 4px solid var(--info);
+        }
+
+        .alert-info .alert-icon { fill: var(--info); }
+
+        .alert-content h4 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-content p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Video Placeholder */
+        .video-aspect {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            margin: 2rem 0;
+            background: var(--dark-2);
+            border: 2px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .video-aspect iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: 
+                linear-gradient(135deg, rgba(255, 45, 85, 0.1), rgba(255, 149, 0, 0.1)),
+                var(--dark-2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-placeholder:hover {
+            background: 
+                linear-gradient(135deg, rgba(255, 45, 85, 0.2), rgba(255, 149, 0, 0.2)),
+                var(--dark-2);
+        }
+
+        .play-btn {
+            width: 80px;
+            height: 80px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 40px var(--danger-glow);
+            transition: transform 0.3s ease;
+        }
+
+        .video-placeholder:hover .play-btn {
+            transform: scale(1.1);
+        }
+
+        .play-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+            margin-left: 4px;
+        }
+
+        .video-placeholder h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.25rem;
+        }
+
+        .video-placeholder p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Diagram */
+        .diagram-box {
+            background: var(--dark-1);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .diagram-box svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Interactive UI Preview */
+        .ui-preview {
+            background: var(--dark-3);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .ui-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .ui-preview-header h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 2px;
+            color: var(--warning);
+        }
+
+        .preview-window {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            aspect-ratio: 16/9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-over-demo {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 3rem;
+            border-radius: 12px;
+            text-align: center;
+            animation: panelAppear 0.5s ease;
+        }
+
+        @keyframes panelAppear {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .game-over-demo h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--danger);
+            letter-spacing: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-btn {
+            display: block;
+            width: 180px;
+            margin: 0.75rem auto;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn-replay {
+            background: var(--info);
+            color: var(--dark-1);
+        }
+
+        .demo-btn-replay:hover {
+            background: #4db8e8;
+            transform: scale(1.05);
+        }
+
+        .demo-btn-quit {
+            background: var(--dark-4);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+        }
+
+        .demo-btn-quit:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Summary */
+        .summary-section {
+            padding: 6rem 2rem;
+            background: linear-gradient(to bottom, var(--dark-1), var(--dark-2));
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .summary-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--dark-3);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 45, 85, 0.3);
+        }
+
+        .summary-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 45, 85, 0.1);
+            border: 2px solid var(--danger);
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1rem;
+        }
+
+        .summary-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--danger);
+        }
+
+        .summary-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--card-border);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--danger);
+            text-decoration: none;
+        }
+
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-pills { display: none; }
+            .hero h1 { font-size: 3rem; }
+            .step-badge { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .step-num { font-size: 3.5rem; }
+            .progress-track { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-dramatic">
+        <div class="scanlines"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="logo">GAME OVER</div>
+        <div class="nav-pills">
+            <a href="#hero" class="nav-pill active">Home</a>
+            <a href="#step1" class="nav-pill">Fix Bug</a>
+            <a href="#step2" class="nav-pill">UI Panel</a>
+            <a href="#step3" class="nav-pill">Scripts</a>
+            <a href="#step4" class="nav-pill">Tags</a>
+            <a href="#step5" class="nav-pill">Collision</a>
+            <a href="#step6" class="nav-pill">Events</a>
+        </div>
+    </nav>
+
+    <!-- Progress -->
+    <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+        <div class="hero-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        </div>
+        <span class="hero-tag">Unity Endless Runner Game • MAC280</span>
+        <span class="hero-tag">Prof. Khalid Kassou</span>
+        <h1>BUILDING THE<br><span class="accent">GAME OVER</span> SYSTEM</h1>
+        <p class="hero-desc">Learn how to implement collision detection, game state management, UI panels, scene reloading, and button events in Unity.</p>
+        <div class="hero-buttons">
+            <a href="#step1" class="btn btn-danger">Start The game</a>
+            <a href="#chapters" class="btn btn-ghost">View Chapters</a>
+        </div>
+        <div class="scroll-hint">
+            <div class="mouse"></div>
+            <span>Scroll</span>
+        </div>
+    </section>
+
+    <!-- Chapters -->
+    <section class="chapters" id="chapters">
+        <div class="section-title">
+            <h2>Game CHAPTERS</h2>
+            <p>Complete game over implementation in 6 detailed steps</p>
+        </div>
+        <div class="chapter-grid">
+            <div class="chapter-card" onclick="scrollTo('step1')">
+                <span class="chapter-num">01</span>
+                <h3>Fix Movement Bug</h3>
+                <p>Resolve the CharacterController collision issue caused by direct transform positioning.</p>
+                <span class="chapter-tag">Bug Fix</span>
+            </div>
+            <div class="chapter-card" onclick="scrollTo('step2')">
+                <span class="chapter-num">02</span>
+                <h3>Create UI Panel</h3>
+                <p>Design the game over screen with panel, buttons, and text elements.</p>
+                <span class="chapter-tag">UI Design</span>
+            </div>
+            <div class="chapter-card" onclick="scrollTo('step3')">
+                <span class="chapter-num">03</span>
+                <h3>Player Manager Script</h3>
+                <p>Create a centralized script to manage game states and the game over logic.</p>
+                <span class="chapter-tag">C# Script</span>
+            </div>
+            <div class="chapter-card" onclick="scrollTo('step4')">
+                <span class="chapter-num">04</span>
+                <h3>Obstacle Tagging</h3>
+                <p>Set up tags to identify obstacles and differentiate them from other objects.</p>
+                <span class="chapter-tag">Unity Setup</span>
+            </div>
+            <div class="chapter-card" onclick="scrollTo('step5')">
+                <span class="chapter-num">05</span>
+                <h3>Collision Detection</h3>
+                <p>Implement OnControllerColliderHit to detect when player hits obstacles.</p>
+                <span class="chapter-tag">Physics</span>
+            </div>
+            <div class="chapter-card" onclick="scrollTo('step6')">
+                <span class="chapter-num">06</span>
+                <h3>Button Events</h3>
+                <p>Wire up replay and quit buttons with scene management functionality.</p>
+                <span class="chapter-tag">Events</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 1: Fix Movement Bug -->
+    <section class="content-section" id="step1">
+        <div class="step-badge reveal">
+            <span class="step-num">01</span>
+            <div class="step-info">
+                <h2>FIX MOVEMENT BUG</h2>
+                <span>Resolving CharacterController collision issues</span>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Understanding the Problem</h3>
+            <p>Before implementing game over, we need to fix a critical bug in our player movement. Currently, we're using two different methods to move the player: <strong>CharacterController.Move()</strong> for forward movement and <strong>transform.position</strong> for lane switching. This inconsistency causes the CharacterController's collider to become misaligned, allowing the player to pass through obstacles!</p>
+        </div>
+
+        <div class="alert alert-danger reveal">
+            <svg class="alert-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <div class="alert-content">
+                <h4>Critical Bug</h4>
+                <p>Using transform.position directly with CharacterController causes collision detection to fail. The player will pass through obstacles like traffic cones!</p>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Solution 1: Quick Fix (Controller Center)</h3>
+            <p>The simplest fix is to manually update the controller's center position after changing the transform. This forces the CharacterController to recalculate its collider bounds:</p>
+
+            <div class="code-container">
+                <div class="code-toolbar">
+                    <span class="code-lang">PlayerController.cs</span>
+                    <button class="copy-code" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-body">
+<pre><span class="cmt">// After setting transform.position, add this line:</span>
+controller.center = controller.center;
+
+<span class="cmt">// This triggers the CharacterController to recalculate its bounds</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Solution 2: Proper Fix (Use Controller.Move)</h3>
+            <p>The better solution is to use CharacterController.Move() for all movement, including lane switching. This keeps everything consistent and ensures proper collision detection:</p>
+
+            <div class="code-container">
+                <div class="code-toolbar">
+                    <span class="code-lang">PlayerController.cs - Lane Movement Fix</span>
+                    <button class="copy-code" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-body">
+<pre><span class="cmt">// Instead of: transform.position = targetPosition;</span>
+<span class="cmt">// Use this approach:</span>
+
+<span class="kw">if</span> (transform.position != targetPosition)
+{
+    <span class="cmt">// Calculate the difference between current and target</span>
+    <span class="type">Vector3</span> diff = targetPosition - transform.position;
+    
+    <span class="cmt">// Move using CharacterController</span>
+    controller.<span class="fn">Move</span>(diff);
+}</pre>
+                </div>
+            </div>
+
+            <div class="alert alert-success reveal">
+                <svg class="alert-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <div class="alert-content">
+                    <h4>Bonus Benefit</h4>
+                    <p>This approach also adds smoothness to lane switching movement, making the game feel more polished!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/lKAX7xd3OZA"
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 2: Create UI Panel -->
+    <section class="content-section" id="step2">
+        <div class="step-badge reveal">
+            <span class="step-num">02</span>
+            <div class="step-info">
+                <h2>CREATE UI PANEL</h2>
+                <span>Designing the game over screen interface</span>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Setting Up the Panel</h3>
+            <p>The game over screen needs to appear when the player collides with an obstacle. We'll create a UI panel that covers the screen with replay and quit options. This panel will be hidden by default and activated through code.</p>
+            
+            <ol>
+                <li>In the Hierarchy, right-click → <strong>UI → Panel</strong></li>
+                <li>Rename it to <strong>"GameOverPanel"</strong></li>
+                <li>Set the panel's background color to <strong>black</strong> (or semi-transparent black)</li>
+                <li>Make sure it covers the entire screen using the Canvas anchors</li>
+            </ol>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Adding the Replay Button</h3>
+            <p>Under the GameOverPanel, we'll add our interactive buttons:</p>
+            
+            <ol>
+                <li>Right-click GameOverPanel → <strong>UI → Button</strong></li>
+                <li>Rename to <strong>"ReplayButton"</strong></li>
+                <li>Adjust the size (e.g., Width: 200, Height: 50)</li>
+                <li>Change the button color to <strong>blue</strong></li>
+                <li>Select the child Text object and change text to <strong>"REPLAY"</strong></li>
+                <li>Set font size to <strong>25</strong> and color to <strong>white</strong></li>
+            </ol>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Adding the Quit Button</h3>
+            <ol>
+                <li>Duplicate the ReplayButton (Ctrl+D)</li>
+                <li>Rename to <strong>"QuitButton"</strong></li>
+                <li>Move it below the replay button (change Y position to -60)</li>
+                <li>Change the text to <strong>"QUIT"</strong></li>
+                <li>Optionally change the button color to differentiate it</li>
+            </ol>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Adding the Title Text</h3>
+            <ol>
+                <li>Right-click GameOverPanel → <strong>UI → Text</strong></li>
+                <li>Position it at the <strong>top center</strong> of the panel</li>
+                <li>Change the text to <strong>"GAME OVER"</strong></li>
+                <li>Set a large font size (e.g., 60)</li>
+                <li>Change color to <strong>red</strong> for dramatic effect</li>
+                <li>Center the text alignment</li>
+            </ol>
+
+            <div class="alert alert-info reveal">
+                <svg class="alert-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                <div class="alert-content">
+                    <h4>Pro Tip</h4>
+                    <p>Click the 2D button in the Scene view to see your UI elements more clearly. Double-click the Canvas to zoom to it.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Preview -->
+        <div class="ui-preview reveal">
+            <div class="ui-preview-header">
+                <h4>🎮 LIVE UI PREVIEW</h4>
+            </div>
+            <div class="preview-window">
+                <div class="game-over-demo">
+                    <h3>GAME OVER</h3>
+                    <button class="demo-btn demo-btn-replay" onclick="demoReplay()">REPLAY</button>
+                    <button class="demo-btn demo-btn-quit" onclick="demoQuit()">QUIT</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Final Step: Deactivate the Panel</h3>
+            <p>By default, the GameOverPanel should be <strong>deactivated</strong>. We'll activate it through code when the game ends:</p>
+            <ol>
+                <li>Select the GameOverPanel in the Hierarchy</li>
+                <li>In the Inspector, <strong>uncheck the checkbox</strong> next to the object's name</li>
+                <li>This hides the panel until we enable it through script</li>
+            </ol>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/UkKj1hPE_vE" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 3: Player Manager Script -->
+    <section class="content-section" id="step3">
+        <div class="step-badge reveal">
+            <span class="step-num">03</span>
+            <div class="step-info">
+                <h2>PLAYER MANAGER SCRIPT</h2>
+                <span>Creating centralized game state management</span>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Why a Separate Manager?</h3>
+            <p>Instead of putting game state logic in the PlayerController, we create a dedicated <strong>PlayerManager</strong> script. This follows good software design principles by separating concerns: player movement in one script, game state in another. This manager will handle the game over state and control the UI panel visibility.</p>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Create the Script and GameObject</h3>
+            <ol>
+                <li>In the Project window, right-click → <strong>Create → C# Script</strong></li>
+                <li>Name it <strong>"PlayerManager"</strong></li>
+                <li>In the Hierarchy, create an <strong>empty GameObject</strong></li>
+                <li>Rename it to <strong>"PlayerManager"</strong></li>
+                <li>Drag and drop the script onto this GameObject</li>
+            </ol>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>The PlayerManager Script</h3>
+            <div class="code-container">
+                <div class="code-toolbar">
+                    <span class="code-lang">PlayerManager.cs</span>
+                    <button class="copy-code" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-body">
+<pre><span class="kw">using</span> UnityEngine;
+
+<span class="kw">public class</span> <span class="type">PlayerManager</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="cmt">// Static variable accessible from other scripts</span>
+    <span class="kw">public static</span> <span class="type">bool</span> gameOver = <span class="kw">false</span>;
+    
+    <span class="cmt">// Reference to the Game Over UI panel</span>
+    <span class="kw">public</span> <span class="type">GameObject</span> gameOverPanel;
+
+    <span class="kw">void</span> <span class="fn">Update</span>()
+    {
+        <span class="cmt">// Check if game over state is triggered</span>
+        <span class="kw">if</span> (gameOver)
+        {
+            <span class="cmt">// Stop the game time</span>
+            <span class="type">Time</span>.timeScale = <span class="num">0</span>;
+            
+            <span class="cmt">// Show the game over panel</span>
+            gameOverPanel.<span class="fn">SetActive</span>(<span class="kw">true</span>);
+        }
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Understanding the Code</h3>
+            <p><strong>public static bool gameOver</strong> — The <code>static</code> keyword makes this variable globally accessible. Any script can read or change this value using <code>PlayerManager.gameOver</code> without needing a reference to the PlayerManager object.</p>
+            
+            <p><strong>Time.timeScale = 0</strong> — This pauses all time-dependent operations in Unity. Physics, animations, and any time-based movement will freeze. This effectively pauses the game.</p>
+            
+            <p><strong>gameOverPanel.SetActive(true)</strong> — This enables the previously hidden UI panel, making it visible to the player.</p>
+        </div>
+
+        <div class="alert alert-warning reveal">
+            <svg class="alert-icon" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            <div class="alert-content">
+                <h4>Important Setup</h4>
+                <p>After creating the script, select the PlayerManager GameObject in the Hierarchy and drag the GameOverPanel into the "Game Over Panel" field in the Inspector!</p>
+            </div>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/X1rbhYlbv-8" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 4: Obstacle Tagging -->
+    <section class="content-section" id="step4">
+        <div class="step-badge reveal">
+            <span class="step-num">04</span>
+            <div class="step-info">
+                <h2>OBSTACLE TAGGING</h2>
+                <span>Identifying obstacles with Unity tags</span>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Why Use Tags?</h3>
+            <p>When the player collides with something, we need to know <em>what</em> they collided with. Was it an obstacle? The road? A coin? Tags let us categorize GameObjects so we can respond differently to each type of collision.</p>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Create the Obstacle Tag</h3>
+            <ol>
+                <li>Select any GameObject in the scene</li>
+                <li>In the Inspector, click the <strong>Tag</strong> dropdown (shows "Untagged")</li>
+                <li>Click <strong>"Add Tag..."</strong></li>
+                <li>Click the <strong>+</strong> button under Tags</li>
+                <li>Type <strong>"Obstacle"</strong> and press Enter/Save</li>
+            </ol>
+
+            <div class="diagram-box reveal">
+                <svg width="400" height="120" viewBox="0 0 400 120">
+                    <rect x="50" y="30" width="120" height="60" fill="#2d2d2d" stroke="#ff2d55" stroke-width="2" rx="8"/>
+                    <text x="110" y="65" fill="#fff" font-family="Exo 2" font-size="14" text-anchor="middle">Traffic Cone</text>
+                    
+                    <line x1="170" y1="60" x2="220" y2="60" stroke="#ff9500" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="220,55 230,60 220,65" fill="#ff9500"/>
+                    
+                    <rect x="230" y="30" width="120" height="60" fill="rgba(255,45,85,0.2)" stroke="#ff2d55" stroke-width="2" rx="8"/>
+                    <text x="290" y="55" fill="#ff2d55" font-family="Bebas Neue" font-size="16" text-anchor="middle">TAG:</text>
+                    <text x="290" y="75" fill="#fff" font-family="Exo 2" font-size="14" text-anchor="middle">Obstacle</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Apply Tags to All Obstacles</h3>
+            <p>Now go through your tile prefabs and tag every obstacle:</p>
+            <ol>
+                <li>Open the <strong>Prefabs</strong> folder in the Project window</li>
+                <li>Double-click each tile prefab to open it</li>
+                <li>Select each obstacle (traffic cones, roadworks barriers, etc.)</li>
+                <li>In the Inspector, change the Tag from "Untagged" to <strong>"Obstacle"</strong></li>
+                <li>Save the prefab and repeat for all tiles</li>
+            </ol>
+
+            <div class="alert alert-info reveal">
+                <svg class="alert-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                <div class="alert-content">
+                    <h4>Prefab Tip</h4>
+                    <p>Double-click a prefab to open it in isolation mode. Any changes you make will apply to all instances of that prefab in your game!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Obstacles to Tag</h3>
+            <p>Make sure to tag these common obstacle types in your game:</p>
+            <ul>
+                <li><strong>Traffic Cones</strong> — Both single and grouped variants</li>
+                <li><strong>Roadworks Barriers</strong> — Construction barriers</li>
+                <li><strong>Other hazards</strong> — Any object the player should avoid</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Step 5: Collision Detection -->
+    <section class="content-section" id="step5">
+        <div class="step-badge reveal">
+            <span class="step-num">05</span>
+            <div class="step-info">
+                <h2>COLLISION DETECTION</h2>
+                <span>Detecting when player hits obstacles</span>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>OnControllerColliderHit Method</h3>
+            <p>Since we're using a <strong>CharacterController</strong> (not a Rigidbody), we use Unity's special collision callback method: <code>OnControllerColliderHit</code>. This method is automatically called whenever the CharacterController collides with another collider.</p>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Add to PlayerController Script</h3>
+            <p>Open your PlayerController script and add this method (it goes outside of Start and Update, like any other method):</p>
+            
+            <div class="code-container">
+                <div class="code-toolbar">
+                    <span class="code-lang">PlayerController.cs - Collision Detection</span>
+                    <button class="copy-code" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-body">
+<pre><span class="cmt">// Called when CharacterController hits a collider</span>
+<span class="kw">void</span> <span class="fn">OnControllerColliderHit</span>(<span class="type">ControllerColliderHit</span> hit)
+{
+    <span class="cmt">// Check if we hit an obstacle</span>
+    <span class="kw">if</span> (hit.transform.tag == <span class="str">"Obstacle"</span>)
+    {
+        <span class="cmt">// Trigger game over state</span>
+        <span class="type">PlayerManager</span>.gameOver = <span class="kw">true</span>;
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Understanding the Code</h3>
+            <p><strong>ControllerColliderHit hit</strong> — This parameter contains all the information about what we collided with: the transform, collider, point of contact, and more.</p>
+            
+            <p><strong>hit.transform.tag</strong> — We access the tag of the object we hit. If it matches "Obstacle", we know the player ran into something they shouldn't have!</p>
+            
+            <p><strong>PlayerManager.gameOver = true</strong> — We set the static variable to true. The PlayerManager's Update method will detect this change and trigger the game over sequence.</p>
+        </div>
+
+        <div class="diagram-box reveal">
+            <svg width="500" height="180" viewBox="0 0 500 180">
+                <text x="250" y="25" fill="#fff" font-family="Bebas Neue" font-size="18" text-anchor="middle" letter-spacing="2">COLLISION FLOW</text>
+                
+                <!-- Player -->
+                <rect x="30" y="60" width="80" height="80" fill="#5ac8fa" rx="8"/>
+                <text x="70" y="105" fill="#000" font-family="Exo 2" font-size="12" text-anchor="middle">Player</text>
+                
+                <!-- Arrow -->
+                <line x1="110" y1="100" x2="150" y2="100" stroke="#ff9500" stroke-width="3"/>
+                <polygon points="150,95 165,100 150,105" fill="#ff9500"/>
+                
+                <!-- Obstacle -->
+                <rect x="165" y="60" width="80" height="80" fill="#ff2d55" rx="8"/>
+                <text x="205" y="100" fill="#fff" font-family="Exo 2" font-size="11" text-anchor="middle">Obstacle</text>
+                <text x="205" y="115" fill="rgba(255,255,255,0.6)" font-family="Fira Code" font-size="9" text-anchor="middle">tag="Obstacle"</text>
+                
+                <!-- Arrow -->
+                <line x1="245" y1="100" x2="285" y2="100" stroke="#ff9500" stroke-width="3"/>
+                <polygon points="285,95 300,100 285,105" fill="#ff9500"/>
+                
+                <!-- Script -->
+                <rect x="300" y="60" width="100" height="80" fill="#2d2d2d" stroke="#30d158" stroke-width="2" rx="8"/>
+                <text x="350" y="95" fill="#30d158" font-family="Fira Code" font-size="10" text-anchor="middle">gameOver</text>
+                <text x="350" y="110" fill="#30d158" font-family="Fira Code" font-size="10" text-anchor="middle">= true</text>
+                
+                <!-- Arrow -->
+                <line x1="400" y1="100" x2="440" y2="100" stroke="#ff9500" stroke-width="3"/>
+                <polygon points="440,95 455,100 440,105" fill="#ff9500"/>
+                
+                <!-- UI -->
+                <rect x="455" y="75" width="40" height="50" fill="rgba(255,45,85,0.3)" stroke="#ff2d55" stroke-width="2" rx="4"/>
+                <text x="475" y="105" fill="#ff2d55" font-family="Exo 2" font-size="9" text-anchor="middle">UI</text>
+            </svg>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/QJ0BWpN7ydI" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+    </section>
+
+    <!-- Step 6: Button Events -->
+    <section class="content-section" id="step6">
+        <div class="step-badge reveal">
+            <span class="step-num">06</span>
+            <div class="step-info">
+                <h2>BUTTON EVENTS</h2>
+                <span>Wiring up replay and quit functionality</span>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Create the Events Script</h3>
+            <p>We need a script to handle button click events. Create a new C# script called <strong>"Events"</strong> and attach it to an empty GameObject also named "Events".</p>
+            
+            <div class="code-container">
+                <div class="code-toolbar">
+                    <span class="code-lang">Events.cs</span>
+                    <button class="copy-code" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-body">
+<pre><span class="kw">using</span> UnityEngine;
+<span class="kw">using</span> UnityEngine.SceneManagement;
+
+<span class="kw">public class</span> <span class="type">Events</span> : <span class="type">MonoBehaviour</span>
+{
+    <span class="cmt">// Called when Replay button is clicked</span>
+    <span class="kw">public void</span> <span class="fn">ReplayGame</span>()
+    {
+        <span class="cmt">// Reset time scale (was set to 0 on game over)</span>
+        <span class="type">Time</span>.timeScale = <span class="num">1</span>;
+        
+        <span class="cmt">// Reset game over state</span>
+        <span class="type">PlayerManager</span>.gameOver = <span class="kw">false</span>;
+        
+        <span class="cmt">// Reload the current scene</span>
+        <span class="type">SceneManager</span>.<span class="fn">LoadScene</span>(<span class="str">"Level"</span>);
+    }
+    
+    <span class="cmt">// Called when Quit button is clicked</span>
+    <span class="kw">public void</span> <span class="fn">QuitGame</span>()
+    {
+        <span class="cmt">// Exit the application</span>
+        <span class="type">Application</span>.<span class="fn">Quit</span>();
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Understanding the Code</h3>
+            <p><strong>using UnityEngine.SceneManagement</strong> — This namespace is required to use scene loading functions.</p>
+            
+            <p><strong>Time.timeScale = 1</strong> — We reset time to normal speed before reloading. If we don't do this, the new scene will also be paused!</p>
+            
+            <p><strong>SceneManager.LoadScene("Level")</strong> — This reloads the scene by name. Make sure "Level" matches your actual scene name exactly.</p>
+            
+            <p><strong>Application.Quit()</strong> — Exits the game. Note: This only works in a built game, not in the Unity Editor.</p>
+        </div>
+
+        <div class="alert alert-warning reveal">
+            <svg class="alert-icon" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            <div class="alert-content">
+                <h4>Critical: Reset Time Scale</h4>
+                <p>Always reset Time.timeScale to 1 before loading a new scene! Otherwise, your reloaded game will be frozen because timeScale is still 0.</p>
+            </div>
+        </div>
+
+        <div class="content-block reveal">
+            <h3>Connect Buttons to Events</h3>
+            <p>Now we wire up the UI buttons to call these methods:</p>
+            
+            <ol>
+                <li>Select the <strong>ReplayButton</strong> in the Hierarchy</li>
+                <li>In the Inspector, find the <strong>OnClick()</strong> section</li>
+                <li>Click the <strong>+</strong> button to add an event</li>
+                <li>Drag the <strong>Events</strong> GameObject into the object field</li>
+                <li>Click the dropdown and select <strong>Events → ReplayGame</strong></li>
+            </ol>
+
+            <p>Repeat the same process for the QuitButton, but select <strong>Events → QuitGame</strong> instead.</p>
+        </div>
+
+        <div class="diagram-box reveal">
+            <svg width="450" height="150" viewBox="0 0 450 150">
+                <text x="225" y="25" fill="#fff" font-family="Bebas Neue" font-size="16" text-anchor="middle" letter-spacing="2">BUTTON EVENT WIRING</text>
+                
+                <!-- Replay Button -->
+                <rect x="30" y="50" width="100" height="40" fill="#5ac8fa" rx="6"/>
+                <text x="80" y="75" fill="#000" font-family="Exo 2" font-size="12" text-anchor="middle" font-weight="600">REPLAY</text>
+                
+                <line x1="130" y1="70" x2="180" y2="70" stroke="#30d158" stroke-width="2" stroke-dasharray="5,3"/>
+                <polygon points="180,65 195,70 180,75" fill="#30d158"/>
+                
+                <!-- Events Script -->
+                <rect x="195" y="45" width="120" height="50" fill="#2d2d2d" stroke="#30d158" stroke-width="2" rx="8"/>
+                <text x="255" y="67" fill="#30d158" font-family="Fira Code" font-size="10" text-anchor="middle">ReplayGame()</text>
+                <text x="255" y="82" fill="#666" font-family="Fira Code" font-size="9" text-anchor="middle">Events.cs</text>
+                
+                <!-- Quit Button -->
+                <rect x="30" y="100" width="100" height="40" fill="#2d2d2d" stroke="#666" stroke-width="2" rx="6"/>
+                <text x="80" y="125" fill="#fff" font-family="Exo 2" font-size="12" text-anchor="middle" font-weight="600">QUIT</text>
+                
+                <line x1="130" y1="120" x2="180" y2="120" stroke="#ff2d55" stroke-width="2" stroke-dasharray="5,3"/>
+                <polygon points="180,115 195,120 180,125" fill="#ff2d55"/>
+                
+                <!-- Events Script 2 -->
+                <rect x="195" y="95" width="120" height="50" fill="#2d2d2d" stroke="#ff2d55" stroke-width="2" rx="8"/>
+                <text x="255" y="117" fill="#ff2d55" font-family="Fira Code" font-size="10" text-anchor="middle">QuitGame()</text>
+                <text x="255" y="132" fill="#666" font-family="Fira Code" font-size="9" text-anchor="middle">Events.cs</text>
+                
+                <!-- Results -->
+                <line x1="315" y1="70" x2="360" y2="70" stroke="#30d158" stroke-width="2"/>
+                <text x="410" y="75" fill="#30d158" font-family="Exo 2" font-size="11" text-anchor="middle">Reload Scene</text>
+                
+                <line x1="315" y1="120" x2="360" y2="120" stroke="#ff2d55" stroke-width="2"/>
+                <text x="400" y="125" fill="#ff2d55" font-family="Exo 2" font-size="11" text-anchor="middle">Exit Game</text>
+            </svg>
+        </div>
+
+        <!-- Video Placeholder -->
+        <div class="video-aspect">
+    <iframe 
+        src="https://www.youtube.com/embed/HavfsNt5HKA" 
+        title="Complete Demo" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </iframe>
+</div>   
+
+        <div class="content-block reveal">
+            <h3>Test the Complete System</h3>
+            <ol>
+                <li>Make sure the GameOverPanel is <strong>deactivated</strong></li>
+                <li>Press <strong>Play</strong> in Unity</li>
+                <li>Move around until you hit an obstacle</li>
+                <li>The game should freeze and show the Game Over panel</li>
+                <li>Click <strong>Replay</strong> to restart the game</li>
+                <li>The game reloads and you can play again!</li>
+            </ol>
+
+            <div class="alert alert-success reveal">
+                <svg class="alert-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <div class="alert-content">
+                    <h4>Congratulations!</h4>
+                    <p>You've successfully implemented a complete game over system with collision detection, UI management, and scene reloading!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary-section" id="summary">
+        <div class="section-title">
+            <h2> Game COMPLETE</h2>
+            <p>You've built a complete game over system!</p>
+        </div>
+        
+        <div class="summary-grid">
+            <div class="summary-card reveal">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                </div>
+                <h3>Bug Fixing</h3>
+                <p>CharacterController collision fix</p>
+            </div>
+            
+            <div class="summary-card reveal">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </div>
+                <h3>UI Design</h3>
+                <p>Panel, buttons & text layout</p>
+            </div>
+            
+            <div class="summary-card reveal">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <h3>State Management</h3>
+                <p>Static variables & game states</p>
+            </div>
+            
+            <div class="summary-card reveal">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v8M8 12h8"/>
+                    </svg>
+                </div>
+                <h3>Scene Management</h3>
+                <p>Reload & quit functionality</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>MAC280 Game Programming • <a href="#">LaGuardia Community College</a></p>
+        <p style="margin-top: 0.5rem; opacity: 0.6;">Next: Score System & Coin Collection</p>
+    </footer>
+
+    <script>
+        // Progress bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressFill').style.width = scrolled + '%';
+        });
+
+        // Scroll reveal animations
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '-50px' });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Smooth scroll to section
+        function scrollTo(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-container');
+            const code = codeBlock.querySelector('pre').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = '#30d158';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Demo buttons
+        function demoReplay() {
+            const demo = document.querySelector('.game-over-demo');
+            demo.style.animation = 'none';
+            demo.offsetHeight; // Trigger reflow
+            demo.style.animation = 'panelAppear 0.5s ease';
+        }
+
+        function demoQuit() {
+            alert('In a real build, this would close the application!');
+        }
+
+        // Nav pill active state
+        const navPills = document.querySelectorAll('.nav-pill');
+        window.addEventListener('scroll', () => {
+            let current = 'hero';
+            document.querySelectorAll('section[id]').forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 150) {
+                    current = section.id;
+                }
+            });
+            
+            navPills.forEach(pill => {
+                pill.classList.remove('active');
+                if (pill.getAttribute('href') === '#' + current) {
+                    pill.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
